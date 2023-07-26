@@ -2,8 +2,8 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <groupId>com.cepro.emlite</groupId>
     <artifactId>emlite-api</artifactId>
-    <groupId>com.cepro.emlite.api</groupId>
     <version>0.1.0</version>
     <name>Cepro Emlite API</name>
     <properties>
@@ -13,6 +13,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <build.date>${maven.build.timestamp}</build.date>
         <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
+        <blinkhublib.version>0.19.0</blinkhublib.version>
     </properties>
 
     <dependencyManagement>
@@ -31,17 +32,12 @@
         <dependency>
             <groupId>com.blinkhub</groupId>
             <artifactId>blinkhublib-codec</artifactId>
-            <version>0.18.1-SNAPSHOT</version>
+            <version>${blinkhublib.version}</version>
         </dependency>
         <dependency>
             <groupId>com.blinkhub</groupId>
             <artifactId>blinkhublib-util</artifactId>
-            <version>0.18.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.simtricity</groupId>
-            <artifactId>simtricity-core</artifactId>
-            <version>0.8.1-SNAPSHOT</version>
+            <version>${blinkhublib.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
