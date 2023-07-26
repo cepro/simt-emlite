@@ -13,4 +13,12 @@
         <module>emlite-api</module>
         <module>mediator</module>
     </modules>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages - blinkhublib</name>
+            <url>https://maven.pkg.github.com/cepro/blinkhublib</url>
+        </repository>
+    </distributionManagement>
 </project>

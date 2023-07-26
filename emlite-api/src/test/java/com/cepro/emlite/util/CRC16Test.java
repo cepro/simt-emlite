@@ -13,14 +13,14 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("unused")
 public class CRC16Test {
 
-    private static final Logger log = LoggerFactory.getLogger(CRC16Test.class);
+    private static final Logger log = LoggerFactory.getLogger(CRC16.class);
 
     @Test
     public void testEmlite() {
         CRC16 emliteCRC = new CRC16(CRC16.CCITT_BE, ByteOrder.BIG_ENDIAN, true, false);
         for (byte[][] pp : SampleEmliteSession.SESSION) {
             for (byte[] p : pp) {
-                assert (emliteCRC.validate(p, 1, p.length - 1));
+                assertTrue(emliteCRC.validate(p, 1, p.length - 1));
                 // short expected = NumberUtils.decodeShort(p, p.length-2, 2);
                 // short crc = CRC16.calculateCCITT(p, 1, p.length-3);
                 // assertEquals(expected, crc);
