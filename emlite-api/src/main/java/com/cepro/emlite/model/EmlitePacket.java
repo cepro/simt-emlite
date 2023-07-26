@@ -3,13 +3,14 @@ package com.cepro.emlite.model;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.Format;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.blinkhub.lib.codec.AbstractEncodableCodec;
 import com.blinkhub.lib.codec.Codec;
 import com.blinkhub.lib.codec.Encodable;
+import com.blinkhub.lib.util.Format;
 import com.blinkhub.lib.util.NumberUtils;
 import com.cepro.emlite.util.CRC16;
 
