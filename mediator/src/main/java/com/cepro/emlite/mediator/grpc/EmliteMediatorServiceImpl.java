@@ -1,4 +1,4 @@
-package com.cepro.mediator.emlite.grpc;
+package com.cepro.emlite.mediator.grpc;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -10,6 +10,15 @@ import org.slf4j.LoggerFactory;
 import com.cepro.emlite.EmliteAPI;
 import com.cepro.emlite.EmliteAPIImpl;
 import com.cepro.emlite.EmliteChannel;
+import com.cepro.mediator.emlite.grpc.EmliteMediatorServiceGrpc;
+import com.cepro.mediator.emlite.grpc.GetFirmwareVersionReply;
+import com.cepro.mediator.emlite.grpc.GetFirmwareVersionRequest;
+import com.cepro.mediator.emlite.grpc.GetHardwareVersionReply;
+import com.cepro.mediator.emlite.grpc.GetHardwareVersionRequest;
+import com.cepro.mediator.emlite.grpc.GetSerialReply;
+import com.cepro.mediator.emlite.grpc.GetSerialRequest;
+import com.cepro.mediator.emlite.grpc.SendMessageReply;
+import com.cepro.mediator.emlite.grpc.SendMessageRequest;
 import com.google.protobuf.ByteString;
 
 import io.grpc.Status;

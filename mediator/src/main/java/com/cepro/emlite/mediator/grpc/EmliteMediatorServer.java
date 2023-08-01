@@ -1,4 +1,4 @@
-package com.cepro.mediator.emlite.grpc;
+package com.cepro.emlite.mediator.grpc;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;

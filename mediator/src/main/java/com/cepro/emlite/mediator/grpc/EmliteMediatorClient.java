@@ -1,10 +1,19 @@
-package com.cepro.mediator.emlite.grpc;
+package com.cepro.emlite.mediator.grpc;
 
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.cepro.mediator.emlite.grpc.EmliteMediatorServiceGrpc;
+import com.cepro.mediator.emlite.grpc.GetFirmwareVersionReply;
+import com.cepro.mediator.emlite.grpc.GetFirmwareVersionRequest;
+import com.cepro.mediator.emlite.grpc.GetHardwareVersionReply;
+import com.cepro.mediator.emlite.grpc.GetHardwareVersionRequest;
+import com.cepro.mediator.emlite.grpc.GetSerialReply;
+import com.cepro.mediator.emlite.grpc.GetSerialRequest;
+import com.cepro.mediator.emlite.grpc.SendMessageReply;
+import com.cepro.mediator.emlite.grpc.SendMessageRequest;
 import com.google.protobuf.ByteString;
 
 import io.grpc.Channel;

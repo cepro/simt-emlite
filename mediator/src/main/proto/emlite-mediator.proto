@@ -43,6 +43,10 @@ message SendMessageRequest {
   //   - rw - 1 byte
   //   - payload - variable length bytes
   bytes dataFrame = 1;
+  
+  // NOTE: following ip and port to be replaced by a device id soon:   
+  string deviceIp = 2;
+  int16 devicePort = 3;
 }
 
 message SendMessageReply {
