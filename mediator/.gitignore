@@ -1,8 +1,0 @@
-/target/
-
-# vscode generating these because it's using headless eclipse internally:
-.classpath
-.factorypath
-.project
-.settings/
-extractor/
