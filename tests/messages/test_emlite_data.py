@@ -1,0 +1,18 @@
+import unittest
+
+from emlite.messages.emlite_data import EmliteData
+from kaitaistruct import KaitaiStream, BytesIO
+
+class TestEmliteDataField(unittest.TestCase):
+    def test_deserialise(self):
+        # 7E15C06F0093000018B0010100020100333032309DBD
+        data_hex = "010002010033303230"
+        data_bytes = bytearray.fromhex(data_hex)
+        
+        data = EmliteData(len(data_bytes), KaitaiStream(BytesIO(data_bytes)))
+        data._read()
+
+        self.assertEqual(data.len_data, len(data_bytes))
+        self.assertEqual(data.read_write, EmliteData.ReadWriteFlags.read)
+        self.assertEqual(data.format, b'\x01')
+        self.assertEqual(data.payload, data_bytes[5:])
