@@ -15,7 +15,6 @@ class TestEmliteFrame(unittest.TestCase):
         
         frame = EmliteFrame(KaitaiStream(BytesIO(frame_bytes)))
         frame._read()
-        print(frame)
         frame_len = len(frame_bytes) - 1
 
         self.assertEqual(frame.frame_delimeter, b'\x7e')
