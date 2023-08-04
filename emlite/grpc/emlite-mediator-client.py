@@ -1,5 +1,6 @@
 import logging
 import grpc
+import sys
 
 from .generated.emlite_mediator_pb2 import SendMessageRequest
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceStub
@@ -15,12 +16,19 @@ def send_message(stub, message):
     except grpc.RpcError as e:
         logger.error('send message failed: [%s] (code: %s)', e.details(), e.code())
 
-def run():
-    with grpc.insecure_channel('localhost:50051') as channel:
+def run(mediator_address):
+    with grpc.insecure_channel(mediator_address) as channel:
         stub = EmliteMediatorServiceStub(channel)
         message = bytes.fromhex('7E110000000080D1C2480001600100001C32')
         send_message(stub, message)
 
 if __name__ == '__main__':
+    if (len(sys.argv) == 1):
+        print('Usage: emlite-mediator-client <port of mediator on host>')
+        exit()
+    
     logging.basicConfig()
-    run()
+    mediator_port = sys.argv[1]
+    mediator_address = f"localhost:{mediator_port}"
+    print(mediator_address)
+    run(mediator_address)

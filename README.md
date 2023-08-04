@@ -32,14 +32,30 @@ python -m unittest discover
 
 ## Server
 
+### One mediator from Python
+
 ```
-python -m emlite.grpc.emlite-mediator-server
+MLITE_HOST=100.79.244.89 -e EMLITE_PORT=8080 python -m emlite.grpc.emlite-mediator-server
+```
+
+### One mediator from Docker
+
+```
+docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 -e EMLITE_PORT=8080 mediator-beta
+```
+
+### Multiple mediators defined in docker-compose.yml
+
+```
+docker compose up
 ```
 
 ## Client
 
+Pass the port number of the mediator:
+
 ```
-python -m emlite.grpc.emlite-mediator-client
+python -m emlite.grpc.emlite-mediator-client 11002
 ```
 
 ## Code generation
