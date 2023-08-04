@@ -13,31 +13,30 @@ def open_socket(host, port):
     try:
         s.connect((host, port))
     except socket.error as e:
-        logger.exception("Error connecting to socket")
+        logger.error("Error connecting to socket")
         s.close()
         s = None
+        raise e
     return s
 
 def write_bytes(s, data):
     try:
         s.send(data)
     except socket.error as e:
-        logger.exception("Error writing to socket")
+        logger.error("Error writing to socket")
+        raise e
 
 def read_bytes(s, num_bytes):
     try:
         return s.recv(num_bytes)
     except socket.error as e:
-        logger.exception("Error reading from socket")
-        return b''
+        logger.error("Error reading from socket")
+        raise e
 
 def send_raw_message(host, port, req_bytes):
     logger.info("connecting to %s:%s", host, port)
 
     s = open_socket(host, port)
-    if s is None:
-        logger.error("No socket available")
-        exit()
 
     logger.info("sending: [%s]", req_bytes.hex())
     write_bytes(s, req_bytes)

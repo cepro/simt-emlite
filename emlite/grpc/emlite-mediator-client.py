@@ -4,9 +4,16 @@ import grpc
 from .generated.emlite_mediator_pb2 import SendMessageRequest
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceStub
 
+FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
+logging.basicConfig(format=FORMAT, level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def send_message(stub, message):
-    rsp = stub.sendMessage(SendMessageRequest(dataFrame=message))
-    print(rsp.response.hex())   
+    try:
+        rsp = stub.sendMessage(SendMessageRequest(dataFrame=message))
+        logger.info('got serial %s', rsp.response.decode('ascii'))   
+    except grpc.RpcError as e:
+        logger.error('send message failed: [%s] (code: %s)', e.details(), e.code())
 
 def run():
     with grpc.insecure_channel('localhost:50051') as channel:
