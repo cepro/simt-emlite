@@ -1,0 +1,28 @@
+import unittest
+
+from emlite.messages.emlite_response import EmliteResponse
+from kaitaistruct import KaitaiStream, BytesIO
+
+class TestEmliteResponse(unittest.TestCase):
+    def test_serial(self):
+        response_hex = "454d4c32313337353830373631202020"
+        response = self._deserialize(EmliteResponse.ObjectIdType.serial, response_hex)
+        self.assertEqual(response.serial.strip(), 'EML2137580761')
+
+    def test_time(self):
+        response_hex = "17080615000100"
+        response = self._deserialize(EmliteResponse.ObjectIdType.time, response_hex)
+        self.assertEqual(response.year, 23)
+        self.assertEqual(response.month, 8)
+        self.assertEqual(response.date, 6)
+        self.assertEqual(response.hour, 21)
+        self.assertEqual(response.minute, 0)
+        self.assertEqual(response.second, 1)
+        self.assertEqual(response.day_of_week, EmliteResponse.DayOfWeekType.monday)
+
+    def _deserialize(self, object_id, response_hex):
+        rsp_bytes = bytearray.fromhex(response_hex)
+        data = EmliteResponse(len(rsp_bytes), object_id, KaitaiStream(BytesIO(rsp_bytes)))
+        data._read()
+        return data.response
+        

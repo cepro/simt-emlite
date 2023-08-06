@@ -34,7 +34,7 @@ class EmliteAPI:
         frame._read()
         logger.info("frame: [%s]", frame)
 
-        return frame.data.payload 
+        return frame.data.payload
 
     def read_element(self, object_id):
         data_field = self._build_data_field(object_id)

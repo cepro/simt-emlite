@@ -18,32 +18,6 @@ class EmliteData(ReadWriteKaitaiStruct):
     class ReadWriteFlags(Enum):
         read = 0
         write = 1
-
-    class ObjectIdType(Enum):
-        firmware_version = 513
-        instantaneous_active_power = 67328
-        total_active_import_energy = 67584
-        total_active_export_energy = 133120
-        instantaneous_reactive_power = 198400
-        instantaneous_current = 722688
-        average_current = 727040
-        instantaneous_voltage = 788224
-        average_voltage = 792576
-        instantaneous_power_factor = 853760
-        instantaneous_frequency = 919296
-        average_frequency = 923648
-        element_a_instantaneous_active_power_import = 1378048
-        element_b_instantaneous_active_power_import = 2688768
-        serial = 6291712
-        hardware_version = 6324224
-        time = 8390656
-        three_phase_read = 14091786
-        three_phase_initiate_read = 14092812
-        three_phase_serial = 14155536
-        prepay_balance = 16762882
-        prepay_enabled_flag = 16776973
-        element_b = 16777208
-        element_a = 16777212
     def __init__(self, len_data, _io=None, _parent=None, _root=None):
         self._io = _io
         self._parent = _parent

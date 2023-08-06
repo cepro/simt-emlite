@@ -31,10 +31,11 @@ def run(mediator_address):
     with grpc.insecure_channel(mediator_address) as channel:
         stub = EmliteMediatorServiceStub(channel)
 
-        message = bytes.fromhex('0160010000')
-        send_message(stub, message)
+        # message = bytes.fromhex('0160010000')
+        # send_message(stub, message)
 
         # read_element(stub, ObjectId.SERIAL)
+        read_element(stub, ObjectId.TIME)
 
 if __name__ == '__main__':
     if (len(sys.argv) == 1):
