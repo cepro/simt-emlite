@@ -11,8 +11,8 @@ class EmliteNET:
         self.port = int(port)
 
     def send_message(self, req_bytes):
+        sock = self._open_socket()
         try:
-            sock = self._open_socket()
             logger.info("sending: [%s]", req_bytes.hex())
             self._write_bytes(sock, req_bytes)
             rsp_bytes = self._read_bytes(sock, 128)
