@@ -19,10 +19,15 @@ class EmliteAPI:
         self.net = emlite_net.EmliteNET(host, port)
 
     def send_message(self, req_data_field_bytes):
+        return self.send_message_from_bytes(req_data_field_bytes)
+    
+    def send_message_from_bytes(self, req_data_field_bytes):
         data_field = emlite_data.EmliteData(len(req_data_field_bytes), KaitaiStream(BytesIO(req_data_field_bytes)))
         data_field._read()
+        return self.send_message_from_instance(data_field)
 
-        req_bytes = self._build_frame(data_field)
+    def send_message_from_instance(self, req_data_field):
+        req_bytes = self._build_frame(req_data_field)
         rsp_bytes = self.net.send_message(req_bytes)
 
         frame = emlite_frame.EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
@@ -32,8 +37,8 @@ class EmliteAPI:
         return frame.data.payload 
 
     def read_element(self, object_id):
-        data_field_bytes = self._build_data(object_id)
-        payload_bytes = self.send_message(data_field_bytes)
+        data_field = self._build_data_field(object_id)
+        payload_bytes = self.send_message_from_instance(data_field)
         logger.info("payload: [%s]", payload_bytes.hex())
         return payload_bytes
 

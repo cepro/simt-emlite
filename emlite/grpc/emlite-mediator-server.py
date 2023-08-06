@@ -20,7 +20,7 @@ import os
 
 from emlite.api.emlite_api import EmliteAPI
 
-from .generated.emlite_mediator_pb2 import SendRawMessageReply
+from .generated.emlite_mediator_pb2 import ReadElementReply, SendRawMessageReply
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
@@ -45,6 +45,19 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details("network failure or internal error")
             return SendRawMessageReply()
+
+    def readElement(self, request, context):
+        object_id_bytes = request.objectId.to_bytes(3, byteorder='big')
+        logger.info('readElement: object_id=[0x%s]', object_id_bytes.hex())
+        try:
+            rsp_payload = self.api.read_element(object_id_bytes)
+            logger.info('readElement: response=[%s]', rsp_payload.hex())
+            return ReadElementReply(response=rsp_payload)
+        except Exception as e:
+            logger.exception('readElement failed %s', e)
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details("network failure or internal error")
+            return ReadElementReply()
 
 def serve():
     if (emliteHost is None or emlitePort is None):
