@@ -18,9 +18,9 @@ import logging
 import grpc
 import os
 
-from emlite.api.emlite_api import send_raw_message
+from emlite.api.emlite_api import EmliteAPI
 
-from .generated.emlite_mediator_pb2 import SendMessageReply
+from .generated.emlite_mediator_pb2 import SendRawMessageReply
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
@@ -31,18 +31,20 @@ emliteHost = os.environ.get('EMLITE_HOST')
 emlitePort = os.environ.get('EMLITE_PORT')
 
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
+    def __init__(self, host, port):
+        self.api = EmliteAPI(host, port)
 
-    def sendMessage(self, request, context):
-        logger.info('sendMessage: received=[%s]', request.dataFrame.hex())
+    def sendRawMessage(self, request, context):
+        logger.info('sendRawMessage: received=[%s]', request.dataField.hex())
         try:
-            rsp_payload = send_raw_message(emliteHost, int(emlitePort), request.dataFrame)
-            logger.info('sendMessage: response=[%s]', rsp_payload.hex())
-            return SendMessageReply(response=rsp_payload)
+            rsp_payload = self.api.send_message(request.dataField)
+            logger.info('sendRawMessage: response=[%s]', rsp_payload.hex())
+            return SendRawMessageReply(response=rsp_payload)
         except Exception as e:
-            logger.error('sendMessage failed %s', e)
+            logger.exception('sendRawMessage failed %s', e)
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details("network failure or internal error")
-            return SendMessageReply()
+            return SendRawMessageReply()
 
 def serve():
     if (emliteHost is None or emlitePort is None):
@@ -55,7 +57,7 @@ def serve():
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=5))
     add_EmliteMediatorServiceServicer_to_server(
-        EmliteMediatorServicer(), server)
+        EmliteMediatorServicer(emliteHost, emlitePort), server)
     
     server.add_insecure_port(f'[::]:{port}')
     server.start()

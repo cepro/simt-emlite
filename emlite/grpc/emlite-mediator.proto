@@ -3,43 +3,61 @@ syntax = "proto3";
 package mediator;
 
 service EmliteMediatorService {
-//   rpc getSerial (GetSerialRequest) returns (GetSerialReply) {}
-//   rpc getHardwareVersion (GetHardwareVersionRequest) returns (GetHardwareVersionReply) {}
-//   rpc getFirmwareVersion (GetFirmwareVersionRequest) returns (GetFirmwareVersionReply) {}
-  rpc sendMessage (SendMessageRequest) returns (SendMessageReply) {}
+  rpc sendRawMessage (SendRawMessageRequest) returns (SendRawMessageReply) {}
+  rpc readElement (ReadElementRequest) returns (ReadElementReply) {}
 }
 
-// message GetSerialRequest {
-// }
-
-// message GetSerialReply {
-//   string serial = 1;
-// }
-
-// message GetFirmwareVersionRequest {
-// }
-
-// message GetFirmwareVersionReply {
-//   string version = 1;
-// }
-
-// message GetHardwareVersionRequest {
-// }
-
-// message GetHardwareVersionReply {
-//   string version = 1;
-// }
-
-message SendMessageRequest {
-  // The data frame part of an EMOP message as defined in section 1.2.6 of the
+message SendRawMessageRequest {
+  // The data field part of an EMOP message as defined in section 1.2.6 of the
   // "EMOP EM-Lite Object Protocol" version 1.7:
   //   - format - 1 byte
   //   - object id - 3 bytes
   //   - rw - 1 byte
   //   - payload - variable length bytes
-  bytes dataFrame = 1;
+  bytes dataField = 1;
 }
 
-message SendMessageReply {
+message SendRawMessageReply {
+  bytes response = 1;
+}
+
+// See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
+// See "Meter and Smart Module Obis Commands"
+enum ObjectId {
+  DEFAULT = 0; // default is required https://protobuf.dev/programming-guides/proto3/#enum
+  FIRMWARE_VERSION = 513;
+  INSTANTANEOUS_ACTIVE_POWER = 67328;
+  TOTAL_ACTIVE_IMPORT_ENERGY = 67584;
+  TOTAL_ACTIVE_EXPORT_ENERGY = 133120;
+  INSTANTANEOUS_REACTIVE_POWER = 198400;
+  INSTANTANEOUS_CURRENT = 722688;
+  AVERAGE_CURRENT = 727040;
+  INSTANTANEOUS_VOLTAGE = 788224;
+  AVERAGE_VOLTAGE = 792576;
+  INSTANTANEOUS_POWER_FACTOR = 853760;
+  INSTANTANEOUS_FREQUENCY = 919296;
+  AVERAGE_FREQUENCY = 923648;
+  ELEMENT_A_INSTANTANEOUS_ACTIVE_POWER_IMPORT = 1378048;
+  ELEMENT_B_INSTANTANEOUS_ACTIVE_POWER_IMPORT = 2688768;
+  SERIAL = 6291712;
+  HARDWARE_VERSION = 6324224;
+  TIME = 8390656;
+  THREE_PHASE_READ = 14091786;
+  THREE_PHASE_INITIATE_READ = 14092812;
+  THREE_PHASE_SERIAL = 14155536;
+  PREPAY_BALANCE = 16762882;
+  PREPAY_ENABLED_FLAG = 16776973;
+  ELEMENT_B = 16777208;
+  ELEMENT_A = 16777212;
+}
+
+message ReadElementRequest {
+  // Request the data for a given 3 byte Object Id.
+  // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
+  ObjectId objectId = 1;
+}
+
+message ReadElementReply {
+  // variable format response depending on which objectId was sent in the request
   bytes response = 1;
 }

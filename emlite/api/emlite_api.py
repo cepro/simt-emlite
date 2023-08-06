@@ -1,63 +1,90 @@
-import socket
+import crcmod.predefined 
 import logging
 
-from ..messages import emlite_frame
 from kaitaistruct import KaitaiStream, BytesIO
+
+from ..messages import emlite_data
+from ..messages import emlite_frame
+
+from . import emlite_net
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def open_socket(host, port):
-    s = socket.socket()
-    try:
-        s.connect((host, port))
-    except socket.error as e:
-        logger.error("Error connecting to socket")
-        s.close()
-        s = None
-        raise e
-    return s
+crc16 = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
-def write_bytes(s, data):
-    try:
-        s.send(data)
-    except socket.error as e:
-        logger.error("Error writing to socket")
-        raise e
+class EmliteAPI:
+    def __init__(self, host, port):
+        self.net = emlite_net.EmliteNET(host, port)
 
-def read_bytes(s, num_bytes):
-    try:
-        return s.recv(num_bytes)
-    except socket.error as e:
-        logger.error("Error reading from socket")
-        raise e
+    def send_message(self, req_data_field_bytes):
+        data_field = emlite_data.EmliteData(len(req_data_field_bytes), KaitaiStream(BytesIO(req_data_field_bytes)))
+        data_field._read()
 
-def send_raw_message(host, port, req_bytes):
-    logger.info("connecting to %s:%s", host, port)
+        req_bytes = self._build_frame(data_field)
+        rsp_bytes = self.net.send_message(req_bytes)
 
-    s = open_socket(host, port)
+        frame = emlite_frame.EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
+        frame._read()
+        logger.info("frame: [%s]", frame)
 
-    logger.info("sending: [%s]", req_bytes.hex())
-    write_bytes(s, req_bytes)
-    rsp_bytes = read_bytes(s, 128)
-    
-    s.close()
+        return frame.data.payload 
 
-    logger.info("received: [%s]", rsp_bytes.hex())
+    def read_element(self, object_id):
+        data_field_bytes = self._build_data(object_id)
+        payload_bytes = self.send_message(data_field_bytes)
+        logger.info("payload: [%s]", payload_bytes.hex())
+        return payload_bytes
 
-    frame = emlite_frame.EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
-    frame._read()
+    def _build_data_field(self, object_id, read_write_flag = emlite_data.EmliteData.ReadWriteFlags.read, payload = bytes()):
+        data_field = emlite_data.EmliteData(5 + len(payload))
+        data_field.format = b'\x01'
+        data_field.object_id = object_id
+        data_field.read_write = read_write_flag
+        data_field.payload = payload
+        return data_field
 
-    logger.info("frame: [%s]", frame)
+    def _build_frame(self, data_field):
+        req_frame = emlite_frame.EmliteFrame()
+        
+        req_frame.frame_delimeter = b'\x7e' 
+        # TODO: use an incremented sequence number here (bits 0..2)
+        req_frame.control = 5
+        req_frame.destination_device_type = b'\x00'
+        req_frame.destination_address = b'\x00\x00\x00'
+        req_frame.source_device_type = b'\x00'
+        req_frame.source_address = int(2207298).to_bytes(3, byteorder='big')
 
-    return frame.data.payload 
+        req_frame.data = data_field
+        
+        # 17 for all fields NOT including the optional data field payload:
+        req_frame.frame_length = 17 + len(data_field.payload)
+
+        # len of frame including delimeter
+        frame_bytes_len = req_frame.frame_length + 1
+
+        # Serialize once first to get bytes for checksum compute:
+        req_frame.crc16 = b'\x00\x00'
+        _io = KaitaiStream(BytesIO(bytearray(frame_bytes_len)))
+        req_frame._write(_io)
+        frame_bytes_zero_checksum = _io.to_byte_array()
+        
+        # add checksum
+        req_frame.crc16 = crc16(frame_bytes_zero_checksum[1:frame_bytes_len-2]).to_bytes(2)
+        
+        # compute final frame bytes
+        _io = KaitaiStream(BytesIO(bytearray(frame_bytes_len)))
+        req_frame._write(_io)
+
+        return _io.to_byte_array()
 
 if __name__ == "__main__":
     host = '100.79.244.65'
     port = 8080 
-    get_serial_req_hex = '7E110000000080D1C2480001600100001C32'
-    rsp_payload = send_raw_message(host, port, bytearray.fromhex(get_serial_req_hex))
+    api = EmliteAPI(host, port)
+
+    rsp_payload = api.read_element(emlite_data.EmliteData.ObjectIdType.serial)
     print(rsp_payload.decode('ascii'))    
 
 

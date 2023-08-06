@@ -2,8 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from .emlite_mediator_pb2 import SendMessageRequest, SendMessageReply
-
+from emlite.grpc.generated.emlite_mediator_pb2 import SendRawMessageRequest, SendRawMessageReply, ReadElementRequest, ReadElementReply
 
 class EmliteMediatorServiceStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -14,21 +13,29 @@ class EmliteMediatorServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.sendMessage = channel.unary_unary(
-                '/mediator.EmliteMediatorService/sendMessage',
-                request_serializer=SendMessageRequest.SerializeToString,
-                response_deserializer=SendMessageReply.FromString,
+        self.sendRawMessage = channel.unary_unary(
+                '/mediator.EmliteMediatorService/sendRawMessage',
+                request_serializer=SendRawMessageRequest.SerializeToString,
+                response_deserializer=SendRawMessageReply.FromString,
+                )
+        self.readElement = channel.unary_unary(
+                '/mediator.EmliteMediatorService/readElement',
+                request_serializer=ReadElementRequest.SerializeToString,
+                response_deserializer=ReadElementReply.FromString,
                 )
 
 
 class EmliteMediatorServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def sendMessage(self, request, context):
-        """rpc getSerial (GetSerialRequest) returns (GetSerialReply) {}
-        rpc getHardwareVersion (GetHardwareVersionRequest) returns (GetHardwareVersionReply) {}
-        rpc getFirmwareVersion (GetFirmwareVersionRequest) returns (GetFirmwareVersionReply) {}
-        """
+    def sendRawMessage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def readElement(self, request, context):
+        """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -36,10 +43,15 @@ class EmliteMediatorServiceServicer(object):
 
 def add_EmliteMediatorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'sendMessage': grpc.unary_unary_rpc_method_handler(
-                    servicer.sendMessage,
-                    request_deserializer=SendMessageRequest.FromString,
-                    response_serializer=SendMessageReply.SerializeToString,
+            'sendRawMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.sendRawMessage,
+                    request_deserializer=SendRawMessageRequest.FromString,
+                    response_serializer=SendRawMessageReply.SerializeToString,
+            ),
+            'readElement': grpc.unary_unary_rpc_method_handler(
+                    servicer.readElement,
+                    request_deserializer=ReadElementRequest.FromString,
+                    response_serializer=ReadElementReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -52,7 +64,7 @@ class EmliteMediatorService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def sendMessage(request,
+    def sendRawMessage(request,
             target,
             options=(),
             channel_credentials=None,
@@ -62,8 +74,25 @@ class EmliteMediatorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/mediator.EmliteMediatorService/sendMessage',
-            SendMessageRequest.SerializeToString,
-            SendMessageReply.FromString,
+        return grpc.experimental.unary_unary(request, target, '/mediator.EmliteMediatorService/sendRawMessage',
+            SendRawMessageRequest.SerializeToString,
+            SendRawMessageReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def readElement(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/mediator.EmliteMediatorService/readElement',
+            ReadElementRequest.SerializeToString,
+            ReadElementReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

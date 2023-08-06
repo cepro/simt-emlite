@@ -13,7 +13,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15\x65mlite-mediator.proto\x12\x08mediator\"\'\n\x12SendMessageRequest\x12\x11\n\tdataFrame\x18\x01 \x01(\x0c\"$\n\x10SendMessageReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\x32\x62\n\x15\x45mliteMediatorService\x12I\n\x0bsendMessage\x12\x1c.mediator.SendMessageRequest\x1a\x1a.mediator.SendMessageReply\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x15\x65mlite-mediator.proto\x12\x08mediator\"*\n\x15SendRawMessageRequest\x12\x11\n\tdataField\x18\x01 \x01(\x0c\"\'\n\x13SendRawMessageReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\":\n\x12ReadElementRequest\x12$\n\x08objectId\x18\x01 \x01(\x0e\x32\x12.mediator.ObjectId\"$\n\x10ReadElementReply\x12\x10\n\x08response\x18\x01 \x01(\x0c*\xc3\x05\n\x08ObjectId\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x15\n\x10\x46IRMWARE_VERSION\x10\x81\x04\x12 \n\x1aINSTANTANEOUS_ACTIVE_POWER\x10\x80\x8e\x04\x12 \n\x1aTOTAL_ACTIVE_IMPORT_ENERGY\x10\x80\x90\x04\x12 \n\x1aTOTAL_ACTIVE_EXPORT_ENERGY\x10\x80\x90\x08\x12\"\n\x1cINSTANTANEOUS_REACTIVE_POWER\x10\x80\x8e\x0c\x12\x1b\n\x15INSTANTANEOUS_CURRENT\x10\x80\x8e,\x12\x15\n\x0f\x41VERAGE_CURRENT\x10\x80\xb0,\x12\x1b\n\x15INSTANTANEOUS_VOLTAGE\x10\x80\x8e\x30\x12\x15\n\x0f\x41VERAGE_VOLTAGE\x10\x80\xb0\x30\x12 \n\x1aINSTANTANEOUS_POWER_FACTOR\x10\x80\x8e\x34\x12\x1d\n\x17INSTANTANEOUS_FREQUENCY\x10\x80\x8e\x38\x12\x17\n\x11\x41VERAGE_FREQUENCY\x10\x80\xb0\x38\x12\x31\n+ELEMENT_A_INSTANTANEOUS_ACTIVE_POWER_IMPORT\x10\x80\x8eT\x12\x32\n+ELEMENT_B_INSTANTANEOUS_ACTIVE_POWER_IMPORT\x10\x80\x8e\xa4\x01\x12\r\n\x06SERIAL\x10\x80\x82\x80\x03\x12\x17\n\x10HARDWARE_VERSION\x10\x80\x80\x82\x03\x12\x0b\n\x04TIME\x10\x80\x90\x80\x04\x12\x17\n\x10THREE_PHASE_READ\x10\x8a\x8c\xdc\x06\x12 \n\x19THREE_PHASE_INITIATE_READ\x10\x8c\x94\xdc\x06\x12\x19\n\x12THREE_PHASE_SERIAL\x10\x90\xfe\xdf\x06\x12\x15\n\x0ePREPAY_BALANCE\x10\x82\x90\xff\x07\x12\x1a\n\x13PREPAY_ENABLED_FLAG\x10\x8d\xfe\xff\x07\x12\x10\n\tELEMENT_B\x10\xf8\xff\xff\x07\x12\x10\n\tELEMENT_A\x10\xfc\xff\xff\x07\x32\xb6\x01\n\x15\x45mliteMediatorService\x12R\n\x0esendRawMessage\x12\x1f.mediator.SendRawMessageRequest\x1a\x1d.mediator.SendRawMessageReply\"\x00\x12I\n\x0breadElement\x12\x1c.mediator.ReadElementRequest\x1a\x1a.mediator.ReadElementReply\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -21,10 +21,16 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'emlite_mediator_pb2', _glob
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
-  _globals['_SENDMESSAGEREQUEST']._serialized_start=35
-  _globals['_SENDMESSAGEREQUEST']._serialized_end=74
-  _globals['_SENDMESSAGEREPLY']._serialized_start=76
-  _globals['_SENDMESSAGEREPLY']._serialized_end=112
-  _globals['_EMLITEMEDIATORSERVICE']._serialized_start=114
-  _globals['_EMLITEMEDIATORSERVICE']._serialized_end=212
+  _globals['_OBJECTID']._serialized_start=219
+  _globals['_OBJECTID']._serialized_end=926
+  _globals['_SENDRAWMESSAGEREQUEST']._serialized_start=35
+  _globals['_SENDRAWMESSAGEREQUEST']._serialized_end=77
+  _globals['_SENDRAWMESSAGEREPLY']._serialized_start=79
+  _globals['_SENDRAWMESSAGEREPLY']._serialized_end=118
+  _globals['_READELEMENTREQUEST']._serialized_start=120
+  _globals['_READELEMENTREQUEST']._serialized_end=178
+  _globals['_READELEMENTREPLY']._serialized_start=180
+  _globals['_READELEMENTREPLY']._serialized_end=216
+  _globals['_EMLITEMEDIATORSERVICE']._serialized_start=929
+  _globals['_EMLITEMEDIATORSERVICE']._serialized_end=1111
 # @@protoc_insertion_point(module_scope)

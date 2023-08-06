@@ -1,5 +1,4 @@
 import crcmod.predefined
-import random
 import unittest
 
 from emlite.messages.emlite_frame import EmliteFrame
