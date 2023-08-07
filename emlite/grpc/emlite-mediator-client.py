@@ -11,7 +11,7 @@ from ..messages.emlite_response import EmliteResponse
 from ..messages.emlite_object_id_enum import ObjectIdEnum
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def send_message(stub, message):

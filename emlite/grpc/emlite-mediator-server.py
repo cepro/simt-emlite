@@ -24,7 +24,7 @@ from .generated.emlite_mediator_pb2 import ReadElementReply, SendRawMessageReply
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 emliteHost = os.environ.get('EMLITE_HOST')

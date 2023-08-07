@@ -1,8 +1,9 @@
 
 import time
-import datetime
 import logging
 import os
+
+from datetime import datetime
 from supabase import create_client, Client
 from kaitaistruct import KaitaiStream, BytesIO
 
@@ -11,7 +12,7 @@ from emlite.messages.emlite_response import EmliteResponse
 from ..messages.emlite_object_id_enum import ObjectIdEnum
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 emlite_host: str = os.environ.get('EMLITE_HOST')
@@ -31,22 +32,45 @@ class SyncToDb():
     def sync(self):
         logger.info("syncing ...")
 
-        # check if serial is in the registry - if not then fetch and populate it
-        reg_rec = self.supabase.table('meter_registry').select('id,serial').eq("ip_address", emlite_host).execute()
-        logger.info("meter_registry.serial lookup = %s", reg_rec)
-        if (len(reg_rec.data) == 1 and reg_rec.data[0]['serial'] == None):
-            serial = self._read_element_and_deserialise(ObjectIdEnum.serial)
+        meter_registry_record = self.supabase.table('meter_registry').select('id,serial').eq("ip_address", emlite_host).execute()
+        if (len(meter_registry_record.data) == 0):
+            logger.error("no meter_registry record found for this device")
+            exit()
+        
+        reg_rec = meter_registry_record.data[0]
+        reg_id: str = reg_rec['id']
+        
+        if (reg_rec['serial'] == None):
+            self._sync_serial(reg_id)
+        else:
+            logger.debug('serial already synced')
+
+        self._sync_clock_diff(reg_id)
             
-            logger.info("write serial %s to db", serial)
-            update_result = self.supabase.table('meter_registry').update({"serial": serial}).eq('id', reg_rec.data[0]['id']).execute()
-            logger.info("update_result %s", update_result)
 
-            logger.info("sleep 5 seconds before next request to meter ...")
-            time.sleep(5)   
+    """ check if serial is in the registry - if not then fetch and populate it """
+    def _sync_serial(self, id: str):
+        serial = self._read_element_and_deserialise(ObjectIdEnum.serial)
+        
+        logger.info("write serial %s to db", serial)
+        update_result = self.supabase.table('meter_registry').update({"serial": serial}).eq('id', id).execute()
+        logger.info("update_result %s", update_result)
+        self._sleep()   
 
-        # clock_time = self._read_element_and_deserialise(ObjectIdEnum.time)
+    """ 
+        get the difference between the meter device time and this hosts time in seconds
+        (millis are not available from the meter)
+    """
+    def _sync_clock_diff(self, id: str):
+        clock_time: datetime = self._read_element_and_deserialise(ObjectIdEnum.time)
+        logger.info("clock_time = %s", clock_time)
+        now = datetime.utcnow()
+        clock_time_diff_seconds = abs(now - clock_time).seconds
+        logger.info("clock_time_diff_seconds = %s", clock_time_diff_seconds)
 
-        # logger.info(clock_time)
+        update_result = self.supabase.table('meter_shadows').update({"clock_time_diff_seconds": clock_time_diff_seconds}).eq('id', id).execute()
+        logger.info("update_result %s", update_result)
+        self._sleep()
 
     def _read_element_and_deserialise(self, object_id):
         payload_bytes = self.api.read_element(object_id)
@@ -57,10 +81,15 @@ class SyncToDb():
         if (object_id == ObjectIdEnum.serial):
             return data.serial.strip()   
         elif (object_id == ObjectIdEnum.time):
-            date_obj = datetime.datetime(2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
-            return date_obj.isoformat()
+            return datetime(2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
         else:
             return payload_bytes
+
+    """ The meter can't handle back to back socket close then open's so sleep a bit in between each """
+    def _sleep(self):
+        sleep_seconds = 4
+        logger.info("sleep %s seconds before next request to meter ...", sleep_seconds)
+        time.sleep(sleep_seconds)
 
 if __name__ == '__main__':
     if not emlite_host or not emlite_port:
