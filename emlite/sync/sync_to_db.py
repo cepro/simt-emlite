@@ -31,13 +31,22 @@ class SyncToDb():
     def sync(self):
         logger.info("syncing ...")
 
-        serial = self._read_element_and_deserialise(ObjectIdEnum.serial)
-        logger.info("sleep 5 seconds before next request ...")
-        time.sleep(5)
-        clock_time = self._read_element_and_deserialise(ObjectIdEnum.time)
+        # check if serial is in the registry - if not then fetch and populate it
+        reg_rec = self.supabase.table('meter_registry').select('id,serial').eq("ip_address", emlite_host).execute()
+        logger.info("meter_registry.serial lookup = %s", reg_rec)
+        if (len(reg_rec.data) == 1 and reg_rec.data[0]['serial'] == None):
+            serial = self._read_element_and_deserialise(ObjectIdEnum.serial)
+            
+            logger.info("write serial %s to db", serial)
+            update_result = self.supabase.table('meter_registry').update({"serial": serial}).eq('id', reg_rec.data[0]['id']).execute()
+            logger.info("update_result %s", update_result)
 
-        logger.info(serial)
-        logger.info(clock_time)
+            logger.info("sleep 5 seconds before next request to meter ...")
+            time.sleep(5)   
+
+        # clock_time = self._read_element_and_deserialise(ObjectIdEnum.time)
+
+        # logger.info(clock_time)
 
     def _read_element_and_deserialise(self, object_id):
         payload_bytes = self.api.read_element(object_id)
@@ -55,7 +64,7 @@ class SyncToDb():
 
 if __name__ == '__main__':
     if not emlite_host or not emlite_port:
-        logger.error("Environment variables EMLITE_HOME and EMLITE_PORT not set.")
+        logger.error("Environment variables EMLITE_HOST and EMLITE_PORT not set.")
         exit(1)
 
     if not supabase_url or not supabase_key:
