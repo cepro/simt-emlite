@@ -1,5 +1,7 @@
 # Emlite Mediator
 
+[![Python test](https://github.com/cepro/emlite-mediator/actions/workflows/python-test.yml/badge.svg)](https://github.com/cepro/emlite-mediator/actions/workflows/python-test.yml)
+
 ## Setup
 
 ```
