@@ -8,6 +8,7 @@ from kaitaistruct import KaitaiStream, BytesIO
 from .generated.emlite_mediator_pb2 import ObjectId, ReadElementRequest, SendRawMessageRequest
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceStub
 from ..messages.emlite_response import EmliteResponse
+from ..messages.emlite_object_id_enum import ObjectIdEnum
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
@@ -38,14 +39,14 @@ def run(mediator_address):
         payload_bytes = read_element(stub, object_id_grpc).response
         logger.info('payload_bytes: [%s]', payload_bytes.hex())
 
-        object_id = EmliteResponse.ObjectIdType.time
+        object_id = ObjectIdEnum.time
         emlite_rsp = EmliteResponse(len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes)))
         emlite_rsp._read()
 
         data = emlite_rsp.response
-        if (object_id == EmliteResponse.ObjectIdType.serial):
+        if (object_id == ObjectIdEnum.serial):
             logger.info('serial %s', data.serial.strip())   
-        elif (object_id == EmliteResponse.ObjectIdType.time):
+        elif (object_id == ObjectIdEnum.time):
             date_obj = datetime.datetime(2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
             logger.info('time %s', date_obj.isoformat())   
         else:
@@ -56,7 +57,7 @@ if __name__ == '__main__':
         print('Usage: emlite-mediator-client <port of mediator on host>')
         exit()
     
-    logging.basicConfig()
     mediator_port = sys.argv[1]
     mediator_address = f"localhost:{mediator_port}"
+    
     run(mediator_address)

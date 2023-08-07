@@ -69,6 +69,10 @@ enums:
 
   # See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
   # See "Meter and Smart Module Obis Commands"
+  #
+  # NOTE: this enum would make more sense in a separate ksy file as it's
+  #   associated more with requests than responses. however i was unable
+  #   to do that and import it in here. so it remains here for now.
   object_id_type:
     8390656: time # 0x800800
     6291712: serial # 0x600100

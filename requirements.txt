@@ -4,3 +4,5 @@ grpcio==1.56.2
 grpcio-tools==1.56.2
 
 git+https://github.com/kaitai-io/kaitai_struct_python_runtime.git@serialization
+
+supabase==1.0.4

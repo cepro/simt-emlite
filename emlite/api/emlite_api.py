@@ -3,8 +3,8 @@ import logging
 
 from kaitaistruct import KaitaiStream, BytesIO
 
-from ..messages import emlite_data
-from ..messages import emlite_frame
+from ..messages import emlite_data, emlite_frame 
+from ..messages.emlite_object_id_enum import ObjectIdEnum
 
 from . import emlite_net
 
@@ -36,13 +36,13 @@ class EmliteAPI:
 
         return frame.data.payload
 
-    def read_element(self, object_id):
-        data_field = self._build_data_field(object_id)
+    def read_element(self, object_id: ObjectIdEnum):
+        data_field = self._build_data_field((object_id.value).to_bytes(3, byteorder='big'))
         payload_bytes = self.send_message_from_instance(data_field)
         logger.info("payload: [%s]", payload_bytes.hex())
         return payload_bytes
 
-    def _build_data_field(self, object_id, read_write_flag = emlite_data.EmliteData.ReadWriteFlags.read, payload = bytes()):
+    def _build_data_field(self, object_id: bytearray, read_write_flag = emlite_data.EmliteData.ReadWriteFlags.read, payload = bytes()):
         data_field = emlite_data.EmliteData(5 + len(payload))
         data_field.format = b'\x01'
         data_field.object_id = object_id
@@ -59,6 +59,7 @@ class EmliteAPI:
         req_frame.destination_device_type = b'\x00'
         req_frame.destination_address = b'\x00\x00\x00'
         req_frame.source_device_type = b'\x00'
+        # TODO: generate a random address here (not fixed):
         req_frame.source_address = int(2207298).to_bytes(3, byteorder='big')
 
         req_frame.data = data_field
