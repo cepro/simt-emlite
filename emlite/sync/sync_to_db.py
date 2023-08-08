@@ -53,7 +53,7 @@ class SyncToDb():
         serial = self._read_element_and_deserialise(ObjectIdEnum.serial)
         
         logger.info("write serial %s to db", serial)
-        update_result = self.supabase.table('meter_registry').update({"serial": serial}).eq('id', id).execute()
+        update_result = self.supabase.table('meter_registry').update({"serial": serial, "updated_at": self._now_ts_str()}).eq('id', id).execute()
         logger.info("update_result %s", update_result)
         self._sleep()   
 
@@ -68,7 +68,7 @@ class SyncToDb():
         clock_time_diff_seconds = abs(now - clock_time).seconds
         logger.info("clock_time_diff_seconds = %s", clock_time_diff_seconds)
 
-        update_result = self.supabase.table('meter_shadows').update({"clock_time_diff_seconds": clock_time_diff_seconds}).eq('id', id).execute()
+        update_result = self.supabase.table('meter_shadows').update({"clock_time_diff_seconds": clock_time_diff_seconds, "updated_at": self._now_ts_str()}).eq('id', id).execute()
         logger.info("update_result %s", update_result)
         self._sleep()
 
@@ -91,6 +91,9 @@ class SyncToDb():
         logger.info("sleep %s seconds before next request to meter ...", sleep_seconds)
         time.sleep(sleep_seconds)
 
+    def _now_ts_str(self):
+        return datetime.utcnow().isoformat()
+    
 if __name__ == '__main__':
     if not emlite_host or not emlite_port:
         logger.error("Environment variables EMLITE_HOST and EMLITE_PORT not set.")
