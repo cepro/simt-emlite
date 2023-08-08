@@ -37,7 +37,10 @@ class EmliteAPI:
         return frame.data.payload
 
     def read_element(self, object_id: ObjectIdEnum):
-        data_field = self._build_data_field((object_id.value).to_bytes(3, byteorder='big'))
+        return self.read_element_with_object_id_bytes((object_id.value).to_bytes(3, byteorder='big'))
+
+    def read_element_with_object_id_bytes(self, object_id: bytearray):
+        data_field = self._build_data_field(object_id)
         payload_bytes = self.send_message_from_instance(data_field)
         logger.info("payload: [%s]", payload_bytes.hex())
         return payload_bytes
@@ -90,7 +93,7 @@ if __name__ == "__main__":
     port = 8080 
     api = EmliteAPI(host, port)
 
-    rsp_payload = api.read_element(emlite_data.EmliteData.ObjectIdType.serial)
+    rsp_payload = api.read_element(ObjectIdEnum.serial)
     print(rsp_payload.decode('ascii'))    
 
 

@@ -50,7 +50,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         object_id_bytes = request.objectId.to_bytes(3, byteorder='big')
         logger.info('readElement: object_id=[0x%s]', object_id_bytes.hex())
         try:
-            rsp_payload = self.api.read_element(object_id_bytes)
+            rsp_payload = self.api.read_element_with_object_id_bytes(object_id_bytes)
             logger.info('readElement: response=[%s]', rsp_payload.hex())
             return ReadElementReply(response=rsp_payload)
         except Exception as e:

@@ -72,7 +72,7 @@ class SyncToDb():
         logger.info("update_result %s", update_result)
         self._sleep()
 
-    def _read_element_and_deserialise(self, object_id):
+    def _read_element_and_deserialise(self, object_id: ObjectIdEnum):
         payload_bytes = self.api.read_element(object_id)
         emlite_rsp = EmliteResponse(len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes)))
         emlite_rsp._read()
