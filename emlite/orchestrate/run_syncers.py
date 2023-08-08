@@ -36,7 +36,7 @@ class RunSyncers():
         for meter in meters:
             logger.info(
                 "sync meter [serial=%s, ip=%s]",
-                    meter['serial'] if hasattr(meter, 'serial') else 'unknown',
+                    meter['serial'] if 'serial' in meter else 'unknown',
                     meter['ip_address']
             )
             
