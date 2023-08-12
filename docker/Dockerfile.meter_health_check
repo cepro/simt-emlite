@@ -19,4 +19,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Invoke the script
-CMD ["python", "-m", "emlite.sync.sync_to_db"]
+CMD ["python", "-m", "emlite_mediator.jobs.meter_health_check"]

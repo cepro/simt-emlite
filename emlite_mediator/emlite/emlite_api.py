@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 crc16 = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
 class EmliteAPI:
-    def __init__(self, host, port):
+    def __init__(self, host, port = 8080):
         self.net = emlite_net.EmliteNET(host, port)
 
     def send_message(self, req_data_field_bytes):
@@ -90,8 +90,7 @@ class EmliteAPI:
 
 if __name__ == "__main__":
     host = '100.79.244.65'
-    port = 8080 
-    api = EmliteAPI(host, port)
+    api = EmliteAPI(host)
 
     rsp_payload = api.read_element(ObjectIdEnum.serial)
     print(rsp_payload.decode('ascii'))    

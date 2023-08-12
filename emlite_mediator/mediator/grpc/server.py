@@ -28,7 +28,7 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 emliteHost = os.environ.get('EMLITE_HOST')
-emlitePort = os.environ.get('EMLITE_PORT')
+emlitePort = os.environ.get('EMLITE_PORT') or 8080
 
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     def __init__(self, host, port):
@@ -60,8 +60,8 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return ReadElementReply()
 
 def serve():
-    if (emliteHost is None or emlitePort is None):
-        logger.error('EMLITE_HOST and EMLITE_PORT environment variables not set')
+    if (emliteHost is None):
+        logger.error('EMLITE_HOST environment variable not set')
         return
 
     port = 50051

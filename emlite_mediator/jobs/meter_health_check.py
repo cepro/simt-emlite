@@ -16,12 +16,12 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 emlite_host: str = os.environ.get('EMLITE_HOST')
-emlite_port: str = os.environ.get('EMLITE_PORT')
+emlite_port: str = os.environ.get('EMLITE_PORT') or '8080'
 
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 
-class SyncToDb():
+class MeterHealthCheckJob():
     api: EmliteAPI
     supabase: Client
 
@@ -95,13 +95,13 @@ class SyncToDb():
         return datetime.utcnow().isoformat()
     
 if __name__ == '__main__':
-    if not emlite_host or not emlite_port:
-        logger.error("Environment variables EMLITE_HOST and EMLITE_PORT not set.")
+    if not emlite_host:
+        logger.error("Environment variables EMLITE_HOST not set.")
         exit(1)
 
     if not supabase_url or not supabase_key:
         logger.error("Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
         exit(2)
 
-    syncToDb = SyncToDb()
-    syncToDb.sync()
+    job = MeterHealthCheckJob()
+    job.sync()

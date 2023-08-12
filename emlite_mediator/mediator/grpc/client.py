@@ -24,10 +24,10 @@ def send_message(stub, message):
 
 def read_element(stub, object_id):
     try:
-        rsp = stub.readElement(ReadElementRequest(objectId=object_id))
+        return stub.readElement(ReadElementRequest(objectId=object_id))
     except grpc.RpcError as e:
         logger.error('readElement failed: [%s] (code: %s)', e.details(), e.code())
-    return rsp
+        raise e
     
 def run(mediator_address):
     with grpc.insecure_channel(mediator_address) as channel:
@@ -57,11 +57,8 @@ def run(mediator_address):
             logger.info('response %s', payload_bytes.response.hex())   
 
 if __name__ == '__main__':
-    if (len(sys.argv) == 1):
-        print('Usage: emlite-client <port of mediator on host>')
-        exit()
-    
-    mediator_port = sys.argv[1]
+    mediator_port = 50051
+    if (len(sys.argv) > 1):
+        mediator_port = sys.argv[1]
     mediator_address = f"localhost:{mediator_port}"
-    
     run(mediator_address)

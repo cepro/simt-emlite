@@ -6,7 +6,7 @@ logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class EmliteNET:
-    def __init__(self, host, port):
+    def __init__(self, host, port = 8080):
         self.host = host
         self.port = int(port)
 

@@ -16,7 +16,7 @@ supabase_key: str = os.environ.get("SUPABASE_KEY")
 
 filter_connected = lambda meter: meter['ip_address'] is not None
 
-class RunSyncers():
+class RunHealthChecks():
     supabase: Client
     docker_client: docker.DockerClient
 
@@ -42,7 +42,6 @@ class RunSyncers():
             
             env_vars = {
                 "EMLITE_HOST": meter['ip_address'],
-                "EMLITE_PORT": "8080",
                 "SUPABASE_URL": supabase_url,
                 "SUPABASE_KEY": supabase_key
             }
@@ -69,5 +68,5 @@ if __name__ == '__main__':
         logger.error("Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
         exit(2)
 
-    syncers = RunSyncers()
+    syncers = RunHealthChecks()
     syncers.run()
