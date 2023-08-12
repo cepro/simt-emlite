@@ -8,5 +8,5 @@ protoc.main((
     '--pyi_out=./generated',
     '--python_out=./generated',
     '--grpc_python_out=./generated',
-    './emlite-mediator.proto',
+    './mediator.proto',
 ))

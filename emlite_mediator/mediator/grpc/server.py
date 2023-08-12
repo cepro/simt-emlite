@@ -18,7 +18,7 @@ import logging
 import grpc
 import os
 
-from emlite.api.emlite_api import EmliteAPI
+from emlite_mediator.emlite.emlite_api import EmliteAPI
 
 from .generated.emlite_mediator_pb2 import ReadElementReply, SendRawMessageReply
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server

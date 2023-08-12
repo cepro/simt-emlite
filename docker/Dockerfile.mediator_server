@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 50051
 
 # Start the server
-CMD ["python", "-m", "emlite.grpc.emlite-mediator-server"]
+CMD ["python", "-m", "emlite.grpc.emlite-server"]

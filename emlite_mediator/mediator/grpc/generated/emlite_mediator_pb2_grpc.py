@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from emlite.grpc.generated.emlite_mediator_pb2 import SendRawMessageRequest, SendRawMessageReply, ReadElementRequest, ReadElementReply
+from .emlite_mediator_pb2 import SendRawMessageRequest, SendRawMessageReply, ReadElementRequest, ReadElementReply
 
 class EmliteMediatorServiceStub(object):
     """Missing associated documentation comment in .proto file."""

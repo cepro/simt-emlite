@@ -7,9 +7,9 @@ from datetime import datetime
 from supabase import create_client, Client
 from kaitaistruct import KaitaiStream, BytesIO
 
-from emlite.api.emlite_api import EmliteAPI
-from emlite.messages.emlite_response import EmliteResponse
-from ..messages.emlite_object_id_enum import ObjectIdEnum
+from emlite_mediator.emlite.emlite_api import EmliteAPI
+from emlite_mediator.emlite.messages.emlite_response import EmliteResponse
+from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)

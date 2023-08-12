@@ -5,10 +5,11 @@ import sys
 
 from kaitaistruct import KaitaiStream, BytesIO
 
+from emlite_mediator.emlite.messages.emlite_response import EmliteResponse
+from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
+
 from .generated.emlite_mediator_pb2 import ObjectId, ReadElementRequest, SendRawMessageRequest
 from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceStub
-from ..messages.emlite_response import EmliteResponse
-from ..messages.emlite_object_id_enum import ObjectIdEnum
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -57,7 +58,7 @@ def run(mediator_address):
 
 if __name__ == '__main__':
     if (len(sys.argv) == 1):
-        print('Usage: emlite-mediator-client <port of mediator on host>')
+        print('Usage: emlite-client <port of mediator on host>')
         exit()
     
     mediator_port = sys.argv[1]

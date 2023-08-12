@@ -23,13 +23,13 @@ python -m unittest discover
 ### One mediator from Python
 
 ```
-EMLITE_HOST=100.79.244.89 EMLITE_PORT=8080 python -m emlite.grpc.emlite-mediator-server
+EMLITE_HOST=100.79.244.89 EMLITE_PORT=8080 python -m emlite_mediator.mediator.grpc.server
 ```
 
 ### One mediator from Docker
 
 ```
-docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 -e EMLITE_PORT=8080 mediator-beta
+docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 -e EMLITE_PORT=8080 ghcr.io/cepro/emlite-mediator:0.1.8-mediator-server
 ```
 
 ### Multiple mediators defined in docker-compose.yml
@@ -43,7 +43,7 @@ docker compose up
 Pass the port number of the mediator:
 
 ```
-python -m emlite.grpc.emlite-mediator-client 11002
+python -m emlite_mediator.mediator.grpc.client 11002
 ```
 
 ## Messages
@@ -85,6 +85,6 @@ The gRPC server uses the emlite-api to make calls to the meter.
 ### Code generation
 
 ```
-cd emlite/grpc
+cd emlite_mediator/mediator/grpc
 python grpc_codegen.py
 ```

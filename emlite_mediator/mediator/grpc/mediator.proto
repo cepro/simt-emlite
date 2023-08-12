@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package mediator;
+package emlite_mediator.mediator.grpc;
 
 service EmliteMediatorService {
   rpc sendRawMessage (SendRawMessageRequest) returns (SendRawMessageReply) {}

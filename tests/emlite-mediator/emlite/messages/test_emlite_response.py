@@ -1,7 +1,8 @@
 import unittest
 
-from emlite.messages.emlite_response import EmliteResponse
 from kaitaistruct import KaitaiStream, BytesIO
+
+from emlite_mediator.emlite.messages.emlite_response import EmliteResponse
 
 class TestEmliteResponse(unittest.TestCase):
     def test_serial(self):

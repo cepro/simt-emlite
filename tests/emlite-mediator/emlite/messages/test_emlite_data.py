@@ -1,6 +1,6 @@
 import unittest
 
-from emlite.messages.emlite_data import EmliteData
+from emlite_mediator.emlite.messages.emlite_data import EmliteData
 from kaitaistruct import KaitaiStream, BytesIO
 
 class TestEmliteDataField(unittest.TestCase):

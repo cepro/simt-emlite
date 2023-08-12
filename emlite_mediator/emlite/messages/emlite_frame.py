@@ -8,7 +8,7 @@ from enum import Enum
 if getattr(kaitaistruct, 'API_VERSION', (0, 9)) < (0, 9):
     raise Exception("Incompatible Kaitai Struct Python API: 0.9 or later is required, but you have %s" % (kaitaistruct.__version__))
 
-from emlite.messages.emlite_data import EmliteData
+from .emlite_data import EmliteData
 
 class EmliteFrame(ReadWriteKaitaiStruct):
     """The EMOP protocol exists to enable communication with Emlite (em-lite.co.uk) smart meters.

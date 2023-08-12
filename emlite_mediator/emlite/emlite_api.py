@@ -3,8 +3,8 @@ import logging
 
 from kaitaistruct import KaitaiStream, BytesIO
 
-from ..messages import emlite_data, emlite_frame 
-from ..messages.emlite_object_id_enum import ObjectIdEnum
+from .messages import emlite_data, emlite_frame 
+from .messages.emlite_object_id_enum import ObjectIdEnum
 
 from . import emlite_net
 

@@ -1,9 +1,10 @@
 import crcmod.predefined
 import unittest
 
-from emlite.messages.emlite_frame import EmliteFrame
-from emlite.messages.emlite_data import EmliteData
 from kaitaistruct import KaitaiStream, BytesIO
+
+from emlite_mediator.emlite.messages.emlite_frame import EmliteFrame
+from emlite_mediator.emlite.messages.emlite_data import EmliteData
 
 crc16 = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
