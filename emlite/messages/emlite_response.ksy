@@ -26,6 +26,7 @@ seq:
       cases:
         "object_id_type::time": time_rec
         "object_id_type::serial": serial_rec
+        "object_id_type::csq_net_op": csq_net_op_rec
         _: default_rec
 
 types:
@@ -52,6 +53,12 @@ types:
       - id: day_of_week
         type: u1
         enum: day_of_week_type
+  csq_net_op_rec:
+    seq:
+      - id: network_operator
+        type: b3
+      - id: csq
+        type: b5
   default_rec:
     seq:
       - id: payload
@@ -82,6 +89,7 @@ enums:
     16776973: prepay_enabled_flag # 0xffff0d
     16777212: element_a # 0xfffffc
     16777208: element_b # 0xfffff8
+    16776477: csq_net_op # 0xfffd1d
     788224: instantaneous_voltage # 0x0c0700
     722688: instantaneous_current # 0x0b0700
     67328: instantaneous_active_power # 0x010700

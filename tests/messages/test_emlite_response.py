@@ -20,6 +20,22 @@ class TestEmliteResponse(unittest.TestCase):
         self.assertEqual(response.second, 1)
         self.assertEqual(response.day_of_week, EmliteResponse.DayOfWeekType.monday)
 
+    def test_csq(self):
+        # signal 16 / operator 'O2'
+        response = self._deserialize(EmliteResponse.ObjectIdType.csq_net_op, '30')
+        self.assertEqual(response.csq, 16)
+
+        # signal 12 / operator 'vodafone'
+        response = self._deserialize(EmliteResponse.ObjectIdType.csq_net_op, '4c')
+        self.assertEqual(response.csq, 12)
+
+        # signal 16 / operator 'O2'
+        response = self._deserialize(EmliteResponse.ObjectIdType.csq_net_op, '29')
+        print(response.network_operator)
+        print(response.csq)
+        # self.assertEqual(response.b, 9)
+        # self.assertEqual(response.csq, 9)
+
     def _deserialize(self, object_id, response_hex):
         rsp_bytes = bytearray.fromhex(response_hex)
         data = EmliteResponse(len(rsp_bytes), object_id, KaitaiStream(BytesIO(rsp_bytes)))

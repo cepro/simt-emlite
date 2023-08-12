@@ -33,6 +33,7 @@ enum ObjectId {
   PREPAY_ENABLED_FLAG = 16776973;
   ELEMENT_A = 16777212;
   ELEMENT_B = 16777208;
+  CSQ_NET_OP = 16776477;
   INSTANTANEOUS_ACTIVE_POWER = 67328;
   TOTAL_ACTIVE_IMPORT_ENERGY = 67584;
   TOTAL_ACTIVE_EXPORT_ENERGY = 133120;
@@ -54,7 +55,15 @@ enum ObjectId {
 message ReadElementRequest {
   // Request the data for a given 3 byte Object Id.
   // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
-  ObjectId objectId = 1;
+  //
+  // We define the enum above with known object ids but don't use in the 
+  // request message here as we want to enable future / as yet unknown object
+  // ids to be supported and it may not be easy to upgrade grpc server 
+  // instances with new ObjectId enums regularly.
+  //   
+  // Clients however will be easily upgradable and can use the ObjectId to 
+  // reference by name but convert into int32 when the request is assembled.
+  int32 objectId = 1;
 }
 
 message ReadElementReply {

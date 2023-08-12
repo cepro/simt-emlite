@@ -86,5 +86,5 @@ The gRPC server uses the emlite-api to make calls to the meter.
 
 ```
 cd emlite/grpc
-python grpc_generate.py
+python grpc_codegen.py
 ```

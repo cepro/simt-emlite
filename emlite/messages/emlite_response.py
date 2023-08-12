@@ -47,6 +47,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         three_phase_initiate_read = 14092812
         three_phase_serial = 14155536
         prepay_balance = 16762882
+        csq_net_op = 16776477
         prepay_enabled_flag = 16776973
         element_b = 16777208
         element_a = 16777212
@@ -67,6 +68,10 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.SerialRec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            self.response = EmliteResponse.CsqNetOpRec(self._io, self, self._root)
+            self.response._read()
         else:
             pass
             self.response = EmliteResponse.DefaultRec(self._io, self, self._root)
@@ -82,6 +87,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.serial:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            self.response._fetch_instances()
         else:
             pass
             self.response._fetch_instances()
@@ -94,6 +102,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.serial:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._write__seq(self._io)
         else:
@@ -111,6 +122,12 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
         elif _on == EmliteResponse.ObjectIdType.serial:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -177,6 +194,31 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self._io.write_u1(self.minute)
             self._io.write_u1(self.second)
             self._io.write_u1(self.day_of_week.value)
+
+
+        def _check(self):
+            pass
+
+
+    class CsqNetOpRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.network_operator = self._io.read_bits_int_be(3)
+            self.csq = self._io.read_bits_int_be(5)
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.CsqNetOpRec, self)._write__seq(io)
+            self._io.write_bits_int_be(3, self.network_operator)
+            self._io.write_bits_int_be(5, self.csq)
 
 
         def _check(self):
