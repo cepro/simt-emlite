@@ -1,48 +1,47 @@
-# Copyright 2015 gRPC authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""The Python implementation of the gRPC route guide server."""
-
-from concurrent import futures
+import datetime
 import logging
-import grpc
-import os
 
-from emlite_mediator.emlite.emlite_api import EmliteAPI
-
-from .grpc.client import vars
+from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
+from .grpc.client import EmliteMediatorGrpcClient
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-emliteHost = os.environ.get('EMLITE_HOST')
-emlitePort = os.environ.get('EMLITE_PORT') or 8080
+"""
+    Use this class to make calls to an emlite meter through a mediator server.
+
+    This is a wrapper around the gRPC client interface to the mediator server
+    providing convencience functions to request each peice of data and get
+    back a meaningful typed response.
+"""
+
 
 class EmliteMediatorClient():
-    def __init__(self, grpc_client):
-        logger.info('init')
-        
-    def serial(self):
-        logger.info('serial')
+    def __init__(self, host='0.0.0.0', port=50051):
+        self.grpc_client = EmliteMediatorGrpcClient(host, port)
+        logger.info('initialised')
+
+    def serial(self) -> str:
+        data = self.grpc_client.read_element(ObjectIdEnum.serial)
+        serial = data.serial.strip()
+        logger.info('serial [%s]', serial)
+        return serial
+
+    def clock_time(self) -> datetime:
+        data = self.grpc_client.read_element(ObjectIdEnum.time)
+        date_obj = datetime.datetime(
+            2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
+        logger.info('time [%s]', date_obj.isoformat())
+        return date_obj
+
+    def csq(self) -> int:
+        data = self.grpc_client.read_element(ObjectIdEnum.csq_net_op)
+        logger.info('csq [%s]', data.csq)
+        return data.csq
 
 
-        # if (object_id == ObjectIdEnum.serial):
-        #     logger.info('serial %s', data.serial.strip())   
-        # elif (object_id == ObjectIdEnum.time):
-        #     date_obj = datetime.datetime(2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
-        #     logger.info('time %s', date_obj.isoformat())   
-        # elif (object_id == ObjectIdEnum.csq_net_op):
-        #     logger.info('csq %s', data.csq)   
-        # else:
-        #     logger.info('response %s', payload_bytes.response.hex(
+if __name__ == '__main__':
+    client = EmliteMediatorClient()
+    print(client.clock_time())
+    print(client.csq())

@@ -1,9 +1,10 @@
-import crcmod.predefined 
+from datetime import datetime
+import crcmod.predefined
 import logging
 
 from kaitaistruct import KaitaiStream, BytesIO
 
-from .messages import emlite_data, emlite_frame 
+from .messages import emlite_data, emlite_frame
 from .messages.emlite_object_id_enum import ObjectIdEnum
 
 from . import emlite_net
@@ -14,15 +15,18 @@ logger = logging.getLogger(__name__)
 
 crc16 = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
+
 class EmliteAPI:
-    def __init__(self, host, port = 8080):
+    def __init__(self, host, port=8080):
         self.net = emlite_net.EmliteNET(host, port)
+        self.last_request_datetime = None
 
     def send_message(self, req_data_field_bytes):
         return self.send_message_from_bytes(req_data_field_bytes)
-    
+
     def send_message_from_bytes(self, req_data_field_bytes):
-        data_field = emlite_data.EmliteData(len(req_data_field_bytes), KaitaiStream(BytesIO(req_data_field_bytes)))
+        data_field = emlite_data.EmliteData(
+            len(req_data_field_bytes), KaitaiStream(BytesIO(req_data_field_bytes)))
         data_field._read()
         return self.send_message_from_instance(data_field)
 
@@ -32,7 +36,9 @@ class EmliteAPI:
 
         frame = emlite_frame.EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
         frame._read()
-        logger.info("frame: [%s]", frame)
+        logger.info("response frame: [%s]", frame)
+
+        self.last_request_datetime = datetime.now()
 
         return frame.data.payload
 
@@ -42,10 +48,10 @@ class EmliteAPI:
     def read_element_with_object_id_bytes(self, object_id: bytearray):
         data_field = self._build_data_field(object_id)
         payload_bytes = self.send_message_from_instance(data_field)
-        logger.info("payload: [%s]", payload_bytes.hex())
+        logger.info("response payload: [%s]", payload_bytes.hex())
         return payload_bytes
 
-    def _build_data_field(self, object_id: bytearray, read_write_flag = emlite_data.EmliteData.ReadWriteFlags.read, payload = bytes()):
+    def _build_data_field(self, object_id: bytearray, read_write_flag=emlite_data.EmliteData.ReadWriteFlags.read, payload=bytes()):
         data_field = emlite_data.EmliteData(5 + len(payload))
         data_field.format = b'\x01'
         data_field.object_id = object_id
@@ -55,8 +61,8 @@ class EmliteAPI:
 
     def _build_frame(self, data_field):
         req_frame = emlite_frame.EmliteFrame()
-        
-        req_frame.frame_delimeter = b'\x7e' 
+
+        req_frame.frame_delimeter = b'\x7e'
         # TODO: use an incremented sequence number here (bits 0..2)
         req_frame.control = 5
         req_frame.destination_device_type = b'\x00'
@@ -66,7 +72,7 @@ class EmliteAPI:
         req_frame.source_address = int(2207298).to_bytes(3, byteorder='big')
 
         req_frame.data = data_field
-        
+
         # 17 for all fields NOT including the optional data field payload:
         req_frame.frame_length = 17 + len(data_field.payload)
 
@@ -78,21 +84,21 @@ class EmliteAPI:
         _io = KaitaiStream(BytesIO(bytearray(frame_bytes_len)))
         req_frame._write(_io)
         frame_bytes_zero_checksum = _io.to_byte_array()
-        
+
         # add checksum
-        req_frame.crc16 = crc16(frame_bytes_zero_checksum[1:frame_bytes_len-2]).to_bytes(2)
-        
+        req_frame.crc16 = crc16(
+            frame_bytes_zero_checksum[1:frame_bytes_len-2]).to_bytes(2)
+
         # compute final frame bytes
         _io = KaitaiStream(BytesIO(bytearray(frame_bytes_len)))
         req_frame._write(_io)
 
         return _io.to_byte_array()
 
+
 if __name__ == "__main__":
     host = '100.79.244.65'
     api = EmliteAPI(host)
 
     rsp_payload = api.read_element(ObjectIdEnum.serial)
-    print(rsp_payload.decode('ascii'))    
-
-
+    print(rsp_payload.decode('ascii'))
