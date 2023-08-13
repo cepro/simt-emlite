@@ -20,8 +20,7 @@ import os
 
 from emlite_mediator.emlite.emlite_api import EmliteAPI
 
-from .generated.emlite_mediator_pb2 import ReadElementReply, SendRawMessageReply
-from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
+from .grpc.client import vars
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
@@ -36,3 +35,14 @@ class EmliteMediatorClient():
         
     def serial(self):
         logger.info('serial')
+
+
+        # if (object_id == ObjectIdEnum.serial):
+        #     logger.info('serial %s', data.serial.strip())   
+        # elif (object_id == ObjectIdEnum.time):
+        #     date_obj = datetime.datetime(2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
+        #     logger.info('time %s', date_obj.isoformat())   
+        # elif (object_id == ObjectIdEnum.csq_net_op):
+        #     logger.info('csq %s', data.csq)   
+        # else:
+        #     logger.info('response %s', payload_bytes.response.hex(

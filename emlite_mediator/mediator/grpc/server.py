@@ -20,8 +20,8 @@ import os
 
 from emlite_mediator.emlite.emlite_api import EmliteAPI
 
-from .generated.emlite_mediator_pb2 import ReadElementReply, SendRawMessageReply
-from .generated.emlite_mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
+from .generated.mediator_pb2 import ReadElementReply, SendRawMessageReply
+from .generated.mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)

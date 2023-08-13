@@ -21,48 +21,17 @@ message SendRawMessageReply {
   bytes response = 1;
 }
 
-// See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
-// See "Meter and Smart Module Obis Commands"
-enum ObjectId {
-  DEFAULT = 0; // default is required https://protobuf.dev/programming-guides/proto3/#enum
-  TIME = 8390656;
-  SERIAL = 6291712;
-  HARDWARE_VERSION = 6324224;
-  FIRMWARE_VERSION = 513;
-  PREPAY_BALANCE = 16762882;
-  PREPAY_ENABLED_FLAG = 16776973;
-  ELEMENT_A = 16777212;
-  ELEMENT_B = 16777208;
-  CSQ_NET_OP = 16776477;
-  INSTANTANEOUS_ACTIVE_POWER = 67328;
-  TOTAL_ACTIVE_IMPORT_ENERGY = 67584;
-  TOTAL_ACTIVE_EXPORT_ENERGY = 133120;
-  INSTANTANEOUS_REACTIVE_POWER = 198400;
-  INSTANTANEOUS_CURRENT = 722688;
-  AVERAGE_CURRENT = 727040;
-  INSTANTANEOUS_VOLTAGE = 788224;
-  AVERAGE_VOLTAGE = 792576;
-  INSTANTANEOUS_POWER_FACTOR = 853760;
-  INSTANTANEOUS_FREQUENCY = 919296;
-  AVERAGE_FREQUENCY = 923648;
-  ELEMENT_A_INSTANTANEOUS_ACTIVE_POWER_IMPORT = 1378048;
-  ELEMENT_B_INSTANTANEOUS_ACTIVE_POWER_IMPORT = 2688768;
-  THREE_PHASE_READ = 14091786;
-  THREE_PHASE_INITIATE_READ = 14092812;
-  THREE_PHASE_SERIAL = 14155536;
-}
-
 message ReadElementRequest {
   // Request the data for a given 3 byte Object Id.
   // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
   //
-  // We define the enum above with known object ids but don't use in the 
-  // request message here as we want to enable future / as yet unknown object
-  // ids to be supported and it may not be easy to upgrade grpc server 
-  // instances with new ObjectId enums regularly.
-  //   
-  // Clients however will be easily upgradable and can use the ObjectId to 
-  // reference by name but convert into int32 when the request is assembled.
+  // An enum of names to object ids can be imported from
+  // emlite_object_id_enum.py and underlying kaitai enum is defined in
+  // emlite_response.ksy.
+  // 
+  // We don't use the enum on the server side and instead just pass through
+  // the corresponding integer value so no upgrade would be required on the
+  // server side for new object ids.
   int32 objectId = 1;
 }
 

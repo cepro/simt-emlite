@@ -2,7 +2,8 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from .emlite_mediator_pb2 import SendRawMessageRequest, SendRawMessageReply, ReadElementRequest, ReadElementReply
+from .mediator_pb2 import ReadElementRequest, ReadElementReply, SendRawMessageRequest, SendRawMessageReply
+
 
 class EmliteMediatorServiceStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -14,12 +15,12 @@ class EmliteMediatorServiceStub(object):
             channel: A grpc.Channel.
         """
         self.sendRawMessage = channel.unary_unary(
-                '/mediator.EmliteMediatorService/sendRawMessage',
+                '/emlite_mediator.mediator.grpc.EmliteMediatorService/sendRawMessage',
                 request_serializer=SendRawMessageRequest.SerializeToString,
                 response_deserializer=SendRawMessageReply.FromString,
                 )
         self.readElement = channel.unary_unary(
-                '/mediator.EmliteMediatorService/readElement',
+                '/emlite_mediator.mediator.grpc.EmliteMediatorService/readElement',
                 request_serializer=ReadElementRequest.SerializeToString,
                 response_deserializer=ReadElementReply.FromString,
                 )
@@ -55,7 +56,7 @@ def add_EmliteMediatorServiceServicer_to_server(servicer, server):
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'mediator.EmliteMediatorService', rpc_method_handlers)
+            'emlite_mediator.mediator.grpc.EmliteMediatorService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
@@ -74,7 +75,7 @@ class EmliteMediatorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/mediator.EmliteMediatorService/sendRawMessage',
+        return grpc.experimental.unary_unary(request, target, '/emlite_mediator.mediator.grpc.EmliteMediatorService/sendRawMessage',
             SendRawMessageRequest.SerializeToString,
             SendRawMessageReply.FromString,
             options, channel_credentials,
@@ -91,7 +92,7 @@ class EmliteMediatorService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/mediator.EmliteMediatorService/readElement',
+        return grpc.experimental.unary_unary(request, target, '/emlite_mediator.mediator.grpc.EmliteMediatorService/readElement',
             ReadElementRequest.SerializeToString,
             ReadElementReply.FromString,
             options, channel_credentials,
