@@ -16,6 +16,8 @@
 from concurrent import futures
 from datetime import datetime, timedelta
 import logging
+import signal
+import sys
 import time
 import grpc
 import os
@@ -114,6 +116,11 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             time.sleep(minimum_time_between_emlite_requests_seconds)
 
 
+def shutdown_handler(signal, frame):
+    print("\nServer shutting down...")
+    sys.exit(0)
+
+
 def serve():
     if (emliteHost is None):
         logger.error('EMLITE_HOST environment variable not set')
@@ -133,4 +140,5 @@ def serve():
 
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGINT, shutdown_handler)
     serve()
