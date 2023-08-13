@@ -32,10 +32,7 @@ class TestEmliteResponse(unittest.TestCase):
 
         # signal 16 / operator 'O2'
         response = self._deserialize(EmliteResponse.ObjectIdType.csq_net_op, '29')
-        print(response.network_operator)
-        print(response.csq)
-        # self.assertEqual(response.b, 9)
-        # self.assertEqual(response.csq, 9)
+        self.assertEqual(response.csq, 9)
 
     def _deserialize(self, object_id, response_hex):
         rsp_bytes = bytearray.fromhex(response_hex)
