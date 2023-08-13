@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 emliteHost = os.environ.get('EMLITE_HOST')
 emlitePort = os.environ.get('EMLITE_PORT') or 8080
 
+
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     def __init__(self, host, port):
         self.api = EmliteAPI(host, port)
@@ -50,7 +51,8 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         object_id_bytes = request.objectId.to_bytes(3, byteorder='big')
         logger.info('readElement: object_id=[0x%s]', object_id_bytes.hex())
         try:
-            rsp_payload = self.api.read_element_with_object_id_bytes(object_id_bytes)
+            rsp_payload = self.api.read_element_with_object_id_bytes(
+                object_id_bytes)
             logger.info('readElement: response=[%s]', rsp_payload.hex())
             return ReadElementReply(response=rsp_payload)
         except Exception as e:
@@ -58,6 +60,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details("network failure or internal error")
             return ReadElementReply()
+
 
 def serve():
     if (emliteHost is None):
@@ -68,13 +71,14 @@ def serve():
     logger.info('starting server on %s', port)
     logger.info('meter: %s:%s', emliteHost, emlitePort)
 
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=5))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     add_EmliteMediatorServiceServicer_to_server(
         EmliteMediatorServicer(emliteHost, emlitePort), server)
-    
+
     server.add_insecure_port(f'[::]:{port}')
     server.start()
     server.wait_for_termination()
+
 
 if __name__ == '__main__':
     serve()
