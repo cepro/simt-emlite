@@ -19,6 +19,16 @@ supabase_key: str = os.environ.get("SUPABASE_KEY")
 def filter_connected(meter): return meter['ip_address'] is not None
 
 
+"""
+    This script will lookup all the meters in the meter_registry and run a health
+    check script for each one.
+
+    Currently this script manages the mediator processes for those which aren't
+    setup to run 24/7. Soon however all will be running 24/7 and this management
+    can be dropped and it will be assumed a mediator is up and running.
+"""
+
+
 class RunHealthChecks():
     supabase: Client
     docker_client: docker.DockerClient
@@ -46,6 +56,7 @@ class RunHealthChecks():
         for chunk_idx in list(range(0, num_chunks)):
             range_start = chunk_idx * chunk_size
             range_end = range_start + chunk_size
+
             chunk_meters = meters[range_start:range_end]
 
             for meter in chunk_meters:
@@ -84,6 +95,10 @@ class RunHealthChecks():
                 # DISABLED whilst we have chunking in place:
                 # time.sleep(3)
 
+            # sleep to give all the health check jobs enough time to complete
+            # before we shutdown their mediators
+            time.sleep(30)
+
             self._stop_mediators(
                 list(map(lambda meter: meter['id'], chunk_meters)))
 
@@ -92,7 +107,6 @@ class RunHealthChecks():
             logger.info(
                 "stopping mediator for meter [%s]", meter_id)
             self.mediators.stop_one(meter_id)
-            time.sleep(1)
 
 
 if __name__ == '__main__':
