@@ -1,17 +1,16 @@
 from datetime import datetime
 import crcmod.predefined
-import logging
 
 from kaitaistruct import KaitaiStream, BytesIO
+
+from emlite_mediator.util.logging import get_logger
 
 from .messages import emlite_data, emlite_frame
 from .messages.emlite_object_id_enum import ObjectIdEnum
 
 from . import emlite_net
 
-FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 crc16 = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 

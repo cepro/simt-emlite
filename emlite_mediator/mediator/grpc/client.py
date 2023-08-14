@@ -1,17 +1,15 @@
-import logging
 import grpc
 
 from kaitaistruct import KaitaiStream, BytesIO
 
 from emlite_mediator.emlite.messages.emlite_response import EmliteResponse
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
+from emlite_mediator.util.logging import get_logger
 
 from .generated.mediator_pb2 import ReadElementRequest, SendRawMessageRequest
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
-FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class EmliteMediatorGrpcClient():

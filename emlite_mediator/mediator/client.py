@@ -1,12 +1,11 @@
 import datetime
-import logging
 
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
+from emlite_mediator.util.logging import get_logger
+
 from .grpc.client import EmliteMediatorGrpcClient
 
-FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 """
     Use this class to make calls to an emlite meter through a mediator server.
@@ -20,7 +19,7 @@ logger = logging.getLogger(__name__)
 class EmliteMediatorClient():
     def __init__(self, host='0.0.0.0', port=50051):
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
-        logger.info('initialised')
+        logger.info('EmliteMediatorClient init [host=%s, port=%s]', host, port)
 
     def serial(self) -> str:
         data = self.grpc_client.read_element(ObjectIdEnum.serial)

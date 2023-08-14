@@ -1,12 +1,12 @@
 import socket
-import logging
 
-FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from emlite_mediator.util.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class EmliteNET:
-    def __init__(self, host, port = 8080):
+    def __init__(self, host, port=8080):
         self.host = host
         self.port = int(port)
 
@@ -49,4 +49,3 @@ class EmliteNET:
         except socket.error as e:
             logger.error("Error reading from socket")
             raise e
-

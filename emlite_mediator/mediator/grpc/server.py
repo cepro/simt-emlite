@@ -1,35 +1,20 @@
-# Copyright 2015 gRPC authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""The Python implementation of the gRPC route guide server."""
-
-from concurrent import futures
-from datetime import datetime, timedelta
+import grpc
 import logging
+import os
 import signal
 import sys
 import time
-import grpc
-import os
+
+from concurrent import futures
+from datetime import datetime, timedelta
 
 from emlite_mediator.emlite.emlite_api import EmliteAPI
+from emlite_mediator.util.logging import get_logger
 
 from .generated.mediator_pb2 import ReadElementReply, SendRawMessageReply
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
 
-FORMAT = '%(asctime)s %(levelname)s %(module)s %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 """
     Wait this amount of time between requests to avoid the emlite meter
@@ -45,8 +30,13 @@ max_workers = 1
 """
     Address details of the Emlite meter. 
 """
-emliteHost = os.environ.get('EMLITE_HOST')
-emlitePort = os.environ.get('EMLITE_PORT') or '8080'
+emlite_host = os.environ.get('EMLITE_HOST')
+emlite_port = os.environ.get('EMLITE_PORT') or '8080'
+
+"""
+    Port to listen on. 
+"""
+listen_port = os.environ.get('LISTEN_PORT') or '50051'
 
 """
     The mediator is a gRPC server that takes requests and relays them to an
@@ -70,7 +60,6 @@ emlitePort = os.environ.get('EMLITE_PORT') or '8080'
 
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     def __init__(self, host, port):
-        logger.info('__init__ host [%s] port [%s]', host, port)
         self.api = EmliteAPI(host, port)
 
     def sendRawMessage(self, request, context):
@@ -122,17 +111,17 @@ def shutdown_handler(signal, frame):
 
 
 def serve():
-    if (emliteHost is None):
+    if (emlite_host is None):
         logger.error('EMLITE_HOST environment variable not set')
         return
 
-    port = 50051
-    logger.info('starting server on %s', port)
-    logger.info('meter: %s:%s', emliteHost, emlitePort)
+    port = listen_port
+    logger.info('listen: %s', port)
+    logger.info('meter: %s:%s', emlite_host, emlite_port)
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     add_EmliteMediatorServiceServicer_to_server(
-        EmliteMediatorServicer(emliteHost, emlitePort), server)
+        EmliteMediatorServicer(emlite_host, emlite_port), server)
 
     server.add_insecure_port(f'[::]:{port}')
     server.start()
