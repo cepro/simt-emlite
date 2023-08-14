@@ -37,7 +37,7 @@ class RunHealthChecks():
             logger.error("no meters record found")
             sys.exit(11)
 
-        meters = list(filter(filter_connected, registry_result.data))[:4]
+        meters = list(filter(filter_connected, registry_result.data))
 
         for meter in meters:
             logger.info(
