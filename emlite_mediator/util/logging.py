@@ -1,7 +1,7 @@
 import logging
 
 FORMAT = '%(asctime)s %(levelname)s %(module)s[%(process)d]: %(message)s'
-logging.basicConfig(format=FORMAT)
+logging.basicConfig(format=FORMAT, level=logging.INFO)
 
 
 def get_logger(module_name: str):
