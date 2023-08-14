@@ -82,8 +82,12 @@ class Mediators():
         return ports
 
     def start_always_up_set(self, emnify_ids: List[str]) -> Dict[str, int]:
-        rows = self.supabase.table('meter_registry').select(
-            'id').in_("emnify_id", emnify_ids).execute()
+        try:
+            rows = self.supabase.table('meter_registry').select(
+                'id').in_("emnify_id", emnify_ids).execute()
+        except ConnectError as e:
+            logger.error("Supabase connection failure [%s]", e)
+            sys.exit(10)
         ids = list(map(lambda row: row['id'], rows.data))
         return self.start_many(ids, always_up=True)
 
@@ -118,7 +122,7 @@ class Mediators():
                 'ip_address').eq("id", meter_id).execute()
         except ConnectError as e:
             logger.error("Supabase connection failure [%s]", e)
-            sys.exit(2)
+            sys.exit(12)
 
         return meter_registry_record.data[0]['ip_address']
 
