@@ -1,0 +1,9 @@
+[Unit]
+Description=Run CSQ (signal) sync of all meters
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
