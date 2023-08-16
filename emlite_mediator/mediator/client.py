@@ -39,6 +39,19 @@ class EmliteMediatorClient():
         logger.info('csq [%s]', data.csq)
         return data.csq
 
+    def prepay_enabled(self) -> bool:
+        data = self.grpc_client.read_element(ObjectIdEnum.prepay_enabled_flag)
+        enabled: bool = data.enabled_flag == 1
+        logger.info('prepay enabled [%s]', enabled)
+        return enabled
+
+    def prepay_balance(self) -> float:
+        data = self.grpc_client.read_element(ObjectIdEnum.prepay_balance)
+        logger.debug('prepay balance raw [%s]', data.balance)
+        balance_gbp: float = data.balance / 100000
+        logger.info('prepay balance to GBP [%s]', balance_gbp)
+        return balance_gbp
+
 
 if __name__ == '__main__':
     client = EmliteMediatorClient()

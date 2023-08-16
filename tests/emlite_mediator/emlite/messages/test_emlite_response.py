@@ -34,6 +34,18 @@ class TestEmliteResponse(unittest.TestCase):
         response = self._deserialize(EmliteResponse.ObjectIdType.csq_net_op, '29')
         self.assertEqual(response.csq, 9)
 
+    def test_prepay_flag(self):
+        response = self._deserialize(EmliteResponse.ObjectIdType.prepay_enabled_flag, '00')
+        self.assertEqual(response.enabled_flag, 0)
+        response = self._deserialize(EmliteResponse.ObjectIdType.prepay_enabled_flag, '01')
+        self.assertEqual(response.enabled_flag, 1)
+        
+    def test_prepay_balance(self):
+        response = self._deserialize(EmliteResponse.ObjectIdType.prepay_balance, 'E0930400')
+        self.assertEqual(response.balance, 300000) # 3.00 GBP
+        response = self._deserialize(EmliteResponse.ObjectIdType.prepay_balance, '30630300')
+        self.assertEqual(response.balance, 222000) # 2.22 GBP
+        
     def _deserialize(self, object_id, response_hex):
         rsp_bytes = bytearray.fromhex(response_hex)
         data = EmliteResponse(len(rsp_bytes), object_id, KaitaiStream(BytesIO(rsp_bytes)))

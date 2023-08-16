@@ -60,7 +60,11 @@ class EmliteResponse(ReadWriteKaitaiStruct):
 
     def _read(self):
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.time:
+        if _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            self.response = EmliteResponse.CsqNetOpRec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response = EmliteResponse.TimeRec(self._io, self, self._root)
             self.response._read()
@@ -68,9 +72,13 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.SerialRec(self._io, self, self._root)
             self.response._read()
-        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
+        elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
-            self.response = EmliteResponse.CsqNetOpRec(self._io, self, self._root)
+            self.response = EmliteResponse.PrepayBalanceRec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
+            pass
+            self.response = EmliteResponse.PrepayEnabledRec(self._io, self, self._root)
             self.response._read()
         else:
             pass
@@ -81,13 +89,19 @@ class EmliteResponse(ReadWriteKaitaiStruct):
     def _fetch_instances(self):
         pass
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.time:
+        if _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.serial:
             pass
             self.response._fetch_instances()
-        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
+        elif _on == EmliteResponse.ObjectIdType.prepay_balance:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
             pass
             self.response._fetch_instances()
         else:
@@ -98,13 +112,19 @@ class EmliteResponse(ReadWriteKaitaiStruct):
     def _write__seq(self, io=None):
         super(EmliteResponse, self)._write__seq(io)
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.time:
+        if _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.serial:
             pass
             self.response._write__seq(self._io)
-        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
+        elif _on == EmliteResponse.ObjectIdType.prepay_balance:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
             pass
             self.response._write__seq(self._io)
         else:
@@ -115,7 +135,13 @@ class EmliteResponse(ReadWriteKaitaiStruct):
     def _check(self):
         pass
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.time:
+        if _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.time:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -127,7 +153,13 @@ class EmliteResponse(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
-        elif _on == EmliteResponse.ObjectIdType.csq_net_op:
+        elif _on == EmliteResponse.ObjectIdType.prepay_balance:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -165,6 +197,77 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
 
 
+    class PrepayBalanceRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.balance = self._io.read_u4le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.PrepayBalanceRec, self)._write__seq(io)
+            self._io.write_u4le(self.balance)
+
+
+        def _check(self):
+            pass
+
+
+    class CsqNetOpRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.network_operator = self._io.read_bits_int_be(3)
+            self.csq = self._io.read_bits_int_be(5)
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.CsqNetOpRec, self)._write__seq(io)
+            self._io.write_bits_int_be(3, self.network_operator)
+            self._io.write_bits_int_be(5, self.csq)
+
+
+        def _check(self):
+            pass
+
+
+    class PrepayEnabledRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.enabled_flag = self._io.read_u1()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.PrepayEnabledRec, self)._write__seq(io)
+            self._io.write_u1(self.enabled_flag)
+
+
+        def _check(self):
+            pass
+
+
     class TimeRec(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
             self._io = _io
@@ -194,31 +297,6 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self._io.write_u1(self.minute)
             self._io.write_u1(self.second)
             self._io.write_u1(self.day_of_week.value)
-
-
-        def _check(self):
-            pass
-
-
-    class CsqNetOpRec(ReadWriteKaitaiStruct):
-        def __init__(self, _io=None, _parent=None, _root=None):
-            self._io = _io
-            self._parent = _parent
-            self._root = _root
-
-        def _read(self):
-            self.network_operator = self._io.read_bits_int_be(3)
-            self.csq = self._io.read_bits_int_be(5)
-
-
-        def _fetch_instances(self):
-            pass
-
-
-        def _write__seq(self, io=None):
-            super(EmliteResponse.CsqNetOpRec, self)._write__seq(io)
-            self._io.write_bits_int_be(3, self.network_operator)
-            self._io.write_bits_int_be(5, self.csq)
 
 
         def _check(self):

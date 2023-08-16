@@ -27,6 +27,8 @@ seq:
         "object_id_type::time": time_rec
         "object_id_type::serial": serial_rec
         "object_id_type::csq_net_op": csq_net_op_rec
+        "object_id_type::prepay_enabled_flag": prepay_enabled_rec
+        "object_id_type::prepay_balance": prepay_balance_rec
         _: default_rec
 
 types:
@@ -59,6 +61,14 @@ types:
         type: b3
       - id: csq
         type: b5
+  prepay_enabled_rec:
+    seq:
+      - id: enabled_flag
+        type: u1
+  prepay_balance_rec:
+    seq:
+      - id: balance
+        type: u4le
   default_rec:
     seq:
       - id: payload

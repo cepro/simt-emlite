@@ -19,7 +19,7 @@ supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 
 """
-    Fetches the csq from the meter and syncs to the shadow table.
+    Fetches the prepay_enabled from the meter and syncs to the shadow table.
 """
 
 
@@ -33,19 +33,22 @@ class MeterCsqSyncJob():
 
     def sync(self):
         try:
-            csq = self.client.csq()
+            prepay_enabled = self.client.prepay_enabled()
+            logger.info("enabled [%s]", prepay_enabled)
+            prepay_balance = self.client.prepay_balance()
+            logger.info("balance [%s]", prepay_balance)
         except Exception as e:
             logger.error("failure connecting to meter or mediator [%s]", e)
             sys.exit(10)
 
-        try:
-            update_result = self.supabase.table('meter_shadows').update(
-                {"csq": csq, "updated_at": datetime.utcnow().isoformat()}).eq('id', meter_id).execute()
-        except ConnectError as e:
-            logger.error("Supabase connection failure [%s]", e)
-            sys.exit(11)
+        # try:
+        #     update_result = self.supabase.table('meter_shadows').update(
+        #         {"prepay_enabled": prepay_enabled, "updated_at": datetime.utcnow().isoformat()}).eq('id', meter_id).execute()
+        # except ConnectError as e:
+        #     logger.error("Supabase connection failure [%s]", e)
+        #     sys.exit(11)
 
-        logger.info("update csq result [%s]", update_result)
+        # logger.info("update prepay_enabled result [%s]", update_result)
 
 
 if __name__ == '__main__':
@@ -63,4 +66,4 @@ if __name__ == '__main__':
         job = MeterCsqSyncJob()
         job.sync()
     except Exception as e:
-        logger.exception("failure occured syncing csq [%s]", e)
+        logger.exception("failure occured syncing prepay_enabled [%s]", e)

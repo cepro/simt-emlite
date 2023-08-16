@@ -2,6 +2,8 @@
 
 [![Python test](https://github.com/cepro/emlite-mediator/actions/workflows/python-test.yml/badge.svg)](https://github.com/cepro/emlite-mediator/actions/workflows/python-test.yml)
 
+see Notion for docs on setting up the mediator server: https://www.notion.so/Setting-up-Emlite-meter-mediator-server-0cf0c8f97ee44843977334bc6efa86ba#658ff25657a54fbfa6388b2b42d70f66
+
 ## Setup
 
 ```
