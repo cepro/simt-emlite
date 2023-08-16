@@ -1,0 +1,9 @@
+[Unit]
+Description=Run prepay sync of all meters
+
+[Timer]
+OnCalendar=*-*-* 6/18:15:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Mediator sync prepay values
+
+[Service]
+ExecStart=/home/admin/mediator/bin/run_meter_prepay_syncs
+
+[Install]
+WantedBy=multi-user.target

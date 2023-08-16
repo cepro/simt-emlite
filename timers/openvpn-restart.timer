@@ -1,0 +1,9 @@
+[Unit]
+Description=Restarts openvpn client to ensure it's connected
+
+[Timer]
+OnCalendar=*-*-* *:55:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
