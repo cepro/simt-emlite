@@ -2,6 +2,7 @@
 Description=Mediator meter health checks
 
 [Service]
+Type=oneshot
 ExecStart=/home/admin/mediator/bin/run_meter_health_checks
 
 [Install]

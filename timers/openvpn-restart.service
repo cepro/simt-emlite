@@ -2,7 +2,8 @@
 Description=Restarts openvpn client to ensure it's connected
 
 [Service]
-ExecStart=systemctl restart openvpn@client.service
+Type=oneshot
+ExecStart=/bin/systemctl restart openvpn@client.service
 
 [Install]
 WantedBy=multi-user.target

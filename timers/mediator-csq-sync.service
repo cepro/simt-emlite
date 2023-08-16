@@ -2,6 +2,7 @@
 Description=Mediator sync csq (signal) values
 
 [Service]
+Type=oneshot
 ExecStart=/home/admin/mediator/bin/run_meter_csq_syncs
 
 [Install]
