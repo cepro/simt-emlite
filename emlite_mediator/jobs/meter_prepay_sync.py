@@ -23,7 +23,7 @@ supabase_key: str = os.environ.get("SUPABASE_KEY")
 """
 
 
-class MeterCsqSyncJob():
+class MeterPrepaySyncJob():
     api: EmliteMediatorClient
     supabase: Client
 
@@ -41,14 +41,31 @@ class MeterCsqSyncJob():
             logger.error("failure connecting to meter or mediator [%s]", e)
             sys.exit(10)
 
-        # try:
-        #     update_result = self.supabase.table('meter_shadows').update(
-        #         {"prepay_enabled": prepay_enabled, "updated_at": datetime.utcnow().isoformat()}).eq('id', meter_id).execute()
-        # except ConnectError as e:
-        #     logger.error("Supabase connection failure [%s]", e)
-        #     sys.exit(11)
+        try:
+            #
+            # write balance to shadow table
+            #
+            update_shadow_result = self.supabase.table('meter_shadows').update(
+                {"balance": prepay_balance, "updated_at": datetime.utcnow().isoformat()}).eq('id', meter_id).execute()
+            logger.info(
+                "update prepay_balance result [%s]", update_shadow_result)
 
-        # logger.info("update prepay_enabled result [%s]", update_result)
+            #
+            # write enabled flag to registry table only IF it has changed
+            #
+            meter_registry_record = self.supabase.table('meter_registry').select(
+                'prepay_enabled').eq("id", meter_id).execute()
+            if (meter_registry_record.data[0]['prepay_enabled'] != prepay_enabled):
+                update_registry_result = self.supabase.table('meter_registry').update(
+                    {"prepay_enabled": prepay_enabled, "updated_at": datetime.utcnow().isoformat()}).eq('id', meter_id).execute()
+                logger.info(
+                    "update prepay_enabled result [%s]", update_registry_result)
+            else:
+                logger.info("prepay_enabled flag unchanged")
+
+        except ConnectError as e:
+            logger.error("Supabase connection failure [%s]", e)
+            sys.exit(11)
 
 
 if __name__ == '__main__':
@@ -63,7 +80,7 @@ if __name__ == '__main__':
         sys.exit(2)
 
     try:
-        job = MeterCsqSyncJob()
+        job = MeterPrepaySyncJob()
         job.sync()
     except Exception as e:
         logger.exception("failure occured syncing prepay_enabled [%s]", e)

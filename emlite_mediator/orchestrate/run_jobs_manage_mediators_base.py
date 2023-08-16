@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import Any, Callable, List
 import docker
 import os
 import sys
@@ -42,14 +42,16 @@ def check_environment():
 class RunJobForAllMeters():
     job_name: str
     job_wait_seconds: int
+    filter_fn: Callable[[Any], bool]
 
     supabase: Client
     docker_client: docker.DockerClient
 
-    def __init__(self, job_name: str, job_wait_seconds=30):
+    def __init__(self, job_name: str, job_wait_seconds=30, filter_fn=None):
         check_environment()
         self.job_name = job_name
         self.job_wait_seconds = job_wait_seconds
+        self.filter_fn = filter_fn
         self.supabase = create_client(supabase_url, supabase_key)
         self.docker_client = docker.from_env()
         self.mediators = Mediators()
@@ -58,12 +60,14 @@ class RunJobForAllMeters():
         logger.info("%s starting ...", __name__)
 
         registry_result = self.supabase.table(
-            'meter_registry').select('id,ip_address,serial').order(column='serial').execute()
+            'meter_registry').select('id,ip_address,serial,hardware').order(column='serial').execute()
         if (len(registry_result.data) == 0):
             logger.error("no meters record found")
             sys.exit(11)
 
         meters = list(filter(filter_connected, registry_result.data))
+        if (self.filter_fn):
+            meters = list(filter(self.filter_fn, meters))
 
         # process meter runs in chunks of chunk_size to avoid
         # running out of memory from starting mediators
