@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# See comments in the python script that this invokes but in short runs
+# prepay sync for all the meters.
+#
+BIN_DIR=`dirname $0`
+PROJECT_ROOT=`dirname $BIN_DIR`
+
+. $PROJECT_ROOT/mediator.env
+
+docker run --rm -it \
+	--network=host \
+	--env-file $PROJECT_ROOT/mediator.env \
+	-v /var/run/docker.sock:/var/run/docker.sock \
+	$MEDIATOR_IMAGE emlite_mediator.orchestrate.run_meter_prepay_syncs
