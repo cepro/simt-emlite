@@ -1,4 +1,4 @@
-from .run_jobs_manage_mediators_base import RunJobForAllMeters
+from .run_jobs_base import RunJobForAllMeters
 
 if __name__ == '__main__':
     runner = RunJobForAllMeters('meter_health_check')

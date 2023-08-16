@@ -27,7 +27,7 @@ class Mediators():
         self.docker_client = docker.from_env()
 
     def start_one(self, meter_id: str) -> int:
-        container = self._container_by_meter_id(meter_id)
+        container = self.container_by_meter_id(meter_id)
         if (container is not None):
             logger.info('start existing container [%s]', container.name)
             container.start()
@@ -81,7 +81,7 @@ class Mediators():
             mediator.stop()
 
     def stop_one(self, meter_id: str):
-        container = self._container_by_meter_id(meter_id)
+        container = self.container_by_meter_id(meter_id)
         if (container == None):
             logger.info(
                 "stop_one: skip - container for meter [%s] already stopped", meter_id)
@@ -91,7 +91,7 @@ class Mediators():
             "stop_one stopping container [%s] for meter_id [%s]", container.name, meter_id)
         container.stop()
 
-    def _container_by_meter_id(self, meter_id: str):
+    def container_by_meter_id(self, meter_id: str):
         containers = self.docker_client.containers.list(all=True,
                                                         filters={"label": f"meter_id={meter_id}"})
         if (len(containers) == 0):

@@ -33,24 +33,23 @@ def check_environment():
 """
     This script is a base class for scripts that run a job for all meters.
 
-    It manages manages the mediator processes for those which aren't setup
-    to run 24/7. Soon however all will be running 24/7 and this management
-    can be dropped and it will be assumed a mediator is up and running.
+    Memory is limited so we chunk runs - 5 at a time for now.
+
+    TODO: soon replace this way of invoking a script in a container per meter
+    to have a single script that runs for all meters.
 """
 
 
 class RunJobForAllMeters():
     job_name: str
-    job_wait_seconds: int
     filter_fn: Callable[[Any], bool]
 
     supabase: Client
     docker_client: docker.DockerClient
 
-    def __init__(self, job_name: str, job_wait_seconds=30, filter_fn=None):
+    def __init__(self, job_name: str, filter_fn=None):
         check_environment()
         self.job_name = job_name
-        self.job_wait_seconds = job_wait_seconds
         self.filter_fn = filter_fn
         self.supabase = create_client(supabase_url, supabase_key)
         self.docker_client = docker.from_env()
@@ -86,7 +85,9 @@ class RunJobForAllMeters():
                     meter['ip_address']
                 )
 
-                mediator_port = self.mediators.start_one(meter['id'])
+                mediator_container = self.mediators.container_by_meter_id(
+                    meter['id'])
+                mediator_port = mediator_container.labels['listen_port']
 
                 env_vars = {
                     "METER_ID": meter['id'],
@@ -111,15 +112,4 @@ class RunJobForAllMeters():
                     remove=True,
                 )
 
-            # sleep to give all jobs enough time to complete
-            # before we shutdown their mediators
-            time.sleep(self.job_wait_seconds)
-
-            self._stop_mediators(
-                list(map(lambda meter: meter['id'], chunk_meters)))
-
-    def _stop_mediators(self, meter_ids: List[str]):
-        for meter_id in meter_ids:
-            logger.info(
-                "stopping mediator for meter [%s]", meter_id)
-            self.mediators.stop_one(meter_id)
+            time.sleep(30)
