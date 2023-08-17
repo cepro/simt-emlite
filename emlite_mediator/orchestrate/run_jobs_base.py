@@ -45,7 +45,7 @@ class RunJobForAllMeters():
         self.mediators = Mediators()
 
     def run(self):
-        self.logger.info("%s starting ...", __name__)
+        self.logger.info("starting ...")
 
         registry_result = self.supabase.table(
             'meter_registry').select('id,ip_address,serial,hardware').order(column='serial').execute()
@@ -107,6 +107,8 @@ class RunJobForAllMeters():
                 )
 
             time.sleep(30)
+
+        self.logger.info("finished")
 
     def _check_environment(self):
         if not mediator_image:
