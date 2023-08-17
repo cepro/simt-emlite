@@ -11,6 +11,8 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
 logger = get_logger(__name__)
 
+TIMEOUT_SECONDS = 15
+
 
 class EmliteMediatorGrpcClient():
     def __init__(self, host='0.0.0.0', port=50051):
@@ -21,7 +23,8 @@ class EmliteMediatorGrpcClient():
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
-                    ReadElementRequest(objectId=object_id.value))
+                    ReadElementRequest(objectId=object_id.value),
+                    timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
                 logger.error(
                     'readElement failed: [%s] (code: %s)', e.details(), e.code())
@@ -40,10 +43,12 @@ class EmliteMediatorGrpcClient():
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.sendRawMessage(
-                    SendRawMessageRequest(dataField=message))
+                    SendRawMessageRequest(dataField=message),
+                    timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
                 logger.error(
                     'sendRawMessage failed: [%s] (code: %s)', e.details(), e.code())
+                raise e
 
         payload_bytes = rsp_obj.response
         logger.info('payload_bytes: [%s]', payload_bytes.hex())
@@ -52,5 +57,5 @@ class EmliteMediatorGrpcClient():
 
 if __name__ == '__main__':
     client = EmliteMediatorGrpcClient()
-    # client.read_element(ObjectIdEnum.serial)
-    client.send_message(bytes.fromhex('0160010000'))
+    client.read_element(ObjectIdEnum.serial)
+    # client.send_message(bytes.fromhex('0160010000'))

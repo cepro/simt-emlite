@@ -4,8 +4,9 @@ import sys
 from datetime import datetime
 from httpx import ConnectError
 from supabase import create_client, Client
+from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, now_iso_str, update_meter_shadows_when_healthy
 
-from emlite_mediator.mediator.client import EmliteMediatorClient
+from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
 from emlite_mediator.util.logging import get_logger
 
 logger = get_logger(__name__)
@@ -33,15 +34,14 @@ class MeterHealthCheckJob():
         self.supabase = create_client(supabase_url, supabase_key)
 
     def check_health(self):
-        logger.info("checking ...")
+        logger.info("checking for %s...", meter_id)
 
         meter_registry_record = None
         try:
             meter_registry_record = self.supabase.table('meter_registry').select(
                 'serial').eq("id", meter_id).execute()
         except ConnectError as e:
-            logger.error("Supabase connection failure [%s]", e)
-            sys.exit(10)
+            handle_supabase_faliure(logger, e)
 
         if (len(meter_registry_record.data) == 0):
             logger.error("no meter_registry record found for this device")
@@ -51,9 +51,10 @@ class MeterHealthCheckJob():
             self._check_serial(
                 meter_id, meter_registry_record.data[0]['serial'])
             self._check_clock_diff(meter_id)
+        except MediatorClientException as e:
+            handle_meter_unhealthy_status(self.supabase, logger, meter_id, e)
         except Exception as e:
-            logger.error("failure connecting to meter or mediator [%s]", e)
-            sys.exit(12)
+            handle_mediator_unknown_failure(logger, e)
 
     """ check the serial matches the one in the registry - if not update the registry """
 
@@ -72,8 +73,10 @@ class MeterHealthCheckJob():
                 'fetched serial and registry serial [%s] different! '
                 'will update the registry with the fetched entry', registry_serial)
 
-        update_result = self.supabase.table('meter_registry').update(
-            {"serial": serial, "updated_at": self._now_ts_str()}).eq('id', id).execute()
+        update_result = self.supabase.table('meter_registry').update({
+            "serial": serial,
+            "updated_at": now_iso_str()
+        }).eq('id', id).execute()
         logger.info("update serial result [%s]", update_result)
 
     """ 
@@ -90,24 +93,18 @@ class MeterHealthCheckJob():
         clock_time_diff_seconds = abs(now - clock_time).seconds
         logger.info("clock_time_diff_seconds [%s]", clock_time_diff_seconds)
 
-        update_result = self.supabase.table('meter_shadows').update(
-            {"clock_time_diff_seconds": clock_time_diff_seconds, "updated_at": self._now_ts_str()}).eq('id', id).execute()
+        update_result = update_meter_shadows_when_healthy(
+            self.supabase,
+            id,
+            {
+                "clock_time_diff_seconds": clock_time_diff_seconds
+            }
+        )
         logger.info("update_result [%s]", update_result)
-
-    def _now_ts_str(self):
-        return datetime.utcnow().isoformat()
 
 
 if __name__ == '__main__':
-    if not supabase_url or not supabase_key:
-        logger.error(
-            "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
-        sys.exit(1)
-
-    if not meter_id:
-        logger.error(
-            "Environment variable METER_ID not set.")
-        sys.exit(2)
+    check_environment_vars(logger, supabase_url, supabase_key, meter_id)
 
     try:
         job = MeterHealthCheckJob()

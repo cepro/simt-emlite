@@ -1,11 +1,10 @@
 import os
-import sys
 
-from datetime import datetime
 from httpx import ConnectError
 from supabase import create_client, Client
+from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_supabase_faliure, handle_meter_unhealthy_status, now_iso_str, update_meter_shadows_when_healthy
 
-from emlite_mediator.mediator.client import EmliteMediatorClient
+from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
 from emlite_mediator.util.logging import get_logger
 
 logger = get_logger(__name__)
@@ -34,30 +33,27 @@ class MeterCsqSyncJob():
     def sync(self):
         try:
             csq = self.client.csq()
+        except MediatorClientException as e:
+            handle_meter_unhealthy_status(self.supabase, logger, meter_id, e)
         except Exception as e:
-            logger.error("failure connecting to meter or mediator [%s]", e)
-            sys.exit(10)
+            handle_mediator_unknown_failure(logger, e)
 
         try:
-            update_result = self.supabase.table('meter_shadows').update(
-                {"csq": csq, "updated_at": datetime.utcnow().isoformat()}).eq('id', meter_id).execute()
+            update_result = update_meter_shadows_when_healthy(
+                self.supabase,
+                meter_id,
+                {
+                    "csq": csq
+                }
+            )
         except ConnectError as e:
-            logger.error("Supabase connection failure [%s]", e)
-            sys.exit(11)
+            handle_supabase_faliure(logger, e)
 
         logger.info("update csq result [%s]", update_result)
 
 
 if __name__ == '__main__':
-    if not supabase_url or not supabase_key:
-        logger.error(
-            "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
-        sys.exit(1)
-
-    if not meter_id:
-        logger.error(
-            "Environment variable METER_ID not set.")
-        sys.exit(2)
+    check_environment_vars(logger, supabase_url, supabase_key, meter_id)
 
     try:
         job = MeterCsqSyncJob()

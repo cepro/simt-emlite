@@ -1,10 +1,12 @@
 import logging
 
-FORMAT = '%(asctime)s %(levelname)s %(module)s[%(process)d]: %(message)s'
+FORMAT = '%(asctime)s %(levelname)s %(name)s[%(process)d]: %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.INFO)
 
+Logger = logging.Logger  # re-export
 
-def get_logger(module_name: str):
+
+def get_logger(name: str):
     # Would like to set the following to get the above FORMAT working
     # however when I do i get duplicates but only logging handler ...
 
@@ -14,4 +16,4 @@ def get_logger(module_name: str):
     # logger = logging.getLogger(module_name)
     # logger.addHandler(handler)
 
-    return logging.getLogger(module_name)
+    return logging.getLogger(name)
