@@ -96,17 +96,17 @@ class RunJobForAllMeters():
                 container_name = f"{self.job_name.replace('_', '-')}-{meter['ip_address']}"
                 command = f"emlite_mediator.jobs.{self.job_name}"
 
-                # self.docker_client.containers.run(
-                #     mediator_image,
-                #     name=container_name,
-                #     command=command,
-                #     environment=env_vars,
-                #     network_mode="host",
-                #     detach=True,
-                #     remove=True,
-                # )
+                self.docker_client.containers.run(
+                    mediator_image,
+                    name=container_name,
+                    command=command,
+                    environment=env_vars,
+                    network_mode="host",
+                    detach=True,
+                    remove=True,
+                )
 
-            # time.sleep(30)
+            time.sleep(30)
 
     def _check_environment(self):
         if not mediator_image:
