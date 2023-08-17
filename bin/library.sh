@@ -11,6 +11,7 @@ runDocker() {
   MODULE=$1
   sourceEnv
   docker run --rm \
+    --name $MODULE \
 	--network=host \
 	--env-file $PROJECT_ROOT/mediator.env \
 	-v /var/run/docker.sock:/var/run/docker.sock \
