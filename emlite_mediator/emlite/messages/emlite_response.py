@@ -64,6 +64,10 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.CsqNetOpRec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.hardware_version:
+            pass
+            self.response = EmliteResponse.HardwareRec(self._io, self, self._root)
+            self.response._read()
         elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response = EmliteResponse.TimeRec(self._io, self, self._root)
@@ -92,6 +96,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         if _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.hardware_version:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response._fetch_instances()
@@ -115,6 +122,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         if _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.hardware_version:
+            pass
+            self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response._write__seq(self._io)
@@ -136,6 +146,12 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         pass
         _on = self.object_id
         if _on == EmliteResponse.ObjectIdType.csq_net_op:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.hardware_version:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -262,6 +278,31 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         def _write__seq(self, io=None):
             super(EmliteResponse.PrepayEnabledRec, self)._write__seq(io)
             self._io.write_u1(self.enabled_flag)
+
+
+        def _check(self):
+            pass
+
+
+    class HardwareRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.hardware = (self._io.read_bytes_full()).decode(u"ASCII")
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.HardwareRec, self)._write__seq(io)
+            self._io.write_bytes((self.hardware).encode(u"ASCII"))
+            if not self._io.is_eof():
+                raise kaitaistruct.ConsistencyError(u"hardware", self._io.size() - self._io.pos(), 0)
 
 
         def _check(self):

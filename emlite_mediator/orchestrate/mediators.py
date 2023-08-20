@@ -78,7 +78,14 @@ class Mediators():
     def stop_all(self):
         mediator_containers = self._all_running_mediators()
         for mediator in mediator_containers:
+            logger.info("stopping [%s]", mediator.name)
             mediator.stop()
+
+    def remove_all(self):
+        mediator_containers = self._all_mediators()
+        for mediator in mediator_containers:
+            logger.info("removing [%s]", mediator.name)
+            mediator.remove(force=True)
 
     def stop_one(self, meter_id: str):
         container = self.container_by_meter_id(meter_id)
@@ -99,8 +106,12 @@ class Mediators():
         return containers[0]
 
     def _all_running_mediators(self):
+        return self._all_mediators(status="running")
+
+    def _all_mediators(self, status=None):
+        filters = {"status": status} if status else {}
         containers = self.docker_client.containers.list(all=True,
-                                                        filters={"status": "running"})
+                                                        filters=filters)
         return list(filter(lambda c: c.name.startswith('mediator-'), containers))
 
     def _get_meter_ip(self, meter_id: str):
@@ -142,3 +153,5 @@ if __name__ == '__main__':
 
     mediators = Mediators()
     mediators.start_all()
+    # mediators.stop_all()
+    # mediators.remove_all()

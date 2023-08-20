@@ -36,21 +36,30 @@ class MeterHealthCheckJob():
     def check_health(self):
         logger.info("checking for %s...", meter_id)
 
-        meter_registry_record = None
+        query_result = None
         try:
-            meter_registry_record = self.supabase.table('meter_registry').select(
-                'serial').eq("id", meter_id).execute()
+            query_result = self.supabase.table('meter_registry').select(
+                'serial,hardware').eq("id", meter_id).execute()
         except ConnectError as e:
             handle_supabase_faliure(logger, e)
 
-        if (len(meter_registry_record.data) == 0):
+        if (len(query_result.data) == 0):
             logger.error("no meter_registry record found for this device")
             sys.exit(11)
 
+        reg_rec = query_result.data[0]
         try:
-            self._check_serial(
-                meter_id, meter_registry_record.data[0]['serial'])
+            serial = self._check_serial(
+                meter_id, reg_rec['serial'])
+
             self._check_clock_diff(meter_id)
+
+            registry_hardware = None
+            if 'hardware' in reg_rec:
+                registry_hardware = reg_rec['hardware']
+            self._check_hardware(
+                meter_id, registry_hardware, serial)
+
         except MediatorClientException as e:
             handle_meter_unhealthy_status(self.supabase, logger, meter_id, e)
         except Exception as e:
@@ -64,7 +73,7 @@ class MeterHealthCheckJob():
 
         if (serial == registry_serial):
             logger.info("serial unchanged - no action")
-            return
+            return serial
 
         if (registry_serial is None and serial is not None):
             logger.info('add new serial to registry')
@@ -78,6 +87,8 @@ class MeterHealthCheckJob():
             "updated_at": now_iso_str()
         }).eq('id', id).execute()
         logger.info("update serial result [%s]", update_result)
+
+        return serial
 
     """ 
         get the clock time and check the difference between the meter device 
@@ -101,6 +112,41 @@ class MeterHealthCheckJob():
             }
         )
         logger.info("update_result [%s]", update_result)
+
+    """ check the hardware matches the one in the registry - if not update the registry """
+
+    def _check_hardware(self, id: str, registry_hardware: str, serial: str):
+        # if 3 phase meter hardware fetch will fail.
+        #
+        # currently we have no other way to query the hardware so we check the
+        # serial prefix and hardcode the hardware.
+        #
+        # see also ticket related to this issue on the EMOP downloader:
+        #   https://cepro.unfuddle.com/a#/projects/13/tickets/by_number/390
+        if serial.startswith('EMP1AX'):
+            hardware = 'P1.ax'
+        else:
+            logger.info("fetch hardware ...")
+            hardware = self.client.hardware()
+
+        if (hardware == registry_hardware):
+            logger.info("hardware unchanged - no action")
+            return
+
+        if (registry_hardware is None and hardware is not None):
+            logger.info('add new hardware [%s] to registry', hardware)
+        else:
+            logger.warning(
+                'fetched hardware and registry hardware [%s] different! '
+                'will update the registry with the fetched entry', registry_hardware)
+
+        logger.info(
+            'skipping db update for now - need to discuss hardware types first')
+        # update_result = self.supabase.table('meter_registry').update({
+        #     "hardware": hardware,
+        #     "updated_at": now_iso_str()
+        # }).eq('id', id).execute()
+        # logger.info("update hardware result [%s]", update_result)
 
 
 if __name__ == '__main__':

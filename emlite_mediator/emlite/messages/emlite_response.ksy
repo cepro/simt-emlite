@@ -26,6 +26,7 @@ seq:
       cases:
         "object_id_type::time": time_rec
         "object_id_type::serial": serial_rec
+        "object_id_type::hardware_version": hardware_rec
         "object_id_type::csq_net_op": csq_net_op_rec
         "object_id_type::prepay_enabled_flag": prepay_enabled_rec
         "object_id_type::prepay_balance": prepay_balance_rec
@@ -35,6 +36,12 @@ types:
   serial_rec:
     seq:
       - id: serial
+        type: str
+        size-eos: true
+        encoding: ASCII
+  hardware_rec:
+    seq:
+      - id: hardware
         type: str
         size-eos: true
         encoding: ASCII

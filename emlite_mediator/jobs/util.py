@@ -17,7 +17,6 @@ def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties
         "health_details": "",
 
         "updated_at": now_iso_str(),
-
     }).eq('id', meter_id).execute()
 
 

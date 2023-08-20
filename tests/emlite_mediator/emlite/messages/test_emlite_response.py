@@ -10,6 +10,12 @@ class TestEmliteResponse(unittest.TestCase):
         response = self._deserialize(EmliteResponse.ObjectIdType.serial, response_hex)
         self.assertEqual(response.serial.strip(), 'EML2137580761')
 
+    def test_hardware(self):
+        rsp_to_hardware = lambda rsp_hex: self._deserialize(EmliteResponse.ObjectIdType.hardware_version, rsp_hex).hardware.replace('\u0000', '').strip() 
+        
+        self.assertEqual(rsp_to_hardware('36437720'), '6Cw')
+        self.assertEqual(rsp_to_hardware('36430000'), '6C')
+
     def test_time(self):
         response_hex = "17080615000100"
         response = self._deserialize(EmliteResponse.ObjectIdType.time, response_hex)

@@ -36,6 +36,12 @@ class EmliteMediatorClient():
         logger.info('serial [%s]', serial)
         return serial
 
+    def hardware(self) -> str:
+        data = self._read_element(ObjectIdEnum.hardware_version)
+        hardware = data.hardware.replace('\u0000', '').strip()
+        logger.info('hardware [%s]', hardware)
+        return hardware
+
     def clock_time(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)
         date_obj = datetime.datetime(

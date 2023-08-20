@@ -100,7 +100,8 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             timedelta(seconds=minimum_time_between_emlite_requests_seconds)
 
         if (datetime.now() < next_request_allowed_datetime):
-            logger.info('sleeping between close requests')
+            logger.info('sleeping %s seconds between requests',
+                        minimum_time_between_emlite_requests_seconds)
             time.sleep(minimum_time_between_emlite_requests_seconds)
 
 
