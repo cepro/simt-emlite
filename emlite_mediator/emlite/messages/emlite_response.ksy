@@ -75,7 +75,7 @@ types:
   prepay_balance_rec:
     seq:
       - id: balance
-        type: u4le
+        type: s4le
   default_rec:
     seq:
       - id: payload

@@ -220,7 +220,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self._root = _root
 
         def _read(self):
-            self.balance = self._io.read_u4le()
+            self.balance = self._io.read_s4le()
 
 
         def _fetch_instances(self):
@@ -229,7 +229,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
 
         def _write__seq(self, io=None):
             super(EmliteResponse.PrepayBalanceRec, self)._write__seq(io)
-            self._io.write_u4le(self.balance)
+            self._io.write_s4le(self.balance)
 
 
         def _check(self):

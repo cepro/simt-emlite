@@ -51,6 +51,8 @@ class TestEmliteResponse(unittest.TestCase):
         self.assertEqual(response.balance, 300000) # 3.00 GBP
         response = self._deserialize(EmliteResponse.ObjectIdType.prepay_balance, '30630300')
         self.assertEqual(response.balance, 222000) # 2.22 GBP
+        response = self._deserialize(EmliteResponse.ObjectIdType.prepay_balance, 'c07a03fe')
+        self.assertEqual(response.balance, -33326400) # -333.264 GBP
         
     def _deserialize(self, object_id, response_hex):
         rsp_bytes = bytearray.fromhex(response_hex)
