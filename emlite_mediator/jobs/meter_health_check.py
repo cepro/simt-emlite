@@ -84,7 +84,6 @@ class MeterHealthCheckJob():
 
         update_result = self.supabase.table('meter_registry').update({
             "serial": serial,
-            "updated_at": now_iso_str()
         }).eq('id', id).execute()
         logger.info("update serial result [%s]", update_result)
 
@@ -144,7 +143,6 @@ class MeterHealthCheckJob():
             'skipping db update for now - need to discuss hardware types first')
         # update_result = self.supabase.table('meter_registry').update({
         #     "hardware": hardware,
-        #     "updated_at": now_iso_str()
         # }).eq('id', id).execute()
         # logger.info("update hardware result [%s]", update_result)
 

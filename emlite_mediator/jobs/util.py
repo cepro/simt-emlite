@@ -15,8 +15,6 @@ def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties
         # clock time can be read so meter is healthy:
         "health": "healthy",
         "health_details": "",
-
-        "updated_at": now_iso_str(),
     }).eq('id', meter_id).execute()
 
 
@@ -26,7 +24,6 @@ def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: Me
     supabase.table('meter_shadows').update({
         "health": "unhealthy",
         "health_details": exception.message,
-        "updated_at": now_iso_str()
     }).eq('id', meter_id).execute()
     sys.exit(100)
 

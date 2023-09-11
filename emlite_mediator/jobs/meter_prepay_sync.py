@@ -63,7 +63,6 @@ class MeterPrepaySyncJob():
             if (meter_registry_record.data[0]['prepay_enabled'] != prepay_enabled):
                 update_registry_result = self.supabase.table('meter_registry').update({
                     "prepay_enabled": prepay_enabled,
-                    "updated_at": now_iso_str()
                 }).eq('id', meter_id).execute()
                 logger.info(
                     "update prepay_enabled result [%s]", update_registry_result)
