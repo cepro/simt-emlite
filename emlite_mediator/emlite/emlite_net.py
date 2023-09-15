@@ -2,18 +2,20 @@ import socket
 
 from emlite_mediator.util.logging import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, __file__)
 
 
 class EmliteNET:
     def __init__(self, host, port=8080):
         self.host = host
         self.port = int(port)
+        global logger
+        logger = logger.bind(host=host)
 
     def send_message(self, req_bytes):
         sock = self._open_socket()
         try:
-            logger.info("sending: [%s]", req_bytes.hex())
+            logger.info("sending", request_payload=req_bytes.hex())
             self._write_bytes(sock, req_bytes)
             rsp_bytes = self._read_bytes(sock, 128)
             sock.close()
@@ -21,16 +23,16 @@ class EmliteNET:
             sock.close()
             sock = None
             raise e
-        logger.info("received: [%s]", rsp_bytes.hex())
+        logger.info("received", response_payload=rsp_bytes.hex())
         return rsp_bytes
 
     def _open_socket(self):
-        logger.info("connecting to %s:%s", self.host, self.port)
+        logger.info("connecting", host=self.host, port=self.port)
         sock = socket.socket()
         try:
             sock.connect((self.host, self.port))
         except socket.error as e:
-            logger.error("Error connecting to socket")
+            logger.exception("Error connecting to socket")
             sock.close()
             sock = None
             raise e
@@ -40,12 +42,12 @@ class EmliteNET:
         try:
             sock.send(data)
         except socket.error as e:
-            logger.error("Error writing to socket")
+            logger.exception("Error writing to socket")
             raise e
 
     def _read_bytes(self, sock, num_bytes):
         try:
             return sock.recv(num_bytes)
         except socket.error as e:
-            logger.error("Error reading from socket")
+            logger.exception("Error reading from socket")
             raise e

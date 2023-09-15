@@ -9,7 +9,7 @@ from emlite_mediator.util.logging import get_logger
 from .generated.mediator_pb2 import ReadElementRequest, SendRawMessageRequest
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, __file__)
 
 TIMEOUT_SECONDS = 15
 
@@ -17,6 +17,8 @@ TIMEOUT_SECONDS = 15
 class EmliteMediatorGrpcClient():
     def __init__(self, host='0.0.0.0', port=50051):
         self.address = f"{host}:{port}"
+        global logger
+        logger = logger.bind(host=host, port=port)
 
     def read_element(self, object_id: ObjectIdEnum):
         with grpc.insecure_channel(self.address) as channel:
@@ -26,12 +28,12 @@ class EmliteMediatorGrpcClient():
                     ReadElementRequest(objectId=object_id.value),
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
-                logger.error(
-                    'readElement failed: [%s] (code: %s)', e.details(), e.code())
+                logger.exception('readElement failed',
+                                 details=e.details(), code=e.code())
                 raise e
 
         payload_bytes = rsp_obj.response
-        logger.info('payload_bytes: [%s]', payload_bytes.hex())
+        logger.info('response received', response_payload=payload_bytes.hex())
 
         emlite_rsp = EmliteResponse(
             len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes)))
@@ -46,12 +48,12 @@ class EmliteMediatorGrpcClient():
                     SendRawMessageRequest(dataField=message),
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
-                logger.error(
-                    'sendRawMessage failed: [%s] (code: %s)', e.details(), e.code())
+                logger.exception('sendRawMessage',
+                                 details=e.details(), code=e.code())
                 raise e
 
         payload_bytes = rsp_obj.response
-        logger.info('payload_bytes: [%s]', payload_bytes.hex())
+        logger.info('response received', response_payload=payload_bytes.hex())
         return payload_bytes
 
 

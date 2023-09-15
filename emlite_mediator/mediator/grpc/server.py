@@ -13,7 +13,7 @@ from emlite_mediator.util.logging import get_logger
 from .generated.mediator_pb2 import ReadElementReply, SendRawMessageReply
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceServicer, add_EmliteMediatorServiceServicer_to_server
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, __file__)
 
 """
     Wait this amount of time between requests to avoid the emlite meter
@@ -62,11 +62,11 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         self.api = EmliteAPI(host, port)
 
     def sendRawMessage(self, request, context):
-        logger.info('sendRawMessage: received=[%s]', request.dataField.hex())
+        logger.info('sendRawMessage', message=request.dataField.hex())
         self._space_out_requests()
         try:
             rsp_payload = self.api.send_message(request.dataField)
-            logger.info('sendRawMessage: response=[%s]', rsp_payload.hex())
+            logger.info('sendRawMessage response', payload=rsp_payload.hex())
             return SendRawMessageReply(response=rsp_payload)
         except Exception as e:
             self._handle_failure(e, 'sendRawMessage', context)
@@ -74,19 +74,19 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
     def readElement(self, request, context):
         object_id_bytes = request.objectId.to_bytes(3, byteorder='big')
-        logger.info('readElement: object_id=[0x%s]', object_id_bytes.hex())
+        logger.info('readElement request', object_id=object_id_bytes.hex())
         self._space_out_requests()
         try:
             rsp_payload = self.api.read_element_with_object_id_bytes(
                 object_id_bytes)
-            logger.info('readElement: response=[%s]', rsp_payload.hex())
+            logger.info('readElement response', payload=rsp_payload.hex())
             return ReadElementReply(response=rsp_payload)
         except Exception as e:
             self._handle_failure(e, 'readElement', context)
             return ReadElementReply()
 
     def _handle_failure(self, exception, call_name, context):
-        logger.exception('%s failed: %s', call_name, exception)
+        logger.exception('call failed', call_name=call_name)
         context.set_code(grpc.StatusCode.INTERNAL)
         context.set_details("network failure or internal error")
 

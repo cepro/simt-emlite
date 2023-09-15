@@ -10,7 +10,7 @@ from .messages.emlite_object_id_enum import ObjectIdEnum
 
 from . import emlite_net
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, __file__)
 
 crc16 = crcmod.predefined.mkCrcFun('crc-ccitt-false')
 
@@ -19,6 +19,8 @@ class EmliteAPI:
     def __init__(self, host, port=8080):
         self.net = emlite_net.EmliteNET(host, port)
         self.last_request_datetime = None
+        global logger
+        logger.bind(host=host)
 
     def send_message(self, req_data_field_bytes):
         return self.send_message_from_bytes(req_data_field_bytes)
@@ -35,7 +37,7 @@ class EmliteAPI:
 
         frame = emlite_frame.EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
         frame._read()
-        logger.info("response frame: [%s]", frame)
+        logger.info("response frame parsed", frame=str(frame))
 
         self.last_request_datetime = datetime.now()
 
@@ -47,7 +49,7 @@ class EmliteAPI:
     def read_element_with_object_id_bytes(self, object_id: bytearray):
         data_field = self._build_data_field(object_id)
         payload_bytes = self.send_message_from_instance(data_field)
-        logger.info("response payload: [%s]", payload_bytes.hex())
+        logger.info("response", response_payload=payload_bytes.hex())
         return payload_bytes
 
     def _build_data_field(self, object_id: bytearray, read_write_flag=emlite_data.EmliteData.ReadWriteFlags.read, payload=bytes()):

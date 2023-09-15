@@ -7,7 +7,7 @@ from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_un
 from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
 from emlite_mediator.util.logging import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, __file__)
 
 meter_id: str = os.environ.get('METER_ID')
 

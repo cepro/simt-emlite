@@ -1,19 +1,43 @@
-import logging
+import os
+import sys
+import structlog
 
-FORMAT = '%(asctime)s %(levelname)s %(name)s[%(process)d]: %(message)s'
-logging.basicConfig(format=FORMAT, level=logging.INFO)
+from pathlib import Path
 
-Logger = logging.Logger  # re-export
+shared_processors = [
+    structlog.contextvars.merge_contextvars,
+    structlog.processors.add_log_level,
+    structlog.processors.StackInfoRenderer(),
+    structlog.processors.format_exc_info,
+    structlog.processors.TimeStamper("iso"),
+]
+
+if sys.stderr.isatty():
+    processors = [
+        structlog.dev.ConsoleRenderer()
+    ]
+else:
+    processors = [
+        structlog.processors.JSONRenderer(),
+        structlog.processors.dict_tracebacks
+    ]
+
+structlog.configure(processors=shared_processors + processors)
 
 
-def get_logger(name: str):
-    # Would like to set the following to get the above FORMAT working
-    # however when I do i get duplicates but only logging handler ...
+def path_to_package_and_module(path: str):
+    path_parts = Path(path).parts
+    package_parts = path_parts[path_parts.index('emlite_mediator'):]
+    # [:-3] chops off file extension '.py'
+    return os.path.join(*package_parts).replace(os.sep, '.')[:-3]
 
-    # handler = logging.StreamHandler()
-    # handler.setFormatter(logging.Formatter(FORMAT))
 
-    # logger = logging.getLogger(module_name)
-    # logger.addHandler(handler)
+def logger_module_name(name, file=None):
+    if name != '__main__' or file == None:
+        return name
+    return path_to_package_and_module(file)
 
-    return logging.getLogger(name)
+
+def get_logger(name: str, python_file: str):
+    return structlog.get_logger(module=logger_module_name(name, python_file)
+                                )

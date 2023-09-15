@@ -7,7 +7,7 @@ from emlite_mediator.util.logging import get_logger
 
 from .grpc.client import EmliteMediatorGrpcClient
 
-logger = get_logger(__name__)
+logger = get_logger(__name__, __file__)
 
 """
     Use this class to make calls to an emlite meter through a mediator server.
@@ -28,43 +28,47 @@ class MediatorClientException(Exception):
 class EmliteMediatorClient():
     def __init__(self, host='0.0.0.0', port=50051):
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
-        logger.info('EmliteMediatorClient init [host=%s, port=%s]', host, port)
+        global logger
+        logger = logger.bind(host=host, port=port)
+        logger.info('EmliteMediatorClient init')
 
     def serial(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
         serial = data.serial.strip()
-        logger.info('serial [%s]', serial)
+        logger.info('received serial', serial=serial)
         return serial
 
     def hardware(self) -> str:
         data = self._read_element(ObjectIdEnum.hardware_version)
         hardware = data.hardware.replace('\u0000', '').strip()
-        logger.info('hardware [%s]', hardware)
+        logger.info('received hardware', hardware=hardware)
         return hardware
 
     def clock_time(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)
         date_obj = datetime.datetime(
             2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
-        logger.info('time [%s]', date_obj.isoformat())
+        logger.info('received time', time=date_obj.isoformat())
         return date_obj
 
     def csq(self) -> int:
         data = self._read_element(ObjectIdEnum.csq_net_op)
-        logger.info('csq [%s]', data.csq)
+        logger.info('received csq', csq=data.csq)
         return data.csq
 
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
-        logger.info('prepay enabled [%s]', enabled)
+        logger.info('received prepay enabled flag',
+                    prepay_enabled_flag=enabled)
         return enabled
 
     def prepay_balance(self) -> float:
         data = self._read_element(ObjectIdEnum.prepay_balance)
-        logger.debug('prepay balance raw [%s]', data.balance)
+        logger.debug('received prepay balance',
+                     prepay_balance_raw=data.balance)
         balance_gbp: float = data.balance / 100000
-        logger.info('prepay balance to GBP [%s]', balance_gbp)
+        logger.info('prepay balance in GBP', prepay_balance_gbp=balance_gbp)
         return balance_gbp
 
     def _read_element(self, object_id):
