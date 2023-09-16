@@ -70,7 +70,7 @@ class MeterPrepaySyncJob():
                     "prepay_enabled": prepay_enabled,
                 }).eq('id', meter_id).execute()
                 logger.info(
-                    "updated meter_registry prepay_enabled", update_result)
+                    "updated meter_registry prepay_enabled", update_result=update_result)
             else:
                 logger.info("prepay_enabled flag unchanged")
 
