@@ -48,10 +48,12 @@ EMLITE_HOST=100.79.244.89 python -m emlite_mediator.mediator.grpc.server
 docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 ghcr.io/cepro/emlite-mediator:0.1.20 emlite_mediator.mediator.grpc.server
 ```
 
-## Start all mediators from docker image
+## Start / stop / remove all mediator docker containers
 
 ```
-bin/run_mediators
+bin/run_mediators --start-all
+bin/run_mediators --stop-all
+bin/run_mediators --remove-all
 ```
 
 ## Run Jobs
