@@ -2,7 +2,7 @@ import os
 
 from httpx import ConnectError
 from supabase import create_client, Client
-from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, now_iso_str, update_meter_shadows_when_healthy
+from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, update_meter_shadows_when_healthy
 
 from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
 from emlite_mediator.util.logging import get_logger
@@ -29,13 +29,15 @@ class MeterPrepaySyncJob():
     def __init__(self):
         self.client = EmliteMediatorClient(mediator_host, mediator_port)
         self.supabase = create_client(supabase_url, supabase_key)
+        global logger
+        logger = logger.bind(meter_id=meter_id, mediator_port=mediator_port)
 
     def sync(self):
         try:
             prepay_enabled = self.client.prepay_enabled()
-            logger.info("enabled [%s]", prepay_enabled)
+            logger.info("fetched enabled", prepay_enabled=prepay_enabled)
             prepay_balance = self.client.prepay_balance()
-            logger.info("balance [%s]", prepay_balance)
+            logger.info("fetched balance", prepay_balance=prepay_balance)
         except MediatorClientException as e:
             handle_meter_unhealthy_status(self.supabase, logger, meter_id, e)
         except Exception as e:
@@ -45,7 +47,7 @@ class MeterPrepaySyncJob():
             #
             # write balance to shadow table
             #
-            update_shadow_result = update_meter_shadows_when_healthy(
+            update_result = update_meter_shadows_when_healthy(
                 self.supabase,
                 meter_id,
                 {
@@ -53,7 +55,7 @@ class MeterPrepaySyncJob():
                 }
             )
             logger.info(
-                "update prepay_balance result [%s]", update_shadow_result)
+                "updated meter_shadows prepay_balance", update_result=update_result)
 
             #
             # write enabled flag to registry table only IF it has changed
@@ -61,11 +63,11 @@ class MeterPrepaySyncJob():
             meter_registry_record = self.supabase.table('meter_registry').select(
                 'prepay_enabled').eq("id", meter_id).execute()
             if (meter_registry_record.data[0]['prepay_enabled'] != prepay_enabled):
-                update_registry_result = self.supabase.table('meter_registry').update({
+                update_result = self.supabase.table('meter_registry').update({
                     "prepay_enabled": prepay_enabled,
                 }).eq('id', meter_id).execute()
                 logger.info(
-                    "update prepay_enabled result [%s]", update_registry_result)
+                    "updated meter_registry prepay_enabled", update_result)
             else:
                 logger.info("prepay_enabled flag unchanged")
 
@@ -80,4 +82,4 @@ if __name__ == '__main__':
         job = MeterPrepaySyncJob()
         job.sync()
     except Exception as e:
-        logger.exception("failure occured syncing prepay_enabled [%s]", e)
+        logger.exception("failure occured syncing prepay_enabled", e)

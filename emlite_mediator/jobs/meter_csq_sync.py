@@ -2,7 +2,7 @@ import os
 
 from httpx import ConnectError
 from supabase import create_client, Client
-from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_supabase_faliure, handle_meter_unhealthy_status, now_iso_str, update_meter_shadows_when_healthy
+from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_supabase_faliure, handle_meter_unhealthy_status, update_meter_shadows_when_healthy
 
 from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
 from emlite_mediator.util.logging import get_logger
@@ -29,6 +29,8 @@ class MeterCsqSyncJob():
     def __init__(self):
         self.client = EmliteMediatorClient(mediator_host, mediator_port)
         self.supabase = create_client(supabase_url, supabase_key)
+        global logger
+        logger = logger.bind(meter_id=meter_id, mediator_port=mediator_port)
 
     def sync(self):
         try:
@@ -49,7 +51,7 @@ class MeterCsqSyncJob():
         except ConnectError as e:
             handle_supabase_faliure(logger, e)
 
-        logger.info("update csq result [%s]", update_result)
+        logger.info("updated meter_shadows.csq", update_result=update_result)
 
 
 if __name__ == '__main__':
@@ -59,4 +61,4 @@ if __name__ == '__main__':
         job = MeterCsqSyncJob()
         job.sync()
     except Exception as e:
-        logger.exception("failure occured syncing csq [%s]", e)
+        logger.exception("failure occured syncing csq")

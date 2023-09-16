@@ -111,19 +111,20 @@ def shutdown_handler(signal, frame):
 
 
 def serve():
+    global logger
+    logger = logger.bind(emlite_host=emlite_host, listen_port=listen_port)
+
     if (emlite_host is None):
         logger.error('EMLITE_HOST environment variable not set')
         return
 
-    port = listen_port
-    logger.info('listen: %s', port)
-    logger.info('meter: %s:%s', emlite_host, emlite_port)
+    logger.info("starting server")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     add_EmliteMediatorServiceServicer_to_server(
         EmliteMediatorServicer(emlite_host, emlite_port), server)
 
-    server.add_insecure_port(f'[::]:{port}')
+    server.add_insecure_port(f'[::]:{listen_port}')
     server.start()
     server.wait_for_termination()
 

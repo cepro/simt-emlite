@@ -4,10 +4,6 @@ from typing import Dict
 from emlite_mediator.mediator.client import MediatorClientException
 
 
-def now_iso_str():
-    return datetime.utcnow().isoformat()
-
-
 def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties: Dict):
     return supabase.table('meter_shadows').update({
         **update_properties,
@@ -20,7 +16,7 @@ def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties
 
 def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: MediatorClientException):
     logger.info(
-        "updating meter_shadows.health to unhealthy for meter %s", meter_id)
+        "updating meter_shadows.health to unhealthy")
     supabase.table('meter_shadows').update({
         "health": "unhealthy",
         "health_details": exception.message,
@@ -29,13 +25,13 @@ def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: Me
 
 
 def handle_mediator_unknown_failure(logger, exception):
-    logger.error(
-        "failure connecting to meter or mediator [%s]", exception)
+    logger.exception(
+        "failure connecting to meter or mediator", exception=exception)
     sys.exit(101)
 
 
 def handle_supabase_faliure(logger, exception):
-    logger.error("Supabase connection failure [%s]", exception)
+    logger.exception("Supabase connection failure", exception=exception)
     sys.exit(50)
 
 

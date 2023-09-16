@@ -11,7 +11,7 @@ from supabase import create_client, Client
 
 from emlite_mediator.util.logging import get_logger
 
-logger = get_logger('mediators')
+logger = get_logger(__name__, __file__)
 
 mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
@@ -29,18 +29,24 @@ class Mediators():
     def start_one(self, meter_id: str) -> int:
         container = self.container_by_meter_id(meter_id)
         if (container is not None):
-            logger.info('start existing container [%s]', container.name)
+            logger.info('start existing container',
+                        meter_id=meter_id, container_name=container.name)
             container.start()
             return container.labels['listen_port']
 
         ip_address = self._get_meter_ip(meter_id)
         mediator_port = self._allocate_mediator_listen_port()
-        logger.info("create mediator container [listen=%s, ip=%s, id=%s]",
-                    mediator_port, ip_address, meter_id)
+        container_name = f"mediator-{ip_address}"
+
+        logger.info("create and start new container",
+                    container_name=container_name,
+                    mediator_port=mediator_port,
+                    ip_address=ip_address,
+                    meter_id=meter_id)
 
         self.docker_client.containers.run(
             mediator_image,
-            name=f"mediator-{ip_address}",
+            name=container_name,
             command="emlite_mediator.mediator.grpc.server",
             environment={
                 "EMLITE_HOST": ip_address,
@@ -59,7 +65,7 @@ class Mediators():
         return mediator_port
 
     def start_many(self, meter_ids: List[str]) -> Dict[str, int]:
-        logger.info('start_many: ids [%s]', meter_ids)
+        logger.info('start_many invoked', meter_ids=meter_ids)
         ports = {}
         for meter_id in meter_ids:
             ports['meter_id'] = self.start_one(meter_id)
@@ -70,7 +76,7 @@ class Mediators():
             rows = self.supabase.table('meter_registry').select(
                 'id').execute()
         except ConnectError as e:
-            logger.error("Supabase connection failure [%s]", e)
+            logger.exception("Supabase connection failure")
             sys.exit(10)
         ids = list(map(lambda row: row['id'], rows.data))
         return self.start_many(ids)
@@ -78,24 +84,24 @@ class Mediators():
     def stop_all(self):
         mediator_containers = self._all_running_mediators()
         for mediator in mediator_containers:
-            logger.info("stopping [%s]", mediator.name)
+            logger.info("stopping container", container_name=mediator.name)
             mediator.stop()
 
     def remove_all(self):
         mediator_containers = self._all_mediators()
         for mediator in mediator_containers:
-            logger.info("removing [%s]", mediator.name)
+            logger.info("removing container", container_name=mediator.name)
             mediator.remove(force=True)
 
     def stop_one(self, meter_id: str):
         container = self.container_by_meter_id(meter_id)
         if (container == None):
             logger.info(
-                "stop_one: skip - container for meter [%s] already stopped", meter_id)
+                "stop_one: skip - container for meter already stopped", meter_id=meter_id)
             return
 
         logger.info(
-            "stop_one stopping container [%s] for meter_id [%s]", container.name, meter_id)
+            "stop_one stopping container", container_name=container.name, meter_id=meter_id)
         container.stop()
 
     def container_by_meter_id(self, meter_id: str):
@@ -121,7 +127,7 @@ class Mediators():
             meter_registry_record = self.supabase.table('meter_registry').select(
                 'ip_address').eq("id", meter_id).execute()
         except ConnectError as e:
-            logger.error("Supabase connection failure [%s]", e)
+            logger.exception("Supabase connection failure")
             sys.exit(12)
 
         return meter_registry_record.data[0]['ip_address']

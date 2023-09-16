@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 from httpx import ConnectError
 from supabase import create_client, Client
-from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, now_iso_str, update_meter_shadows_when_healthy
+from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, update_meter_shadows_when_healthy
 
 from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
 from emlite_mediator.util.logging import get_logger
@@ -32,9 +32,11 @@ class MeterHealthCheckJob():
     def __init__(self):
         self.client = EmliteMediatorClient(mediator_host, mediator_port)
         self.supabase = create_client(supabase_url, supabase_key)
+        global logger
+        logger = logger.bind(meter_id=meter_id, mediator_port=mediator_port)
 
     def check_health(self):
-        logger.info("checking for %s...", meter_id)
+        logger.info("checking ...")
 
         query_result = None
         try:
@@ -79,13 +81,13 @@ class MeterHealthCheckJob():
             logger.info('add new serial to registry')
         else:
             logger.warning(
-                'fetched serial and registry serial [%s] different! '
-                'will update the registry with the fetched entry', registry_serial)
+                'fetched serial and registry serial different! '
+                'will update the registry with the fetched entry', new_serial=serial, old_serial=registry_serial)
 
         update_result = self.supabase.table('meter_registry').update({
             "serial": serial,
         }).eq('id', id).execute()
-        logger.info("update serial result [%s]", update_result)
+        logger.info("update serial result", update_result=update_result)
 
         return serial
 
@@ -101,7 +103,8 @@ class MeterHealthCheckJob():
 
         now = datetime.utcnow()
         clock_time_diff_seconds = abs(now - clock_time).seconds
-        logger.info("clock_time_diff_seconds [%s]", clock_time_diff_seconds)
+        logger.info("clock_time_diff_seconds calculated",
+                    clock_time_diff_seconds=clock_time_diff_seconds)
 
         update_result = update_meter_shadows_when_healthy(
             self.supabase,
@@ -110,7 +113,7 @@ class MeterHealthCheckJob():
                 "clock_time_diff_seconds": clock_time_diff_seconds
             }
         )
-        logger.info("update_result [%s]", update_result)
+        logger.info("update clock diff result", update_result=update_result)
 
     """ check the hardware matches the one in the registry - if not update the registry """
 
@@ -133,18 +136,18 @@ class MeterHealthCheckJob():
             return
 
         if (registry_hardware is None and hardware is not None):
-            logger.info('add new hardware [%s] to registry', hardware)
+            logger.info('got new hardware', new_hardware=hardware)
         else:
             logger.warning(
-                'fetched hardware and registry hardware [%s] different! '
-                'will update the registry with the fetched entry', registry_hardware)
+                'fetched hardware and registry hardware different! '
+                'will update the registry with the fetched entry', new_hardware=hardware, old_hardware=registry_hardware)
 
         logger.info(
             'skipping db update for now - need to discuss hardware types first')
         # update_result = self.supabase.table('meter_registry').update({
         #     "hardware": hardware,
         # }).eq('id', id).execute()
-        # logger.info("update hardware result [%s]", update_result)
+        # logger.info("update hardware result", update_result=update_result)
 
 
 if __name__ == '__main__':
@@ -154,4 +157,4 @@ if __name__ == '__main__':
         job = MeterHealthCheckJob()
         job.check_health()
     except Exception as e:
-        logger.exception("failure occured checking meter health [%s]", e)
+        logger.exception("failure occured checking meter health", e)
