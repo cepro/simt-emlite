@@ -1,9 +1,9 @@
-from datetime import datetime
+from emlite_mediator.util.logging import get_logger
+
 import crcmod.predefined
 
+from datetime import datetime
 from kaitaistruct import KaitaiStream, BytesIO
-
-from emlite_mediator.util.logging import get_logger
 
 from .messages import emlite_data, emlite_frame
 from .messages.emlite_object_id_enum import ObjectIdEnum

@@ -1,6 +1,6 @@
-import socket
-
 from emlite_mediator.util.logging import get_logger
+
+import socket
 
 logger = get_logger(__name__, __file__)
 

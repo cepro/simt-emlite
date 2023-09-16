@@ -1,15 +1,16 @@
+from emlite_mediator.util.logging import get_logger
 
 import random
 import socket
 import docker
 import os
 import sys
+import postgrest
 
 from httpx import ConnectError
 from typing import Dict, List
 from supabase import create_client, Client
 
-from emlite_mediator.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
@@ -75,7 +76,7 @@ class Mediators():
         try:
             rows = self.supabase.table('meter_registry').select(
                 'id').execute()
-        except ConnectError as e:
+        except ConnectError:
             logger.exception("Supabase connection failure")
             sys.exit(10)
         ids = list(map(lambda row: row['id'], rows.data))
@@ -126,7 +127,7 @@ class Mediators():
         try:
             meter_registry_record = self.supabase.table('meter_registry').select(
                 'ip_address').eq("id", meter_id).execute()
-        except ConnectError as e:
+        except ConnectError:
             logger.exception("Supabase connection failure")
             sys.exit(12)
 
@@ -148,7 +149,6 @@ class Mediators():
 
 
 if __name__ == '__main__':
-
     if not mediator_image:
         logger.error("MEDIATOR_IMAGE not set to a docker image.")
         exit(1)
@@ -157,7 +157,12 @@ if __name__ == '__main__':
             "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
         exit(2)
 
-    mediators = Mediators()
-    mediators.start_all()
-    # mediators.stop_all()
-    # mediators.remove_all()
+    try:
+        mediators = Mediators()
+        mediators.start_all()
+        # mediators.stop_all()
+        # mediators.remove_all()
+    except postgrest.exceptions.APIError as e:
+        logger.error("start mediators failed", error=e.message)
+    except Exception as e:
+        logger.exception("unknown failure in mediators")

@@ -1,10 +1,11 @@
+from emlite_mediator.util.logging import get_logger
+
 import grpc
 
 from kaitaistruct import KaitaiStream, BytesIO
 
 from emlite_mediator.emlite.messages.emlite_response import EmliteResponse
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
-from emlite_mediator.util.logging import get_logger
 
 from .generated.mediator_pb2 import ReadElementRequest, SendRawMessageRequest
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub

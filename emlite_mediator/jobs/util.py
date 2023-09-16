@@ -1,4 +1,3 @@
-from datetime import datetime
 import sys
 from typing import Dict
 from emlite_mediator.mediator.client import MediatorClientException

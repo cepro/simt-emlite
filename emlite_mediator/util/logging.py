@@ -1,6 +1,7 @@
 import os
-import sys
+import logging
 import structlog
+import sys
 
 from pathlib import Path
 
@@ -12,9 +13,14 @@ shared_processors = [
     structlog.processors.TimeStamper("iso"),
 ]
 
+# whoes logging this?:
+
+# 2023-09-16 09:07:10,727:INFO - HTTP Request: GET http://0.0.0.0:54321/rest/v1/meter_registry?select=id "HTTP/1.1 404 Not Found"
+
 if sys.stderr.isatty():
     processors = [
-        structlog.dev.ConsoleRenderer()
+        structlog.processors.JSONRenderer(),
+        # structlog.dev.ConsoleRenderer()
     ]
 else:
     processors = [
@@ -39,5 +45,25 @@ def logger_module_name(name, file=None):
 
 
 def get_logger(name: str, python_file: str):
-    return structlog.get_logger(module=logger_module_name(name, python_file)
-                                )
+    return structlog.get_logger(
+        module=logger_module_name(name, python_file)
+    )
+
+
+#
+# Configure 'logging' so that logs from dependencies are somewhat consistent
+# with structlog. Well this simply logs the string message of logging output
+# without any structure at all.
+#
+# This approach is in the structlog docs here:
+#   https://www.structlog.org/en/17.2.0/standard-library.html#rendering-within-structlog
+#
+# NOTE: We may want something better than this eventually and there are other
+# solutions like wiring up logging to use JSON output.
+#
+
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stdout,
+    level=logging.INFO,
+)

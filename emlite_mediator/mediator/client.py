@@ -1,9 +1,9 @@
-import datetime
+from emlite_mediator.util.logging import get_logger
 
+import datetime
 import grpc
 
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
-from emlite_mediator.util.logging import get_logger
 
 from .grpc.client import EmliteMediatorGrpcClient
 

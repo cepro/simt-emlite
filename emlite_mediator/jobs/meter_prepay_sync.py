@@ -1,11 +1,12 @@
+from emlite_mediator.util.logging import get_logger
+
 import os
 
 from httpx import ConnectError
 from supabase import create_client, Client
-from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, update_meter_shadows_when_healthy
 
+from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, update_meter_shadows_when_healthy
 from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
-from emlite_mediator.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 

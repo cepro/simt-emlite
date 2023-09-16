@@ -1,13 +1,13 @@
+from emlite_mediator.util.logging import get_logger
 
-from typing import Any, Callable
 import docker
 import os
 import sys
 import time
 
-from emlite_mediator.util.logging import Logger, get_logger
 from emlite_mediator.orchestrate.mediators import Mediators
 from supabase import create_client, Client
+from typing import Any, Callable
 
 logger = get_logger(__name__, __file__)
 
