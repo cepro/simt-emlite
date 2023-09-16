@@ -18,6 +18,8 @@ mediator_port: str = os.environ.get('MEDIATOR_PORT') or '50051'
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 
+flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
+
 """
     Fetches the prepay_enabled from the meter and syncs to the shadow table.
 """
@@ -29,7 +31,7 @@ class MeterPrepaySyncJob():
 
     def __init__(self):
         self.client = EmliteMediatorClient(mediator_host, mediator_port)
-        self.supabase = supa_client(supabase_url, supabase_key)
+        self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         global logger
         logger = logger.bind(meter_id=meter_id, mediator_port=mediator_port)
 
@@ -77,7 +79,8 @@ class MeterPrepaySyncJob():
 
 
 if __name__ == '__main__':
-    check_environment_vars(logger, supabase_url, supabase_key, meter_id)
+    check_environment_vars(logger, supabase_url,
+                           supabase_key, flows_role_key, meter_id)
 
     try:
         job = MeterPrepaySyncJob()

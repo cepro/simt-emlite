@@ -15,9 +15,11 @@ logger = get_logger(__name__, __file__)
 mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
+flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 
 
 def filter_connected(meter): return meter['ip_address'] is not None
+
 
 """
     This script is a base class for scripts that run a job for all meters.
@@ -40,7 +42,7 @@ class RunJobForAllMeters():
         self._check_environment()
         self.job_name = job_name
         self.filter_fn = filter_fn
-        self.supabase = supa_client(supabase_url, supabase_key)
+        self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.docker_client = docker.from_env()
         self.mediators = Mediators()
 
@@ -89,7 +91,9 @@ class RunJobForAllMeters():
                     "METER_ID": meter['id'],
                     "MEDIATOR_PORT": mediator_port,
                     "SUPABASE_URL": supabase_url,
-                    "SUPABASE_KEY": supabase_key
+                    "SUPABASE_KEY": supabase_key,
+                    "FLOWS_ROLE_KEY": flows_role_key,
+
                 }
 
                 container_name = f"{self.job_name.replace('_', '-')}-{meter['ip_address']}"
@@ -124,3 +128,8 @@ class RunJobForAllMeters():
             logger.error(
                 "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
             sys.exit(2)
+
+        if not flows_role_key:
+            logger.error(
+                "Environment variable FLOWS_ROLE_KEY not set.")
+            sys.exit(3)
