@@ -3,10 +3,10 @@ from emlite_mediator.util.logging import get_logger
 import os
 
 from httpx import ConnectError
-from supabase import create_client, Client
 
 from emlite_mediator.jobs.util import check_environment_vars, handle_mediator_unknown_failure, handle_meter_unhealthy_status, handle_supabase_faliure, update_meter_shadows_when_healthy
 from emlite_mediator.mediator.client import EmliteMediatorClient, MediatorClientException
+from emlite_mediator.util.supabase import supa_client, Client
 
 logger = get_logger(__name__, __file__)
 
@@ -29,7 +29,7 @@ class MeterPrepaySyncJob():
 
     def __init__(self):
         self.client = EmliteMediatorClient(mediator_host, mediator_port)
-        self.supabase = create_client(supabase_url, supabase_key)
+        self.supabase = supa_client(supabase_url, supabase_key)
         global logger
         logger = logger.bind(meter_id=meter_id, mediator_port=mediator_port)
 

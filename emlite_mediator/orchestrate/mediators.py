@@ -1,5 +1,6 @@
 from emlite_mediator.util.logging import get_logger
 
+import argparse
 import random
 import socket
 import docker
@@ -9,7 +10,8 @@ import postgrest
 
 from httpx import ConnectError
 from typing import Dict, List
-from supabase import create_client, Client
+
+from emlite_mediator.util.supabase import supa_client, Client
 
 
 logger = get_logger(__name__, __file__)
@@ -24,7 +26,7 @@ class Mediators():
     docker_client: docker.DockerClient
 
     def __init__(self):
-        self.supabase = create_client(supabase_url, supabase_key)
+        self.supabase = supa_client(supabase_url, supabase_key)
         self.docker_client = docker.from_env()
 
     def start_one(self, meter_id: str) -> int:
@@ -89,8 +91,9 @@ class Mediators():
             mediator.stop()
 
     def remove_all(self):
-        mediator_containers = self._all_mediators()
-        for mediator in mediator_containers:
+        containers = self._all_mediators(status="exited")
+        logger.info("found %s exited containers", len(containers))
+        for mediator in containers:
             logger.info("removing container", container_name=mediator.name)
             mediator.remove(force=True)
 
@@ -112,8 +115,14 @@ class Mediators():
             return None
         return containers[0]
 
+    # mediator containers with either status 'running' and 'restarting
     def _all_running_mediators(self):
-        return self._all_mediators(status="running")
+        running_containers = self._all_mediators(status="running")
+        logger.info("found %s running containers", len(running_containers))
+        restarting_containers = self._all_mediators(status="restarting")
+        logger.info("found %s restarting containers",
+                    len(restarting_containers))
+        return running_containers + restarting_containers
 
     def _all_mediators(self, status=None):
         filters = {"status": status} if status else {}
@@ -157,11 +166,24 @@ if __name__ == '__main__':
             "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
         exit(2)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--start-all', action='store_true', help='Start all')
+    parser.add_argument('--stop-all', action='store_true', help='Stop all')
+    parser.add_argument('--remove-all', action='store_true', help='Remove all')
+    args = parser.parse_args()
+
     try:
         mediators = Mediators()
-        mediators.start_all()
-        # mediators.stop_all()
-        # mediators.remove_all()
+
+        if args.start_all:
+            mediators.start_all()
+        elif args.stop_all:
+            mediators.stop_all()
+        elif args.remove_all:
+            mediators.remove_all()
+        else:
+            parser.print_usage()
+
     except postgrest.exceptions.APIError as e:
         logger.error("start mediators failed", error=e.message)
     except Exception as e:

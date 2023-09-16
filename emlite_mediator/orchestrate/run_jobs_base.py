@@ -6,8 +6,9 @@ import sys
 import time
 
 from emlite_mediator.orchestrate.mediators import Mediators
-from supabase import create_client, Client
 from typing import Any, Callable
+
+from emlite_mediator.util.supabase import supa_client, Client
 
 logger = get_logger(__name__, __file__)
 
@@ -39,7 +40,7 @@ class RunJobForAllMeters():
         self._check_environment()
         self.job_name = job_name
         self.filter_fn = filter_fn
-        self.supabase = create_client(supabase_url, supabase_key)
+        self.supabase = supa_client(supabase_url, supabase_key)
         self.docker_client = docker.from_env()
         self.mediators = Mediators()
 

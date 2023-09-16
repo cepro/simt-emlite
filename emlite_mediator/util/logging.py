@@ -9,23 +9,18 @@ shared_processors = [
     structlog.contextvars.merge_contextvars,
     structlog.processors.add_log_level,
     structlog.processors.StackInfoRenderer(),
+    structlog.processors.ExceptionPrettyPrinter(),
     structlog.processors.format_exc_info,
     structlog.processors.TimeStamper("iso"),
 ]
 
-# whoes logging this?:
-
-# 2023-09-16 09:07:10,727:INFO - HTTP Request: GET http://0.0.0.0:54321/rest/v1/meter_registry?select=id "HTTP/1.1 404 Not Found"
-
 if sys.stderr.isatty():
     processors = [
-        structlog.processors.JSONRenderer(),
-        # structlog.dev.ConsoleRenderer()
+        structlog.dev.ConsoleRenderer()
     ]
 else:
     processors = [
         structlog.processors.JSONRenderer(),
-        structlog.processors.dict_tracebacks
     ]
 
 structlog.configure(processors=shared_processors + processors)
