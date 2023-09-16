@@ -19,6 +19,7 @@ logger = get_logger(__name__, __file__)
 mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
+flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 
 
 class Mediators():
@@ -26,7 +27,8 @@ class Mediators():
     docker_client: docker.DockerClient
 
     def __init__(self):
-        self.supabase = supa_client(supabase_url, supabase_key)
+        self.supabase = supa_client(
+            supabase_url, supabase_key, flows_role_key)
         self.docker_client = docker.from_env()
 
     def start_one(self, meter_id: str) -> int:
