@@ -162,4 +162,4 @@ if __name__ == '__main__':
         job = MeterHealthCheckJob()
         job.check_health()
     except Exception as e:
-        logger.exception("failure occured checking meter health", e)
+        logger.error("failure occured checking meter health", error=e)

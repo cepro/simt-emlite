@@ -66,4 +66,4 @@ if __name__ == '__main__':
         job = MeterCsqSyncJob()
         job.sync()
     except Exception as e:
-        logger.exception("failure occured syncing csq")
+        logger.error("failure occured syncing csq", error=e)

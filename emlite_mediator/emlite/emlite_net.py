@@ -27,12 +27,12 @@ class EmliteNET:
         return rsp_bytes
 
     def _open_socket(self):
-        logger.info("connecting", host=self.host, port=self.port)
+        logger.info("connecting", host=self.host)
         sock = socket.socket()
         try:
             sock.connect((self.host, self.port))
         except socket.error as e:
-            logger.exception("Error connecting to socket")
+            logger.error("Error connecting to socket", host=self.host)
             sock.close()
             sock = None
             raise e
@@ -42,12 +42,12 @@ class EmliteNET:
         try:
             sock.send(data)
         except socket.error as e:
-            logger.exception("Error writing to socket")
+            logger.error("Error writing to socket")
             raise e
 
     def _read_bytes(self, sock, num_bytes):
         try:
             return sock.recv(num_bytes)
         except socket.error as e:
-            logger.exception("Error reading from socket")
+            logger.error("Error reading from socket")
             raise e

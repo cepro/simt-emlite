@@ -80,8 +80,8 @@ class Mediators():
         try:
             rows = self.supabase.table('meter_registry').select(
                 'id').execute()
-        except ConnectError:
-            logger.exception("Supabase connection failure")
+        except ConnectError as e:
+            logger.error("Supabase connection failure", error=e)
             sys.exit(10)
         ids = list(map(lambda row: row['id'], rows.data))
         return self.start_many(ids)
@@ -138,8 +138,8 @@ class Mediators():
         try:
             meter_registry_record = self.supabase.table('meter_registry').select(
                 'ip_address').eq("id", meter_id).execute()
-        except ConnectError:
-            logger.exception("Supabase connection failure")
+        except ConnectError as e:
+            logger.error("Supabase connection failure", error=e)
             sys.exit(12)
 
         return meter_registry_record.data[0]['ip_address']
@@ -189,4 +189,4 @@ if __name__ == '__main__':
     except postgrest.exceptions.APIError as e:
         logger.error("start mediators failed", error=e.message)
     except Exception as e:
-        logger.exception("unknown failure in mediators")
+        logger.error("unknown failure in mediators", error=e)

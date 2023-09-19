@@ -24,14 +24,14 @@ def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: Me
     sys.exit(100)
 
 
-def handle_mediator_unknown_failure(logger, exception):
-    logger.exception(
-        "failure connecting to meter or mediator", exception=exception)
+def handle_mediator_unknown_failure(logger, error):
+    logger.error(
+        "failure connecting to meter or mediator", error=error)
     sys.exit(101)
 
 
-def handle_supabase_faliure(logger, exception):
-    logger.exception("Supabase connection failure", exception=exception)
+def handle_supabase_faliure(logger, error):
+    logger.error("Supabase connection failure", error=error)
     sys.exit(50)
 
 

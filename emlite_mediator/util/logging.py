@@ -8,9 +8,9 @@ from pathlib import Path
 shared_processors = [
     structlog.contextvars.merge_contextvars,
     structlog.processors.add_log_level,
+    structlog.processors.format_exc_info,
     structlog.processors.StackInfoRenderer(),
     structlog.processors.ExceptionPrettyPrinter(),
-    structlog.processors.format_exc_info,
     structlog.processors.TimeStamper("iso"),
 ]
 

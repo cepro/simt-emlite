@@ -86,4 +86,4 @@ if __name__ == '__main__':
         job = MeterPrepaySyncJob()
         job.sync()
     except Exception as e:
-        logger.exception("failure occured syncing prepay_enabled", e)
+        logger.error("failure occured syncing prepay info", error=e)

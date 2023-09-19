@@ -29,8 +29,8 @@ class EmliteMediatorGrpcClient():
                     ReadElementRequest(objectId=object_id.value),
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
-                logger.exception('readElement failed',
-                                 details=e.details(), code=e.code())
+                logger.error('readElement failed',
+                             details=e.details(), code=e.code(), object_id=object_id.name)
                 raise e
 
         payload_bytes = rsp_obj.response
@@ -49,8 +49,8 @@ class EmliteMediatorGrpcClient():
                     SendRawMessageRequest(dataField=message),
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
-                logger.exception('sendRawMessage',
-                                 details=e.details(), code=e.code())
+                logger.error('sendRawMessage',
+                             details=e.details(), code=e.code())
                 raise e
 
         payload_bytes = rsp_obj.response
