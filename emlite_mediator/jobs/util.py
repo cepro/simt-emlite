@@ -19,6 +19,7 @@ def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: Me
     supabase.table('meter_shadows').update({
         "health": "unhealthy",
         "health_details": exception.message,
+        "csq": None
     }).eq('id', meter_id).execute()
     sys.exit(100)
 

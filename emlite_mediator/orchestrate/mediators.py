@@ -108,7 +108,7 @@ class Mediators():
 
         logger.info(
             "stop_one stopping container", container_name=container.name, meter_id=meter_id)
-        container.stop()
+        container.stop(timeout=3)
 
     def container_by_meter_id(self, meter_id: str):
         containers = self.docker_client.containers.list(all=True,
