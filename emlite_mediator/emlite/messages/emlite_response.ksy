@@ -28,6 +28,7 @@ seq:
         "object_id_type::serial": serial_rec
         "object_id_type::hardware_version": hardware_rec
         "object_id_type::csq_net_op": csq_net_op_rec
+        "object_id_type::instantaneous_voltage": instantaneous_voltage_rec
         "object_id_type::prepay_enabled_flag": prepay_enabled_rec
         "object_id_type::prepay_balance": prepay_balance_rec
         _: default_rec
@@ -68,6 +69,10 @@ types:
         type: b3
       - id: csq
         type: b5
+  instantaneous_voltage_rec:
+    seq:
+      - id: voltage
+        type: u2le
   prepay_enabled_rec:
     seq:
       - id: enabled_flag

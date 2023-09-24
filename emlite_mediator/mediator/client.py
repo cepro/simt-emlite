@@ -56,6 +56,11 @@ class EmliteMediatorClient():
         logger.info('received csq', csq=data.csq)
         return data.csq
 
+    def instantaneous_voltage(self) -> int:
+        data = self._read_element(ObjectIdEnum.instantaneous_voltage)
+        logger.info('received instantaneous voltage', voltage=data.voltage)
+        return data.voltage
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
