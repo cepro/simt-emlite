@@ -59,7 +59,6 @@ class MeterSyncJob():
             handle_supabase_faliure(logger, e)
 
         for metric in query_result.data:
-            print(metric)
             syncer_class = find_syncer_class(metric['name'])
             syncer = syncer_class(self.supabase, self.emlite_client, meter_id)
             syncer.sync()

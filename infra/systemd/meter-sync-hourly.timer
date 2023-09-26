@@ -1,5 +1,5 @@
 [Unit]
-Description=Run CSQ (signal) sync of all meters
+Description=Sync all meter_metrics with run_frequency 'hourly'
 
 [Timer]
 OnCalendar=hourly

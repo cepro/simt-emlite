@@ -16,10 +16,11 @@ mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
-chunk_run_seconds: int = int(os.environ.get("CHUNK_RUN_SECONDS")) or 60
+chunk_run_seconds: int = int(os.environ.get("CHUNK_RUN_SECONDS") or 60)
 
 
 def filter_connected(meter): return meter['ip_address'] is not None
+
 
 """
     This script is a base class for scripts that run a job for all meters.
