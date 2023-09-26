@@ -9,7 +9,8 @@ sourceEnv() {
 
 runDocker() {
   MODULE=$1
-  ARGS=$2
+  shift
+  ARGS=$@
   sourceEnv
   docker run --rm \
     --name $MODULE \

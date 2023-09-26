@@ -77,10 +77,10 @@ class SyncerBase(ABC):
                 ','.join(update_props.keys())).eq("id", self.meter_id).execute()
 
             modified_or_new = {}
-            for key in current_record:
-                if update_props[key] == current_record[key]:
+            for key in current_record.data:
+                if update_props[key] == current_record.data[key]:
                     logger.info('value update',
-                        key=key, old_value=current_record[key], new_value=update_props[key])
+                        key=key, old_value=current_record.data[key], new_value=update_props[key])
                     modified_or_new[key] = update_props[key] 
 
             # second update the registry with any changes

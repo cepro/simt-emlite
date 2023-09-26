@@ -30,7 +30,7 @@ class EmliteMediatorClient():
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
         global logger
         logger = logger.bind(host=host, port=port)
-        logger.info('EmliteMediatorClient init')
+        # logger.debug('EmliteMediatorClient init')
 
     def serial(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
@@ -59,7 +59,7 @@ class EmliteMediatorClient():
     def instantaneous_voltage(self) -> float:
         data = self._read_element(ObjectIdEnum.instantaneous_voltage)
         logger.info('received instantaneous voltage', voltage=data.voltage)
-        return data.voltage / 10
+        return data.voltage
 
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
