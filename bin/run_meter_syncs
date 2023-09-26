@@ -1,0 +1,3 @@
+#!/bin/sh
+. `dirname $0`/library.sh
+runDocker emlite_mediator.orchestrate.run_meter_syncs $@

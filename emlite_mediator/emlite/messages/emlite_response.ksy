@@ -28,8 +28,12 @@ seq:
         "object_id_type::serial": serial_rec
         "object_id_type::hardware_version": hardware_rec
         "object_id_type::csq_net_op": csq_net_op_rec
+        "object_id_type::instantaneous_voltage": instantaneous_voltage_rec
         "object_id_type::prepay_enabled_flag": prepay_enabled_rec
         "object_id_type::prepay_balance": prepay_balance_rec
+        "object_id_type::three_phase_instantaneous_voltage_l1": three_phase_instantaneous_voltage_l1_rec
+        "object_id_type::three_phase_instantaneous_voltage_l2": three_phase_instantaneous_voltage_l2_rec
+        "object_id_type::three_phase_instantaneous_voltage_l3": three_phase_instantaneous_voltage_l3_rec
         _: default_rec
 
 types:
@@ -68,6 +72,10 @@ types:
         type: b3
       - id: csq
         type: b5
+  instantaneous_voltage_rec:
+    seq:
+      - id: voltage
+        type: u2le
   prepay_enabled_rec:
     seq:
       - id: enabled_flag
@@ -80,6 +88,18 @@ types:
     seq:
       - id: payload
         size-eos: true
+  three_phase_instantaneous_voltage_l1_rec:
+    seq:
+      - id: voltage
+        type: u2le
+  three_phase_instantaneous_voltage_l2_rec:
+    seq:
+      - id: voltage
+        type: u2le
+  three_phase_instantaneous_voltage_l3_rec:
+    seq:
+      - id: voltage
+        type: u2le
 
 enums:
   day_of_week_type:
@@ -123,3 +143,6 @@ enums:
     14155536: three_phase_serial # 0xd7ff10
     14092812: three_phase_initiate_read # 0xd70a0c
     14091786: three_phase_read # 0xd7060a
+    2098944: three_phase_instantaneous_voltage_l1 # 200700
+    3409664: three_phase_instantaneous_voltage_l2 # 340700
+    4720384: three_phase_instantaneous_voltage_l3 # 480700

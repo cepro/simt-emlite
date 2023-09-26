@@ -1,4 +1,5 @@
 import sys
+import traceback
 from typing import Dict
 from emlite_mediator.mediator.client import MediatorClientException
 
@@ -27,11 +28,13 @@ def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: Me
 def handle_mediator_unknown_failure(logger, error):
     logger.error(
         "failure connecting to meter or mediator", error=error)
+    traceback.print_exc()
     sys.exit(101)
 
 
 def handle_supabase_faliure(logger, error):
     logger.error("Supabase connection failure", error=error)
+    traceback.print_exc()
     sys.exit(50)
 
 
@@ -44,9 +47,9 @@ def check_environment_vars(logger, supabase_url, supabase_key, flows_role_key, m
     if not flows_role_key:
         logger.error(
             "Environment variable FLOWS_ROLE_KEY not set.")
-        sys.exit(1)
+        sys.exit(2)
 
     if not meter_id:
         logger.error(
             "Environment variable METER_ID not set.")
-        sys.exit(2)
+        sys.exit(3)

@@ -60,5 +60,5 @@ class EmliteMediatorGrpcClient():
 
 if __name__ == '__main__':
     client = EmliteMediatorGrpcClient()
-    client.read_element(ObjectIdEnum.serial)
+    client.read_element(ObjectIdEnum.instantaneous_voltage)
     # client.send_message(bytes.fromhex('0160010000'))

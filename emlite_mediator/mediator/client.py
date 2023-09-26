@@ -30,7 +30,7 @@ class EmliteMediatorClient():
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
         global logger
         logger = logger.bind(host=host, port=port)
-        logger.info('EmliteMediatorClient init')
+        # logger.debug('EmliteMediatorClient init')
 
     def serial(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
@@ -56,6 +56,11 @@ class EmliteMediatorClient():
         logger.info('received csq', csq=data.csq)
         return data.csq
 
+    def instantaneous_voltage(self) -> float:
+        data = self._read_element(ObjectIdEnum.instantaneous_voltage)
+        logger.info('received instantaneous voltage', voltage=data.voltage)
+        return data.voltage
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
@@ -71,6 +76,15 @@ class EmliteMediatorClient():
         logger.info('prepay balance in GBP', prepay_balance_gbp=balance_gbp)
         return balance_gbp
 
+    def three_phase_instantaneous_voltage(self) -> (float, float, float):
+        vl1 = self._read_element(
+            ObjectIdEnum.three_phase_instantaneous_voltage_l1)
+        vl2 = self._read_element(
+            ObjectIdEnum.three_phase_instantaneous_voltage_l2)
+        vl3 = self._read_element(
+            ObjectIdEnum.three_phase_instantaneous_voltage_l3)
+        return (vl1.voltage/10, vl2.voltage/10, vl3.voltage/10)
+
     def _read_element(self, object_id):
         try:
             data = self.grpc_client.read_element(object_id)
@@ -81,5 +95,5 @@ class EmliteMediatorClient():
 
 if __name__ == '__main__':
     client = EmliteMediatorClient()
-    print(client.clock_time())
-    print(client.csq())
+    print(client.three_phase_instantaneous_voltage())
+    # print(client.csq())

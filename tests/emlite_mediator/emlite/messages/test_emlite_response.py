@@ -54,6 +54,19 @@ class TestEmliteResponse(unittest.TestCase):
         response = self._deserialize(EmliteResponse.ObjectIdType.prepay_balance, 'c07a03fe')
         self.assertEqual(response.balance, -33326400) # -333.264 GBP
         
+    def test_instantaneous_voltage(self):
+        response = self._deserialize(EmliteResponse.ObjectIdType.instantaneous_voltage, '5209')
+        self.assertEqual(response.voltage, 2386) # 238.6
+
+    def test_threephase_voltage(self):
+        response = self._deserialize(EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l1, '5209')
+        self.assertEqual(response.voltage, 2386) # 238.6
+        response = self._deserialize(EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l2, '4C09')
+        self.assertEqual(response.voltage, 2380) # 238.0
+        response = self._deserialize(EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3, '5D09')
+        self.assertEqual(response.voltage, 2397) # 239.7
+        
+
     def _deserialize(self, object_id, response_hex):
         rsp_bytes = bytearray.fromhex(response_hex)
         data = EmliteResponse(len(rsp_bytes), object_id, KaitaiStream(BytesIO(rsp_bytes)))

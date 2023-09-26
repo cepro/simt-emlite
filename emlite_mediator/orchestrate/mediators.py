@@ -11,7 +11,7 @@ import postgrest
 from httpx import ConnectError
 from typing import Dict, List
 
-from emlite_mediator.util.supabase import supa_client, Client
+from emlite_mediator.util.supabase import supa_client
 
 
 logger = get_logger(__name__, __file__)
@@ -23,9 +23,6 @@ flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 
 
 class Mediators():
-    supabase: Client
-    docker_client: docker.DockerClient
-
     def __init__(self):
         self.supabase = supa_client(
             supabase_url, supabase_key, flows_role_key)

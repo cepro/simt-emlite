@@ -8,7 +8,7 @@ import time
 from emlite_mediator.orchestrate.mediators import Mediators
 from typing import Any, Callable
 
-from emlite_mediator.util.supabase import supa_client, Client
+from emlite_mediator.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -16,6 +16,7 @@ mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
+chunk_run_seconds: int = int(os.environ.get("CHUNK_RUN_SECONDS") or 60)
 
 
 def filter_connected(meter): return meter['ip_address'] is not None
@@ -25,26 +26,18 @@ def filter_connected(meter): return meter['ip_address'] is not None
     This script is a base class for scripts that run a job for all meters.
 
     Memory is limited so we chunk runs - 5 at a time for now.
-
-    TODO: soon replace this way of invoking a script in a container per meter
-    to have a single script that runs for all meters.
 """
 
 
 class RunJobForAllMeters():
-    job_name: str
-    filter_fn: Callable[[Any], bool]
-
-    supabase: Client
-    docker_client: docker.DockerClient
-
-    def __init__(self, job_name: str, filter_fn=None):
+    def __init__(self, job_name: str, filter_fn: Callable[[Any], bool] = None, run_frequency=None):
         self._check_environment()
         self.job_name = job_name
         self.filter_fn = filter_fn
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.docker_client = docker.from_env()
         self.mediators = Mediators()
+        self.run_frequency = run_frequency
 
         global logger
         logger = logger.bind(job_name=job_name, mediator_image=mediator_image)
@@ -73,10 +66,10 @@ class RunJobForAllMeters():
             chunk_meters = meters[range_start:range_end]
 
             for meter in chunk_meters:
-                logger.info(
-                    "next meter - check mediator container exists",
-                    meter_id=meter['id']
-                )
+                # logger.debug(
+                #     "next meter - check mediator container exists",
+                #     meter_id=meter['id']
+                # )
 
                 mediator_container = self.mediators.container_by_meter_id(
                     meter['id'])
@@ -93,8 +86,10 @@ class RunJobForAllMeters():
                     "SUPABASE_URL": supabase_url,
                     "SUPABASE_KEY": supabase_key,
                     "FLOWS_ROLE_KEY": flows_role_key,
-
                 }
+
+                if self.run_frequency:
+                    env_vars['RUN_FREQUENCY'] = self.run_frequency
 
                 container_name = f"{self.job_name.replace('_', '-')}-{meter['ip_address']}"
                 command = f"emlite_mediator.jobs.{self.job_name}"
@@ -115,7 +110,7 @@ class RunJobForAllMeters():
                     remove=True,
                 )
 
-            time.sleep(30)
+            time.sleep(chunk_run_seconds)
 
         logger.info("finished")
 
