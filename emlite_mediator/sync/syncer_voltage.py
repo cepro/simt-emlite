@@ -16,7 +16,9 @@ class SyncerVoltage(SyncerBase):
                        '3p_voltage_l2': v2,
                        '3p_voltage_l3': v3}
         else:
-            voltage = self.emlite_client.instantaneous_voltage()
-            metrics = {'voltage': voltage}
+            instantaneous_voltage = self.emlite_client.instantaneous_voltage()
+            average_voltage = self.emlite_client.average_voltage()
+            metrics = {'average_voltage': average_voltage,
+                       'instantaneous_voltage': instantaneous_voltage}
 
         return UpdatesTuple(metrics, None)

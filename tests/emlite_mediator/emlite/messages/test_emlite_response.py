@@ -55,8 +55,12 @@ class TestEmliteResponse(unittest.TestCase):
         self.assertEqual(response.balance, -33326400) # -333.264 GBP
         
     def test_instantaneous_voltage(self):
-        response = self._deserialize(EmliteResponse.ObjectIdType.instantaneous_voltage, '5209')
-        self.assertEqual(response.voltage, 2386) # 238.6
+        response = self._deserialize(EmliteResponse.ObjectIdType.instantaneous_voltage, 'f300')
+        self.assertEqual(response.voltage, 243) # 243
+
+    def test_average_voltage(self):
+        response = self._deserialize(EmliteResponse.ObjectIdType.average_voltage, 'be00')
+        self.assertEqual(response.voltage, 190) # 190
 
     def test_threephase_voltage(self):
         response = self._deserialize(EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l1, '5209')
