@@ -29,6 +29,7 @@ seq:
         "object_id_type::hardware_version": hardware_rec
         "object_id_type::csq_net_op": csq_net_op_rec
         "object_id_type::instantaneous_voltage": instantaneous_voltage_rec
+        "object_id_type::average_voltage": average_voltage_rec
         "object_id_type::prepay_enabled_flag": prepay_enabled_rec
         "object_id_type::prepay_balance": prepay_balance_rec
         "object_id_type::three_phase_instantaneous_voltage_l1": three_phase_instantaneous_voltage_l1_rec
@@ -73,6 +74,10 @@ types:
       - id: csq
         type: b5
   instantaneous_voltage_rec:
+    seq:
+      - id: voltage
+        type: u2le
+  average_voltage_rec:
     seq:
       - id: voltage
         type: u2le

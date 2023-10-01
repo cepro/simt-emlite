@@ -91,6 +91,10 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.InstantaneousVoltageRec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.average_voltage:
+            pass
+            self.response = EmliteResponse.AverageVoltageRec(self._io, self, self._root)
+            self.response._read()
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
             self.response = EmliteResponse.PrepayBalanceRec(self._io, self, self._root)
@@ -133,6 +137,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.instantaneous_voltage:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.average_voltage:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
             self.response._fetch_instances()
@@ -169,6 +176,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.instantaneous_voltage:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.average_voltage:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
@@ -225,6 +235,12 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
         elif _on == EmliteResponse.ObjectIdType.instantaneous_voltage:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.average_voltage:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -320,6 +336,29 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         def _write__seq(self, io=None):
             super(EmliteResponse.PrepayBalanceRec, self)._write__seq(io)
             self._io.write_s4le(self.balance)
+
+
+        def _check(self):
+            pass
+
+
+    class AverageVoltageRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.voltage = self._io.read_u2le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.AverageVoltageRec, self)._write__seq(io)
+            self._io.write_u2le(self.voltage)
 
 
         def _check(self):

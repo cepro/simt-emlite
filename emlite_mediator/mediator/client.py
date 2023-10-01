@@ -61,6 +61,11 @@ class EmliteMediatorClient():
         logger.info('received instantaneous voltage', voltage=data.voltage)
         return data.voltage
 
+    def average_voltage(self) -> float:
+        data = self._read_element(ObjectIdEnum.average_voltage)
+        logger.info('received average voltage', voltage=data.voltage)
+        return data.voltage
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
