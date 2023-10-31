@@ -39,6 +39,8 @@ class SyncerBase(ABC):
         registry tables are updated
         """
         updates: UpdatesTuple = self.fetch_metrics_with_error_handling()
+        if updates == None:
+            return
         
         if updates.shadow:
             self._update_shadow(updates.shadow)
