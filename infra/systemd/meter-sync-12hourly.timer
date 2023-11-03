@@ -1,5 +1,5 @@
 [Unit]
-Description=Run prepay sync of all meters
+Description=Sync all meter_metrics with run_frequency '12hourly'
 
 [Timer]
 OnCalendar=*-*-* 06:15:00
