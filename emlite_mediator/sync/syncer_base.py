@@ -75,15 +75,19 @@ class SyncerBase(ABC):
         logger.info("update registry props", meter_id=self.meter_id, update_props=update_props)
         try:
             # first fetch existing values and build map of differences
-            current_record = self.supabase.table('meter_registry').select(
+            query_result = self.supabase.table('meter_registry').select(
                 ','.join(update_props.keys())).eq("id", self.meter_id).execute()
+            current_record = query_result.data[0]
 
             modified_or_new = {}
-            for key in current_record.data:
-                if update_props[key] == current_record.data[key]:
+            for key in current_record:
+                if update_props[key] != current_record[key]:
                     logger.info('value update',
-                        key=key, old_value=current_record.data[key], new_value=update_props[key])
+                        key=key, old_value=current_record[key], new_value=update_props[key])
                     modified_or_new[key] = update_props[key] 
+                else:
+                    logger.info('value unchanged, skipping ...',
+                        key=key, value=current_record[key])
 
             # second update the registry with any changes
             if len(modified_or_new.keys()) > 0:
@@ -91,7 +95,7 @@ class SyncerBase(ABC):
                     modified_or_new
                 ).eq('id', self.meter_id).execute()
                 logger.info(
-                        "updated meter_registry prepay_enabled", update_result=update_result)
+                        "updated meter_registry", update_result=update_result)
 
         except ConnectError as e:
             handle_supabase_faliure(logger, e)
