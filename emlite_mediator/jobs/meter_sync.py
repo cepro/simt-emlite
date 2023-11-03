@@ -56,6 +56,7 @@ class MeterSyncJob():
             self.mediator_host, self.mediator_port)
         self.supabase = supa_client(
             self.supabase_url, self.supabase_key, self.flows_role_key)
+        
         global logger
         logger = logger.bind(meter_id=self.meter_id,
                              mediator_port=self.mediator_port)

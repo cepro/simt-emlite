@@ -10,7 +10,7 @@ class SyncerHardware(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
         result = self.supabase.table('meter_registry').select(
-            'serial').eq("id", self.meter_id).execute()
+            'hardware,serial').eq("id", self.meter_id).execute()
         meter_registry_entry = result.data[0]
 
         # if 3 phase meter hardware fetch will fail.
