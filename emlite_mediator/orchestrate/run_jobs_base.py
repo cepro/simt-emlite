@@ -1,5 +1,3 @@
-import random
-import time
 from emlite_mediator.util.logging import get_logger
 
 import concurrent.futures
@@ -85,7 +83,7 @@ class RunJobForAllMeters():
         if (self.filter_fn):
             meters = list(filter(self.filter_fn, meters))
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
             futures = [executor.submit(self.run_job, meter['id'])
                        for meter in meters]
 
