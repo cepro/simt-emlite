@@ -1,5 +1,5 @@
 [Unit]
-Description=Run health checks for all meters
+Description=Sync all meter_metrics with run_frequency 'daily'
 
 [Timer]
 OnCalendar=*-*-* 0:30:00

@@ -1,5 +1,4 @@
 import argparse
-import sys
 
 from .run_jobs_base import RunJobForAllMeters
 

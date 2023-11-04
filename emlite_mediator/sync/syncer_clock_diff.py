@@ -1,0 +1,21 @@
+from emlite_mediator.util.logging import get_logger
+
+from datetime import datetime
+from typing_extensions import override
+
+from emlite_mediator.sync.syncer_base import SyncerBase, UpdatesTuple
+
+logger = get_logger(__name__, __file__)
+
+
+class SyncerClockDiff(SyncerBase):
+    @override
+    def fetch_metrics(self) -> UpdatesTuple:
+        clock_time: datetime = self.emlite_client.clock_time()
+
+        now = datetime.utcnow()
+        clock_time_diff_seconds = abs(now - clock_time).seconds
+        logger.info("clock_time_diff_seconds calculated",
+                    clock_time_diff_seconds=clock_time_diff_seconds)
+
+        return UpdatesTuple({'clock_time_diff_seconds': clock_time_diff_seconds}, None)
