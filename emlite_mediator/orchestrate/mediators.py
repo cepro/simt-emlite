@@ -20,6 +20,7 @@ mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
+site_code: str = os.environ.get("SITE")
 
 
 class Mediators():
@@ -75,8 +76,11 @@ class Mediators():
 
     def start_all(self) -> Dict[str, int]:
         try:
+            sites = self.supabase.table('sites').select(
+                'id').ilike('code', site_code).execute()
+            site_id = list(sites.data)[0]['id']
             rows = self.supabase.table('meter_registry').select(
-                'id').execute()
+                'id').eq('site', site_id).execute()
         except ConnectError as e:
             logger.error("Supabase connection failure", error=e)
             sys.exit(10)
