@@ -18,6 +18,7 @@ logger = get_logger(__name__, __file__)
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
+site_code: str = os.environ.get("SITE")
 
 
 def filter_connected(meter): return meter['ip_address'] is not None
@@ -73,8 +74,12 @@ class RunJobForAllMeters():
     def run(self):
         logger.info("starting ...")
 
+        sites = self.supabase.table('sites').select(
+            'id').ilike('code', site_code).execute()
+        site_id = list(sites.data)[0]['id']
+
         registry_result = self.supabase.table(
-            'meter_registry').select('id,ip_address,serial,hardware').order(column='serial').execute()
+            'meter_registry').select('id,ip_address,serial,hardware').eq('site', site_id).order(column='serial').execute()
         if (len(registry_result.data) == 0):
             logger.error("no meters record found")
             sys.exit(11)
