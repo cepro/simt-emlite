@@ -168,6 +168,9 @@ if __name__ == '__main__':
         logger.error(
             "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
         exit(2)
+    if not site_code:
+        logger.error("SITE is not set")
+        exit(3)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--start-all', action='store_true', help='Start all')
