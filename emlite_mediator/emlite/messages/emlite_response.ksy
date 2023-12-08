@@ -31,12 +31,17 @@ seq:
         "object_id_type::instantaneous_voltage": instantaneous_voltage_rec
         "object_id_type::prepay_enabled_flag": prepay_enabled_rec
         "object_id_type::prepay_balance": prepay_balance_rec
+        "object_id_type::prepay_token_send": prepay_token_send_rec
         "object_id_type::three_phase_instantaneous_voltage_l1": three_phase_instantaneous_voltage_l1_rec
         "object_id_type::three_phase_instantaneous_voltage_l2": three_phase_instantaneous_voltage_l2_rec
         "object_id_type::three_phase_instantaneous_voltage_l3": three_phase_instantaneous_voltage_l3_rec
         _: default_rec
 
 types:
+  default_rec:
+    seq:
+      - id: payload
+        size-eos: true
   serial_rec:
     seq:
       - id: serial
@@ -84,10 +89,12 @@ types:
     seq:
       - id: balance
         type: s4le
-  default_rec:
+  prepay_token_send_rec:
     seq:
-      - id: payload
+      - id: token
+        type: str
         size-eos: true
+        encoding: ASCII
   three_phase_instantaneous_voltage_l1_rec:
     seq:
       - id: voltage
@@ -127,6 +134,7 @@ enums:
     16777212: element_a # 0xfffffc
     16777208: element_b # 0xfffff8
     16776477: csq_net_op # 0xfffd1d
+    16762883: prepay_token_send # 0xffc803
     788224: instantaneous_voltage # 0x0c0700
     722688: instantaneous_current # 0x0b0700
     67328: instantaneous_active_power # 0x010700
