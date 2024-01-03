@@ -173,6 +173,7 @@ if __name__ == '__main__':
         exit(3)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('--start-one', metavar='<meter_id>')
     parser.add_argument('--start-all', action='store_true', help='Start all')
     parser.add_argument('--stop-all', action='store_true', help='Stop all')
     parser.add_argument('--remove-all', action='store_true', help='Remove all')
@@ -181,7 +182,9 @@ if __name__ == '__main__':
     try:
         mediators = Mediators()
 
-        if args.start_all:
+        if args.start_one:
+            mediators.start_one(args.start_one)
+        elif args.start_all:
             mediators.start_all()
         elif args.stop_all:
             mediators.stop_all()
