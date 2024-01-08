@@ -14,6 +14,7 @@ class EmliteNET:
         global logger
         logger = logger.bind(host=host)
 
+    @retry(stop=stop_after_attempt(3))
     def send_message(self, req_bytes):
         sock = self._open_socket()
         try:
@@ -21,6 +22,12 @@ class EmliteNET:
             self._write_bytes(sock, req_bytes)
             rsp_bytes = self._read_bytes(sock, 128)
             sock.close()
+        except socket.timeout as e:
+            logger.error("Timeout in send_message",
+                         host=self.host, error=e)
+            sock.close()
+            sock = None
+            raise e
         except socket.error as e:
             sock.close()
             sock = None
@@ -32,7 +39,7 @@ class EmliteNET:
     def _open_socket(self):
         logger.info("connecting", host=self.host)
         sock = socket.socket()
-        sock.settimeout(2.0)  # seconds
+        sock.settimeout(10.0)  # seconds
         try:
             sock.connect((self.host, self.port))
             logger.info("connected", host=self.host)

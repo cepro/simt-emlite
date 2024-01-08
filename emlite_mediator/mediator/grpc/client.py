@@ -14,10 +14,10 @@ logger = get_logger(__name__, __file__)
 
 # timeout considerations:
 # 1) a successful call should take less than 5 seconds
-# 2) emlite_net retries 3 times in case of timeouts, timeout is 2 seconds with
+# 2) emlite_net retries 3 times in case of timeouts, timeout is 10 seconds with
 # a 1 second pause between each retry
 # 3) grpc server queues requests and pauses for 4 seconds between each
-TIMEOUT_SECONDS = 25
+TIMEOUT_SECONDS = 50
 
 
 class EmliteMediatorGrpcClient():

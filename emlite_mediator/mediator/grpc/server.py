@@ -87,7 +87,8 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return ReadElementReply()
 
     def _handle_failure(self, exception, call_name, context):
-        logger.error('call failed', call_name=call_name, exception=exception)
+        logger.error('call failed', call_name=call_name,
+                     error=exception, exception=exception)
         context.set_code(grpc.StatusCode.INTERNAL)
         context.set_details("network failure or internal error")
 
