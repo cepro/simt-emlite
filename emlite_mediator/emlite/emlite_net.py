@@ -37,12 +37,13 @@ class EmliteNET:
             sock.connect((self.host, self.port))
             logger.info("connected", host=self.host)
         except socket.timeout as e:
-            logger.error("Timeout connecting to socket", host=self.host)
+            logger.error("Timeout connecting to socket",
+                         host=self.host, error=e)
             sock.close()
             sock = None
             raise e
         except socket.error as e:
-            logger.error("Error connecting to socket", host=self.host)
+            logger.error("Error connecting to socket", host=self.host, error=e)
             sock.close()
             sock = None
             raise e
@@ -52,12 +53,12 @@ class EmliteNET:
         try:
             sock.send(data)
         except socket.error as e:
-            logger.error("Error writing to socket")
+            logger.error("Error writing to socket", error=e)
             raise e
 
     def _read_bytes(self, sock, num_bytes):
         try:
             return sock.recv(num_bytes)
         except socket.error as e:
-            logger.error("Error reading from socket")
+            logger.error("Error reading from socket", error=e)
             raise e
