@@ -90,11 +90,7 @@ types:
       - id: balance
         type: s4le
   prepay_token_send_rec:
-    seq:
-      - id: token
-        type: str
-        size-eos: true
-        encoding: ASCII
+    doc: Intentionally blank - empty payload response
   three_phase_instantaneous_voltage_l1_rec:
     seq:
       - id: voltage

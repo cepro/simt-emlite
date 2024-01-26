@@ -87,20 +87,12 @@ class TestEmliteResponse(unittest.TestCase):
         # add credit token
         #
         # see screen shot "Pre-pay - Screen - Payment Code - Generate Add Code.jpg"
-        # and corresponding log on  on google drive:
-        response_hex = "3731343636333934363231353839313631303230"
+        # response payload is empty:
+        response_hex = ""
         response = self._deserialize(
             EmliteResponse.ObjectIdType.prepay_token_send, response_hex)
-        self.assertEqual(response.token.strip(), '71466394621589161020')
-
-        # deduct credit token
-        #
-        # see screen shot "Pre-pay - Screen - Payment Code - Generate Deduct Code.jpg"
-        # and corresponding log on  on google drive:
-        response_hex = "3734303537383439313136303033373934343330"
-        response = self._deserialize(
-            EmliteResponse.ObjectIdType.prepay_token_send, response_hex)
-        self.assertEqual(response.token.strip(), '74057849116003794430')
+        # nothing to check except that we got a response
+        self.assertIsNotNone(response)
 
     def _deserialize(self, object_id, response_hex):
         rsp_bytes = bytearray.fromhex(response_hex)

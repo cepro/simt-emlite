@@ -344,13 +344,14 @@ class EmliteResponse(ReadWriteKaitaiStruct):
 
 
     class PrepayTokenSendRec(ReadWriteKaitaiStruct):
+        """Intentionally blank - empty payload response."""
         def __init__(self, _io=None, _parent=None, _root=None):
             self._io = _io
             self._parent = _parent
             self._root = _root
 
         def _read(self):
-            self.token = (self._io.read_bytes_full()).decode(u"ASCII")
+            pass
 
 
         def _fetch_instances(self):
@@ -359,9 +360,6 @@ class EmliteResponse(ReadWriteKaitaiStruct):
 
         def _write__seq(self, io=None):
             super(EmliteResponse.PrepayTokenSendRec, self)._write__seq(io)
-            self._io.write_bytes((self.token).encode(u"ASCII"))
-            if not self._io.is_eof():
-                raise kaitaistruct.ConsistencyError(u"token", self._io.size() - self._io.pos(), 0)
 
 
         def _check(self):
