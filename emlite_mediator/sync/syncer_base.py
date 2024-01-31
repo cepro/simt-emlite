@@ -89,16 +89,17 @@ class SyncerBase(ABC):
         except ConnectError as e:
             handle_supabase_faliure(logger, e)
 
-        # sync to extra database and don't terminate if this fails
-        try:
-            update_meter_shadows_when_healthy(
-                self.supabase_extra,
-                self.meter_id,
-                update_props
-            )
-        except ConnectError as e:
-            logger.error(
-                "Supabase connection failure on extra supabase handle, skipping ...", error=e)
+        if sync_extra == True:
+            # sync to extra database and don't terminate if this fails
+            try:
+                update_meter_shadows_when_healthy(
+                    self.supabase_extra,
+                    self.meter_id,
+                    update_props
+                )
+            except ConnectError as e:
+                logger.error(
+                    "Supabase connection failure on extra supabase handle, skipping ...", error=e)
 
     def _update_registry(self, update_props: Dict[str, any]):
         logger.info("update registry props",
