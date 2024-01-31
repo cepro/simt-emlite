@@ -14,7 +14,7 @@ def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties
     }).eq('id', meter_id).execute()
 
 
-def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: MediatorClientException):
+def handle_meter_unhealthy_status(supabase, supabase_extra, logger, meter_id: str, exception: MediatorClientException):
     logger.info(
         "updating meter_shadows.health to unhealthy")
     supabase.table('meter_shadows').update({
@@ -22,6 +22,13 @@ def handle_meter_unhealthy_status(supabase, logger, meter_id: str, exception: Me
         "health_details": exception.message,
         "csq": None
     }).eq('id', meter_id).execute()
+
+    supabase_extra.table('meter_shadows').update({
+        "health": "unhealthy",
+        "health_details": exception.message,
+        "csq": None
+    }).eq('id', meter_id).execute()
+
     sys.exit(100)
 
 
