@@ -1,3 +1,8 @@
 GF_SECURITY_ADMIN_USER=admin
 GF_SECURITY_ADMIN_PASSWORD=<changeme>
 GF_USERS_ALLOW_SIGN_UP=false
+
+# explict host to try workaround switching organisations going to localhost
+GF_SERVER_DOMAIN=ec2-18-169-235-155.eu-west-2.compute.amazonaws.com
+GF_SERVER_ROOT_URL=http://ec2-18-169-235-155.eu-west-2.compute.amazonaws.com:48040
+
