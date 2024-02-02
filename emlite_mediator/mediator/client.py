@@ -28,7 +28,7 @@ class MediatorClientException(Exception):
 
 
 class EmliteMediatorClient():
-    def __init__(self, host='0.0.0.0', port=51297):
+    def __init__(self, host='0.0.0.0', port=51028):
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
         global logger
         logger = logger.bind(host=host, port=port)
@@ -126,6 +126,5 @@ if __name__ == '__main__':
     # print(client.three_phase_instantaneous_voltage())
     # print(client.csq())
     # print(client.prepay_send_token('53251447227692530360'))
-
     print(client.prepay_balance())
     # print(client.prepay_enabled())
