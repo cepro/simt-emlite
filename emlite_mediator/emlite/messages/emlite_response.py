@@ -50,6 +50,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         three_phase_initiate_read = 14092812
         three_phase_serial = 14155536
         prepay_balance = 16762882
+        prepay_token_send = 16762883
         csq_net_op = 16776477
         prepay_enabled_flag = 16776973
         element_b = 16777208
@@ -66,6 +67,10 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
             pass
             self.response = EmliteResponse.ThreePhaseInstantaneousVoltageL3Rec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
+            pass
+            self.response = EmliteResponse.PrepayTokenSendRec(self._io, self, self._root)
             self.response._read()
         elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
@@ -115,6 +120,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._fetch_instances()
@@ -153,6 +161,9 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
             pass
             self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
+            pass
+            self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._write__seq(self._io)
@@ -189,6 +200,12 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         pass
         _on = self.object_id
         if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -320,6 +337,29 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         def _write__seq(self, io=None):
             super(EmliteResponse.PrepayBalanceRec, self)._write__seq(io)
             self._io.write_s4le(self.balance)
+
+
+        def _check(self):
+            pass
+
+
+    class PrepayTokenSendRec(ReadWriteKaitaiStruct):
+        """Intentionally blank - empty payload response."""
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            pass
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.PrepayTokenSendRec, self)._write__seq(io)
 
 
         def _check(self):

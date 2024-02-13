@@ -1,3 +1,5 @@
+from kaitaistruct import KaitaiStream, BytesIO
+from emlite_mediator.emlite.messages.emlite_data import EmliteData
 from emlite_mediator.util.logging import get_logger
 
 import datetime
@@ -26,7 +28,7 @@ class MediatorClientException(Exception):
 
 
 class EmliteMediatorClient():
-    def __init__(self, host='0.0.0.0', port=50051):
+    def __init__(self, host='0.0.0.0', port=51028):
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
         global logger
         logger = logger.bind(host=host, port=port)
@@ -76,6 +78,25 @@ class EmliteMediatorClient():
         logger.info('prepay balance in GBP', prepay_balance_gbp=balance_gbp)
         return balance_gbp
 
+    def prepay_send_token(self, token: str):
+        token_bytes = token.encode('ascii')
+
+        # assembly the request payload manually
+        data_rec_length = 5 + len(token_bytes)
+        data_rec = EmliteData(data_rec_length)
+
+        data_rec.format = b'\x01'
+        data_rec.object_id = ObjectIdEnum.prepay_token_send.value.to_bytes(
+            3, byteorder='big')
+        data_rec.read_write = EmliteData.ReadWriteFlags.write
+        data_rec.payload = token_bytes
+
+        kt_stream = KaitaiStream(BytesIO(bytearray(data_rec_length)))
+        data_rec._write(kt_stream)
+        message_bytes = kt_stream.to_byte_array()
+
+        self._send_message(message_bytes)
+
     def three_phase_instantaneous_voltage(self) -> (float, float, float):
         vl1 = self._read_element(
             ObjectIdEnum.three_phase_instantaneous_voltage_l1)
@@ -92,8 +113,18 @@ class EmliteMediatorClient():
             raise MediatorClientException(e.code().name, e.details())
         return data
 
+    def _send_message(self, message: bytes):
+        try:
+            data = self.grpc_client.send_message(message)
+        except grpc.RpcError as e:
+            raise MediatorClientException(e.code().name, e.details())
+        return data
+
 
 if __name__ == '__main__':
     client = EmliteMediatorClient()
-    print(client.three_phase_instantaneous_voltage())
+    # print(client.three_phase_instantaneous_voltage())
     # print(client.csq())
+    # print(client.prepay_send_token('53251447227692530360'))
+    print(client.prepay_balance())
+    # print(client.prepay_enabled())

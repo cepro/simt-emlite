@@ -6,6 +6,12 @@
 # Usage: kaitai_compile <file.ksy>
 #
 
+if [ -z $1 ]
+then
+    echo "Usage $0 <file.ksy>"
+    exit 2
+fi
+
 KAITAI_FILE=`pwd`/$1
 
 # Local build of kaitai with serialization (http://doc.kaitai.io/serialization.html).
