@@ -3,7 +3,7 @@ Description=Sync all meter_metrics with run_frequency 'daily'
 
 [Service]
 Type=oneshot
-ExecStart=/home/admin/mediator/bin/run_meter_syncs --freq daily
+ExecStart=/home/admin/mediator-hmce-prod/bin/run_meter_syncs --freq daily
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Sync all meter_metrics with run_frequency 'daily'
+
+[Timer]
+OnCalendar=*-*-* 0:32:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
