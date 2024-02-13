@@ -78,8 +78,18 @@ class RunJobForAllMeters():
             'id').ilike('code', site_code).execute()
         site_id = list(sites.data)[0]['id']
 
-        registry_result = self.supabase.table(
-            'meter_registry').select('id,ip_address,serial,hardware').eq('site', site_id).order(column='serial').execute()
+        registry_result = (self.supabase.table('meter_registry')
+                           .select('id,ip_address,serial,hardware')
+
+                           # only process meters at the given site
+                           .eq('site', site_id)
+
+                           # only sync active / real hardware meters
+                           # passive meters are synced from active meters in
+                           #   some other database and environment
+                           .eq('mode', 'active')
+
+                           .order(column='serial').execute())
         if (len(registry_result.data) == 0):
             logger.error("no meters record found")
             sys.exit(11)
