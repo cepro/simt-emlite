@@ -89,7 +89,8 @@ class RunJobForAllMeters():
                            #   some other database and environment
                            .eq('mode', 'active')
 
-                           .order(column='serial').execute())
+                           .order(column='serial')
+                           .execute())
         if (len(registry_result.data) == 0):
             logger.error("no meters record found")
             sys.exit(11)

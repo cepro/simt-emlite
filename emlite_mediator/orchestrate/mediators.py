@@ -79,8 +79,17 @@ class Mediators():
             sites = self.supabase.table('sites').select(
                 'id').ilike('code', site_code).execute()
             site_id = list(sites.data)[0]['id']
-            rows = self.supabase.table('meter_registry').select(
-                'id').eq('site', site_id).execute()
+            rows = (self.supabase.table('meter_registry')
+                    .select('id')
+                    .eq('site', site_id)
+
+                    # only start mediators for active meters.
+                    # a meter is active in a max of 1 env at a time.
+                    # so in this way we ensure there is only ever 1 mediator
+                    #   per physical meter
+                    .eq('mode', 'active')
+
+                    .execute())
         except ConnectError as e:
             logger.error("Supabase connection failure", error=e)
             sys.exit(10)
