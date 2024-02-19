@@ -87,8 +87,12 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return ReadElementReply()
 
     def _handle_failure(self, exception, call_name, context):
-        logger.error('call failed', call_name=call_name,
-                     error=exception, exception=exception)
+        if (exception.__class__.__name__.startswith('RetryError')):
+            logger.warn('Failed to connect to meter after a number of retries',
+                        call_name=call_name)
+        else:
+            logger.error('call failed', call_name=call_name,
+                         error=exception, exception=exception)
         context.set_code(grpc.StatusCode.INTERNAL)
         context.set_details("network failure or internal error")
 

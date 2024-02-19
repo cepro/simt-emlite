@@ -34,8 +34,12 @@ class EmliteMediatorGrpcClient():
                     ReadElementRequest(objectId=object_id.value),
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
-                logger.error('readElement failed',
-                             details=e.details(), code=e.code(), object_id=object_id.name)
+                if (e.code() == grpc.StatusCode.DEADLINE_EXCEEDED):
+                    logger.warn("rpc timeout (deadline_exceeded)",
+                                object_id=object_id.name)
+                else:
+                    logger.error('readElement failed',
+                                 details=e.details(), code=e.code(), object_id=object_id.name)
                 raise e
 
         payload_bytes = rsp_obj.response
