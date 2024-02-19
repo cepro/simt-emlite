@@ -23,8 +23,8 @@ class EmliteNET:
             rsp_bytes = self._read_bytes(sock, 128)
             sock.close()
         except socket.timeout as e:
-            logger.error("Timeout in send_message",
-                         host=self.host, error=e)
+            logger.warn("Timeout in send_message",
+                        host=self.host)
             sock.close()
             sock = None
             raise e
@@ -44,13 +44,13 @@ class EmliteNET:
             sock.connect((self.host, self.port))
             logger.info("connected", host=self.host)
         except socket.timeout as e:
-            logger.error("Timeout connecting to socket",
-                         host=self.host, error=e)
+            logger.info("Timeout connecting to socket",
+                        host=self.host, error=e)
             sock.close()
             sock = None
             raise e
         except socket.error as e:
-            logger.error("Error connecting to socket", host=self.host, error=e)
+            logger.warn("Error connecting to socket", host=self.host, error=e)
             sock.close()
             sock = None
             raise e
@@ -67,5 +67,5 @@ class EmliteNET:
         try:
             return sock.recv(num_bytes)
         except socket.error as e:
-            logger.error("Error reading from socket", error=e)
+            logger.warn("Error reading from socket", error=e)
             raise e
