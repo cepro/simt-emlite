@@ -21,10 +21,10 @@ TIMEOUT_SECONDS = 50
 
 
 class EmliteMediatorGrpcClient():
-    def __init__(self, host='0.0.0.0', port=50051):
+    def __init__(self, host='0.0.0.0', port=50051, meter_id=None):
         self.address = f"{host}:{port}"
         global logger
-        self.log = logger.bind(host=host, port=port)
+        self.log = logger.bind(port=port, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
         with grpc.insecure_channel(self.address) as channel:

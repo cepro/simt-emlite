@@ -29,7 +29,7 @@ class MediatorClientException(Exception):
 
 class EmliteMediatorClient():
     def __init__(self, host='0.0.0.0', port=51028, meter_id=None):
-        self.grpc_client = EmliteMediatorGrpcClient(host, port)
+        self.grpc_client = EmliteMediatorGrpcClient(host, port, meter_id)
         global logger
         self.log = logger.bind(meter_id=meter_id, mediator_port=port)
         # self.log.debug('EmliteMediatorClient init')
