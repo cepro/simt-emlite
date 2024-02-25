@@ -8,7 +8,8 @@ logger = get_logger(__name__, __file__)
 
 hardware_meter_str_to_registry_str = {
     '6Cw': 'C1.w',
-    '6Bw': 'B1.w'
+    '6Bw': 'B1.w',
+    '3Aw': 'EMA1.w'
 }
 
 
