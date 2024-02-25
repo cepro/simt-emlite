@@ -6,6 +6,12 @@ from emlite_mediator.sync.syncer_base import SyncerBase, UpdatesTuple
 
 logger = get_logger(__name__, __file__)
 
+hardware_meter_str_to_registry_str = {
+    '6Cw': 'C1.w',
+    '6Bw': 'B1.w'
+}
+
+
 class SyncerHardware(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
@@ -23,11 +29,15 @@ class SyncerHardware(SyncerBase):
         if meter_registry_entry['serial'].startswith('EMP1AX'):
             hardware = 'P1.ax'
         else:
-            hardware = self.emlite_client.hardware()
+            hardware_rsp = self.emlite_client.hardware()
+            hardware = hardware_meter_str_to_registry_str[hardware_rsp]
+            if hardware == None:
+                logger.error("unhandled hardware in response: " +
+                             hardware_rsp + ". skipping ...")
+                return UpdatesTuple(None, None)
 
         registry_hardware = meter_registry_entry['hardware']
         if (registry_hardware == hardware):
-            logger.info("hardware unchanged - no action")
             return UpdatesTuple(None, None)
 
         if (registry_hardware is None and hardware is not None):
@@ -35,9 +45,6 @@ class SyncerHardware(SyncerBase):
         else:
             logger.warning(
                 'fetched hardware and registry hardware different!',
-                    new_hardware=hardware, old_hardware=registry_hardware)
-        
-        logger.info(
-            'skipping db update for now - return no updates - TODO: sync it when changed')
-                
-        return UpdatesTuple(None, None)
+                new_hardware=hardware, old_hardware=registry_hardware)
+
+        return UpdatesTuple(None, {'hardware': hardware})

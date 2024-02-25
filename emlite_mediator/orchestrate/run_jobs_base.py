@@ -23,6 +23,7 @@ site_code: str = os.environ.get("SITE")
 
 def filter_connected(meter): return meter['ip_address'] is not None
 
+
 """
     This script is a base class for scripts that run a job for all meters.
 """
@@ -39,12 +40,12 @@ class RunJobForAllMeters():
         self.run_frequency = run_frequency
 
         global logger
-        logger = logger.bind(job_name=job_name)
+        self.log = logger.bind(job_name=job_name)
 
     def get_mediator_port(self, meter_id):
         mediator_container = self.mediators.container_by_meter_id(meter_id)
         if (mediator_container == None):
-            logger.error(
+            self.log.error(
                 "NO MEDIATOR CONTAINER EXISTS FOR meter", meter_id=meter_id)
             return
 
@@ -56,8 +57,8 @@ class RunJobForAllMeters():
             return
 
         try:
-            logger.info('run_job', meter_id=meter_id,
-                        mediator_port=mediator_port)
+            self.log.info('run_job', meter_id=meter_id,
+                          mediator_port=mediator_port)
             job = MeterSyncJob(
                 meter_id=meter_id,
                 mediator_port=mediator_port,
@@ -68,14 +69,18 @@ class RunJobForAllMeters():
             )
             job.sync()
         except Exception as e:
-            logger.error("failure occured syncing", error=e)
+            self.log.error("failure occured syncing", error=e)
             traceback.print_exc()
 
     def run(self):
-        logger.info("starting ...")
+        self.log.info("starting ...")
 
         sites = self.supabase.table('sites').select(
             'id').ilike('code', site_code).execute()
+        if (len(sites.data) == 0):
+            self.log.error("no site found for " + site_code)
+            sys.exit(10)
+
         site_id = list(sites.data)[0]['id']
 
         registry_result = (self.supabase.table('meter_registry')
@@ -92,7 +97,7 @@ class RunJobForAllMeters():
                            .order(column='serial')
                            .execute())
         if (len(registry_result.data) == 0):
-            logger.error("no meters record found")
+            self.log.error("no meters record found")
             sys.exit(11)
 
         meters = list(filter(filter_connected, registry_result.data))
@@ -105,15 +110,15 @@ class RunJobForAllMeters():
 
         concurrent.futures.wait(futures)
 
-        logger.info("finished")
+        self.log.info("finished")
 
     def _check_environment(self):
         if not supabase_url or not supabase_key:
-            logger.error(
+            self.log.error(
                 "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
             sys.exit(2)
 
         if not flows_role_key:
-            logger.error(
+            self.log.error(
                 "Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)

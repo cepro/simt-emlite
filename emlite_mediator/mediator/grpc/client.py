@@ -24,7 +24,7 @@ class EmliteMediatorGrpcClient():
     def __init__(self, host='0.0.0.0', port=50051):
         self.address = f"{host}:{port}"
         global logger
-        logger = logger.bind(host=host, port=port)
+        self.log = logger.bind(host=host, port=port)
 
     def read_element(self, object_id: ObjectIdEnum):
         with grpc.insecure_channel(self.address) as channel:
@@ -35,15 +35,16 @@ class EmliteMediatorGrpcClient():
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
                 if (e.code() == grpc.StatusCode.DEADLINE_EXCEEDED):
-                    logger.warn("rpc timeout (deadline_exceeded)",
-                                object_id=object_id.name)
+                    self.log.warn("rpc timeout (deadline_exceeded)",
+                                  object_id=object_id.name)
                 else:
-                    logger.error('readElement failed',
-                                 details=e.details(), code=e.code(), object_id=object_id.name)
+                    self.log.error('readElement failed',
+                                   details=e.details(), code=e.code(), object_id=object_id.name)
                 raise e
 
         payload_bytes = rsp_obj.response
-        logger.info('response received', response_payload=payload_bytes.hex())
+        self.log.info('response received',
+                      response_payload=payload_bytes.hex())
 
         emlite_rsp = EmliteResponse(
             len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes)))
@@ -58,12 +59,13 @@ class EmliteMediatorGrpcClient():
                     SendRawMessageRequest(dataField=message),
                     timeout=TIMEOUT_SECONDS)
             except grpc.RpcError as e:
-                logger.error('sendRawMessage',
-                             details=e.details(), code=e.code())
+                self.log.error('sendRawMessage',
+                               details=e.details(), code=e.code())
                 raise e
 
         payload_bytes = rsp_obj.response
-        logger.info('response received', response_payload=payload_bytes.hex())
+        self.log.info('response received',
+                      response_payload=payload_bytes.hex())
         return payload_bytes
 
 

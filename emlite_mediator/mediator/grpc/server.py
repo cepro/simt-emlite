@@ -61,13 +61,14 @@ listen_port = os.environ.get('LISTEN_PORT') or '50051'
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     def __init__(self, host, port):
         self.api = EmliteAPI(host, port)
+        self.log = logger.bind(emlite_host=host)
 
     def sendRawMessage(self, request, context):
-        logger.info('sendRawMessage', message=request.dataField.hex())
+        self.log.info('sendRawMessage', message=request.dataField.hex())
         self._space_out_requests()
         try:
             rsp_payload = self.api.send_message(request.dataField)
-            logger.info('sendRawMessage response', payload=rsp_payload.hex())
+            self.log.info('sendRawMessage response', payload=rsp_payload.hex())
             return SendRawMessageReply(response=rsp_payload)
         except Exception as e:
             self._handle_failure(e, 'sendRawMessage', context)
@@ -75,12 +76,13 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
     def readElement(self, request, context):
         object_id_bytes = request.objectId.to_bytes(3, byteorder='big')
-        logger.info('readElement request', object_id=object_id_bytes.hex())
+        self.log.info('readElement request', object_id=object_id_bytes.hex())
         self._space_out_requests()
         try:
             rsp_payload = self.api.read_element_with_object_id_bytes(
                 object_id_bytes)
-            logger.info('readElement response', payload=rsp_payload.hex())
+            self.log.info('readElement response',
+                          object_id=object_id_bytes.hex(), payload=rsp_payload.hex())
             return ReadElementReply(response=rsp_payload)
         except Exception as e:
             self._handle_failure(e, 'readElement', context)
@@ -88,11 +90,11 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
     def _handle_failure(self, exception, call_name, context):
         if (exception.__class__.__name__.startswith('RetryError')):
-            logger.warn('Failed to connect to meter after a number of retries',
-                        call_name=call_name)
+            self.log.warn('Failed to connect to meter after a number of retries',
+                          call_name=call_name)
         else:
-            logger.error('call failed', call_name=call_name,
-                         error=exception, exception=exception)
+            self.log.error('call failed', call_name=call_name,
+                           error=exception, exception=exception)
         context.set_code(grpc.StatusCode.INTERNAL)
         context.set_details("network failure or internal error")
 
@@ -106,8 +108,8 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             timedelta(seconds=minimum_time_between_emlite_requests_seconds)
 
         if (datetime.now() < next_request_allowed_datetime):
-            logger.info('sleeping %s seconds between requests',
-                        minimum_time_between_emlite_requests_seconds)
+            self.log.info('sleeping %s seconds between requests',
+                          minimum_time_between_emlite_requests_seconds)
             time.sleep(minimum_time_between_emlite_requests_seconds)
 
 
@@ -118,13 +120,13 @@ def shutdown_handler(signal, frame):
 
 def serve():
     global logger
-    logger = logger.bind(emlite_host=emlite_host, listen_port=listen_port)
+    log = logger.bind(emlite_host=emlite_host)
 
     if (emlite_host is None):
-        logger.error('EMLITE_HOST environment variable not set')
+        log.error('EMLITE_HOST environment variable not set')
         return
 
-    logger.info("starting server")
+    log.info("starting server")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     add_EmliteMediatorServiceServicer_to_server(

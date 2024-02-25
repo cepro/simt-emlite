@@ -53,20 +53,20 @@ class MeterSyncJob():
         self.run_frequency = run_frequency
 
         self.emlite_client = EmliteMediatorClient(
-            self.mediator_host, self.mediator_port)
+            self.mediator_host, self.mediator_port, self.meter_id)
         self.supabase = supa_client(
             self.supabase_url, self.supabase_key, self.flows_role_key)
-        
+
         global logger
-        logger = logger.bind(meter_id=self.meter_id,
-                             mediator_port=self.mediator_port)
+        self.log = logger.bind(meter_id=self.meter_id,
+                               mediator_port=self.mediator_port)
 
     def sync(self):
         try:
             query_result = self.supabase.table('meter_metrics').select(
                 '*').eq("enabled", True).eq("run_frequency", self.run_frequency).execute()
         except ConnectError as e:
-            handle_supabase_faliure(logger, e)
+            handle_supabase_faliure(self.log, e)
 
         for metric in query_result.data:
             syncer_class = find_syncer_class(metric['name'])
@@ -86,12 +86,12 @@ if __name__ == '__main__':
 
     flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 
-    check_environment_vars(logger, supabase_url,
+    check_environment_vars(self.log, supabase_url,
                            supabase_key, flows_role_key, meter_id)
 
     run_frequency: str = os.environ.get("RUN_FREQUENCY")
     if not run_frequency:
-        logger.error(
+        self.log.error(
             "Environment variable RUN_FREQUENCY not set.")
         sys.exit(10)
 
@@ -107,5 +107,5 @@ if __name__ == '__main__':
         )
         job.sync()
     except Exception as e:
-        logger.error("failure occured syncing", error=e)
+        self.log.error("failure occured syncing", error=e)
         traceback.print_exc()

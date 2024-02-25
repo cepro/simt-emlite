@@ -18,6 +18,7 @@ class TestEmliteResponse(unittest.TestCase):
 
         self.assertEqual(rsp_to_hardware('36437720'), '6Cw')
         self.assertEqual(rsp_to_hardware('36430000'), '6C')
+        self.assertEqual(rsp_to_hardware('33417720'), '3Aw')
 
     def test_time(self):
         response_hex = "17080615000100"

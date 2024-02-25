@@ -28,54 +28,54 @@ class MediatorClientException(Exception):
 
 
 class EmliteMediatorClient():
-    def __init__(self, host='0.0.0.0', port=51028):
+    def __init__(self, host='0.0.0.0', port=51028, meter_id=None):
         self.grpc_client = EmliteMediatorGrpcClient(host, port)
         global logger
-        logger = logger.bind(host=host, port=port)
-        # logger.debug('EmliteMediatorClient init')
+        self.log = logger.bind(meter_id=meter_id, mediator_port=port)
+        # self.log.debug('EmliteMediatorClient init')
 
     def serial(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
         serial = data.serial.strip()
-        logger.info('received serial', serial=serial)
+        self.log.info('received serial', serial=serial)
         return serial
 
     def hardware(self) -> str:
         data = self._read_element(ObjectIdEnum.hardware_version)
         hardware = data.hardware.replace('\u0000', '').strip()
-        logger.info('received hardware', hardware=hardware)
+        self.log.info('received hardware', hardware=hardware)
         return hardware
 
     def clock_time(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)
         date_obj = datetime.datetime(
             2000 + data.year, data.month, data.date, data.hour, data.minute, data.second)
-        logger.info('received time', time=date_obj.isoformat())
+        self.log.info('received time', time=date_obj.isoformat())
         return date_obj
 
     def csq(self) -> int:
         data = self._read_element(ObjectIdEnum.csq_net_op)
-        logger.info('received csq', csq=data.csq)
+        self.log.info('received csq', csq=data.csq)
         return data.csq
 
     def instantaneous_voltage(self) -> float:
         data = self._read_element(ObjectIdEnum.instantaneous_voltage)
-        logger.info('received instantaneous voltage', voltage=data.voltage)
+        self.log.info('received instantaneous voltage', voltage=data.voltage)
         return data.voltage
 
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
-        logger.info('received prepay enabled flag',
-                    prepay_enabled_flag=enabled)
+        self.log.info('received prepay enabled flag',
+                      prepay_enabled_flag=enabled)
         return enabled
 
     def prepay_balance(self) -> float:
         data = self._read_element(ObjectIdEnum.prepay_balance)
-        logger.debug('received prepay balance',
-                     prepay_balance_raw=data.balance)
+        self.log.debug('received prepay balance',
+                       prepay_balance_raw=data.balance)
         balance_gbp: float = data.balance / 100000
-        logger.info('prepay balance in GBP', prepay_balance_gbp=balance_gbp)
+        self.log.info('prepay balance in GBP', prepay_balance_gbp=balance_gbp)
         return balance_gbp
 
     def prepay_send_token(self, token: str):
@@ -97,7 +97,7 @@ class EmliteMediatorClient():
 
         self._send_message(message_bytes)
 
-    def three_phase_instantaneous_voltage(self) -> (float, float, float):
+    def three_phase_instantaneous_voltage(self) -> tuple[float, float, float]:
         vl1 = self._read_element(
             ObjectIdEnum.three_phase_instantaneous_voltage_l1)
         vl2 = self._read_element(
