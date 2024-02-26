@@ -19,10 +19,10 @@ supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
+max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 15)
 
 
 def filter_connected(meter): return meter['ip_address'] is not None
-
 
 """
     This script is a base class for scripts that run a job for all meters.
@@ -104,7 +104,7 @@ class RunJobForAllMeters():
         if (self.filter_fn):
             meters = list(filter(self.filter_fn, meters))
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_parallel_jobs) as executor:
             futures = [executor.submit(self.run_job, meter['id'])
                        for meter in meters]
 

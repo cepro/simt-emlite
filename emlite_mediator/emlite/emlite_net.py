@@ -1,10 +1,13 @@
 from emlite_mediator.util.logging import get_logger
 
+import os
 import socket
 
 from tenacity import retry, stop_after_attempt
 
 logger = get_logger(__name__, __file__)
+
+socket_timeout: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
 
 
 class EmliteNET:
@@ -39,7 +42,7 @@ class EmliteNET:
     def _open_socket(self):
         logger.info("connecting", host=self.host)
         sock = socket.socket()
-        sock.settimeout(10.0)  # seconds
+        sock.settimeout(socket_timeout)  # seconds
         try:
             sock.connect((self.host, self.port))
             logger.info("connected", host=self.host)
