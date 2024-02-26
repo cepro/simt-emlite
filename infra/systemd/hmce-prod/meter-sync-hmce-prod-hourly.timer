@@ -2,7 +2,7 @@
 Description=Sync all meter_metrics with run_frequency 'hourly'
 
 [Timer]
-OnCalendar=*-*-* *:03:00
+OnCalendar=*-*-* *:35:00
 Persistent=true
 
 [Install]

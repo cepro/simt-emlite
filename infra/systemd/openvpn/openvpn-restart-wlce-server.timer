@@ -3,12 +3,10 @@ Description=Restarts openvpn client to ensure it's connected
 
 [Timer]
 # before the hourly meter syncing job
-OnCalendar=*-*-* *:58:00
-# before the daily meter syncing job
-OnCalendar=*-*-* 0:28:00
+OnCalendar=*-*-* *:03:00
 # before each 12 hourly meter syncing job
-OnCalendar=*-*-* 6:13:00
-OnCalendar=*-*-* 18:13:00
+OnCalendar=*-*-* 6:18:00
+OnCalendar=*-*-* 18:18:00
 Persistent=true
 
 [Install]
