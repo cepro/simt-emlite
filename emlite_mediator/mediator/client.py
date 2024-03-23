@@ -100,11 +100,31 @@ class EmliteMediatorClient():
     def three_phase_instantaneous_voltage(self) -> tuple[float, float, float]:
         vl1 = self._read_element(
             ObjectIdEnum.three_phase_instantaneous_voltage_l1)
-        vl2 = self._read_element(
-            ObjectIdEnum.three_phase_instantaneous_voltage_l2)
-        vl3 = self._read_element(
-            ObjectIdEnum.three_phase_instantaneous_voltage_l3)
-        return (vl1.voltage/10, vl2.voltage/10, vl3.voltage/10)
+
+        # wrapping second in a try as that's where we are seeing these
+        # EOFErrors - for now want to make them warnings rather than fail
+        #   but they do need fixing eventually
+        try:
+            vl2 = self._read_element(
+                ObjectIdEnum.three_phase_instantaneous_voltage_l2)
+        except Exception as e:
+            self.log.warn('3p v2 failed - setting to None', e)
+            vl2 = None
+
+        # wrapping the third as well as now that second erros are handled
+        # errors may occur on the third
+        try:
+            vl3 = self._read_element(
+                ObjectIdEnum.three_phase_instantaneous_voltage_l3)
+        except Exception as e:
+            self.log.warn('3p v3 failed - setting to None', e)
+            vl3 = None
+
+        return (
+            vl1.voltage/10,
+            None if vl2 is None else vl2.voltage/10,
+            None if vl3 is None else vl3.voltage/10
+        )
 
     def _read_element(self, object_id):
         try:

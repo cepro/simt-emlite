@@ -20,7 +20,7 @@ logger = get_logger(__name__, __file__)
     Wait this amount of time between requests to avoid the emlite meter
     returning "connection refused" errors. 
 """
-minimum_time_between_emlite_requests_seconds = 4
+minimum_time_between_emlite_requests_seconds = 7
 
 """
     Allow one request to the meter at a time only. 
@@ -92,11 +92,17 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         if (exception.__class__.__name__.startswith('RetryError')):
             self.log.warn('Failed to connect to meter after a number of retries',
                           call_name=call_name)
+            context.set_details("failed to connect after retries")
+        elif (exception.__class__.__name__.startswith('EOFError')):
+            self.log.warn('EOFError seen - so far only happens on back to back calls for 3p voltage',
+                          call_name=call_name)
+            context.set_details("EOFError")
         else:
             self.log.error('call failed', call_name=call_name,
                            error=exception, exception=exception)
+            context.set_details("network failure or internal error")
+
         context.set_code(grpc.StatusCode.INTERNAL)
-        context.set_details("network failure or internal error")
 
     """ sleep the minimum amount of time between requests if there was a request recently in that range """
 

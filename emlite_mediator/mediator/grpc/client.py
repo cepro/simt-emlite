@@ -37,6 +37,11 @@ class EmliteMediatorGrpcClient():
                 if (e.code() == grpc.StatusCode.DEADLINE_EXCEEDED):
                     self.log.warn("rpc timeout (deadline_exceeded)",
                                   object_id=object_id.name)
+                elif (e.code() == grpc.StatusCode.INTERNAL and e.details().contains('EOFError')):
+                    # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
+                    self.log.warn("EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
+                                  object_id=object_id.name)
+                    return
                 else:
                     self.log.error('readElement failed',
                                    details=e.details(), code=e.code(), object_id=object_id.name)
