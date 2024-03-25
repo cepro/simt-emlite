@@ -108,7 +108,7 @@ class EmliteMediatorClient():
             vl2 = self._read_element(
                 ObjectIdEnum.three_phase_instantaneous_voltage_l2)
         except Exception as e:
-            self.log.warn('3p v2 failed - setting to None', e)
+            self.log.warn('3p v2 failed - setting to None')
             vl2 = None
 
         # wrapping the third as well as now that second erros are handled
@@ -117,7 +117,7 @@ class EmliteMediatorClient():
             vl3 = self._read_element(
                 ObjectIdEnum.three_phase_instantaneous_voltage_l3)
         except Exception as e:
-            self.log.warn('3p v3 failed - setting to None', e)
+            self.log.warn('3p v3 failed - setting to None')
             vl3 = None
 
         return (
