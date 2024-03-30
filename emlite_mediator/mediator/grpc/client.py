@@ -1,3 +1,5 @@
+from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import EmliteConnectionFailure
+from emlite_mediator.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from emlite_mediator.util.logging import get_logger
 
 import grpc
@@ -37,11 +39,19 @@ class EmliteMediatorGrpcClient():
                 if (e.code() == grpc.StatusCode.DEADLINE_EXCEEDED):
                     self.log.warn("rpc timeout (deadline_exceeded)",
                                   object_id=object_id.name)
-                elif (e.code() == grpc.StatusCode.INTERNAL and 'EOFError' in e.details()):
-                    # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
-                    self.log.warn("EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
-                                  object_id=object_id.name)
-                    return
+                elif (e.code() == grpc.StatusCode.INTERNAL):
+                    if ('EOFError' in e.details()):
+                        # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
+                        self.log.warn("EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
+                                      object_id=object_id.name)
+                        raise EmliteEOFError(
+                            "object_id=" + object_id.name + ", meter=" + self.meter_id)
+                    elif ('failed to connect after retries' in e.details()):
+                        self.log.warn(e.details())
+                        raise EmliteConnectionFailure(
+                            "object_id=" + object_id.name + ", meter=" + self.meter_id)
+                    else:
+                        raise e
                 else:
                     self.log.error('readElement failed',
                                    details=e.details(), code=e.code(), object_id=object_id.name)

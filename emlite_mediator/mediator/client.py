@@ -1,5 +1,7 @@
 from kaitaistruct import KaitaiStream, BytesIO
 from emlite_mediator.emlite.messages.emlite_data import EmliteData
+from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import EmliteConnectionFailure
+from emlite_mediator.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from emlite_mediator.util.logging import get_logger
 
 import datetime
@@ -107,17 +109,17 @@ class EmliteMediatorClient():
         try:
             vl2 = self._read_element(
                 ObjectIdEnum.three_phase_instantaneous_voltage_l2)
-        except Exception as e:
-            self.log.warn('3p v2 failed - setting to None')
+        except EmliteEOFError as e:
+            self.log.warn('3p v2 failed - setting to None (e=' + e + ')')
             vl2 = None
 
-        # wrapping the third as well as now that second erros are handled
+        # wrapping the third as well as now that second errors are handled
         # errors may occur on the third
         try:
             vl3 = self._read_element(
                 ObjectIdEnum.three_phase_instantaneous_voltage_l3)
-        except Exception as e:
-            self.log.warn('3p v3 failed - setting to None')
+        except EmliteEOFError as e:
+            self.log.warn('3p v3 failed - setting to None (e=' + e + ')')
             vl3 = None
 
         return (
@@ -129,6 +131,11 @@ class EmliteMediatorClient():
     def _read_element(self, object_id):
         try:
             data = self.grpc_client.read_element(object_id)
+        except EmliteConnectionFailure as e:
+            raise MediatorClientException(
+                "EMLITE_CONNECTION_FAILURE", e.message)
+        except EmliteEOFError as e:
+            raise MediatorClientException("EMLITE_EOF_ERROR", e.message)
         except grpc.RpcError as e:
             raise MediatorClientException(e.code().name, e.details())
         return data
