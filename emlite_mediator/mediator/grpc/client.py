@@ -25,6 +25,7 @@ TIMEOUT_SECONDS = 50
 class EmliteMediatorGrpcClient():
     def __init__(self, host='0.0.0.0', port=50051, meter_id=None):
         self.address = f"{host}:{port}"
+        self.meter_id = meter_id
         global logger
         self.log = logger.bind(port=port, meter_id=meter_id)
 
