@@ -35,6 +35,16 @@ seq:
         "object_id_type::three_phase_instantaneous_voltage_l1": three_phase_instantaneous_voltage_l1_rec
         "object_id_type::three_phase_instantaneous_voltage_l2": three_phase_instantaneous_voltage_l2_rec
         "object_id_type::three_phase_instantaneous_voltage_l3": three_phase_instantaneous_voltage_l3_rec
+        "object_id_type::tariff_active_standing_charge": tariff_active_standing_charge_rec
+        "object_id_type::tariff_active_tou_rate": tariff_active_tou_rate_rec
+        "object_id_type::tariff_active_block_rate": tariff_active_block_rate_rec
+        "object_id_type::tariff_active_price_index": tariff_active_price_index_rec
+        "object_id_type::tariff_active_price": tariff_active_price_rec
+        "object_id_type::tariff_emergency_credit": tariff_emergency_credit_rec
+        "object_id_type::tariff_ecredit_availability": tariff_ecredit_availability_rec
+        "object_id_type::tariff_debt_recovery_rate": tariff_debt_recovery_rate_rec
+        "object_id_type::tariff_time_switch_element_a_or_single": tariff_time_switch_settings_rec
+        "object_id_type::tariff_time_switch_element_b": tariff_time_switch_settings_rec
         _: default_rec
 
 types:
@@ -103,6 +113,47 @@ types:
     seq:
       - id: voltage
         type: u2le
+  tariff_active_standing_charge_rec:
+    seq:
+      - id: value
+        type: u4le
+  tariff_active_tou_rate_rec:
+    seq:
+      - id: value
+        type: u1
+  tariff_active_block_rate_rec:
+    seq:
+      - id: value
+        type: u1
+  tariff_active_price_index_rec:
+    seq:
+      - id: value
+        type: u1
+  tariff_active_price_rec:
+    seq:
+      - id: value
+        type: u4le
+  tariff_emergency_credit_rec:
+    seq:
+      - id: value
+        type: u4le
+  tariff_ecredit_availability_rec:
+    seq:
+      - id: value
+        type: u4le
+  tariff_debt_recovery_rate_rec:
+    seq:
+      - id: value
+        type: u4le
+  tariff_time_switch_settings_rec:
+    seq:
+      - id: switch_settings
+        size: 80
+        doc: |
+          Bytes containing all the various switch settings. We treat it as one
+          large block for now as we only want the whole thing zero'd out.
+          If in future we need time switches we could define the internals of
+          these bytes here.
 
 enums:
   day_of_week_type:
@@ -150,3 +201,13 @@ enums:
     2098944: three_phase_instantaneous_voltage_l1 # 200700
     3409664: three_phase_instantaneous_voltage_l2 # 340700
     4720384: three_phase_instantaneous_voltage_l3 # 480700
+    16776994: tariff_active_standing_charge # FFFF22
+    16777003: tariff_active_tou_rate # FFFF2B
+    16777004: tariff_active_block_rate # FFFF2C
+    16777005: tariff_active_price_index # FFFF2D
+    16777006: tariff_active_price # FFFF2E
+    16762885: tariff_emergency_credit # FFC805
+    16762886: tariff_ecredit_availability # FFC806
+    16762887: tariff_debt_recovery_rate # FFC807
+    851968: tariff_time_switch_element_a_or_single # 0D0000
+    852223: tariff_time_switch_element_b # 0D00FF

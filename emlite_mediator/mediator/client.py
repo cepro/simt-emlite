@@ -6,6 +6,7 @@ from emlite_mediator.util.logging import get_logger
 
 import datetime
 import grpc
+import os
 
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 
@@ -30,10 +31,11 @@ class MediatorClientException(Exception):
 
 
 class EmliteMediatorClient():
-    def __init__(self, host='0.0.0.0', port=51028, meter_id=None):
+    def __init__(self, host='0.0.0.0', port=51498, meter_id=None):
         self.grpc_client = EmliteMediatorGrpcClient(host, port, meter_id)
         global logger
         self.log = logger.bind(meter_id=meter_id, mediator_port=port)
+        self.log.info('port', port=port)
         # self.log.debug('EmliteMediatorClient init')
 
     def serial(self) -> str:
@@ -83,7 +85,7 @@ class EmliteMediatorClient():
     def prepay_send_token(self, token: str):
         token_bytes = token.encode('ascii')
 
-        # assembly the request payload manually
+        # assemble the request payload manually
         data_rec_length = 5 + len(token_bytes)
         data_rec = EmliteData(data_rec_length)
 
@@ -128,6 +130,66 @@ class EmliteMediatorClient():
             None if vl3 is None else vl3.voltage/10
         )
 
+    def tariffs_read(self) -> None:
+        data = self._read_element(ObjectIdEnum.tariff_active_standing_charge)
+        self.log.info('standing charge', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_active_price)
+        self.log.info('price', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_active_price_index)
+        self.log.info('price index', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_active_tou_rate)
+        self.log.info('tou rate', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_active_block_rate)
+        self.log.info('block rate', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_emergency_credit)
+        self.log.info('emergency credit', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_ecredit_availability)
+        self.log.info('ecredit', value=data.value)
+
+        data = self._read_element(ObjectIdEnum.tariff_debt_recovery_rate)
+        self.log.info('debt recovery rate', value=data.value)
+
+    def tariffs_time_switches_read(self) -> None:
+        data = self._read_element(
+            ObjectIdEnum.tariff_time_switch_element_a_or_single)
+        self.log.info('el A settings bytes', value=data.switch_settings)
+
+        data = self._read_element(
+            ObjectIdEnum.tariff_time_switch_element_b)
+        self.log.info('el B settings bytes', value=data.switch_settings)
+
+    def tariffs_time_switches_element_a_or_single_write(self):
+        self._tariffs_time_switches_write(
+            ObjectIdEnum.tariff_time_switch_element_a_or_single)
+
+    def tariffs_time_switches_element_b_write(self):
+        self._tariffs_time_switches_write(
+            ObjectIdEnum.tariff_time_switch_element_b)
+
+    def _tariffs_time_switches_write(self, object_id: ObjectIdEnum):
+        # assemble the request payload manually
+        payload = bytes(80)  # all switches off - all zeros
+        data_rec_length = 5 + len(payload)
+        data_rec = EmliteData(data_rec_length)
+
+        data_rec.format = b'\x01'
+        data_rec.object_id = object_id.value.to_bytes(
+            3, byteorder='big')
+        data_rec.read_write = EmliteData.ReadWriteFlags.write
+        data_rec.payload = payload
+
+        kt_stream = KaitaiStream(BytesIO(bytearray(data_rec_length)))
+        data_rec._write(kt_stream)
+        message_bytes = kt_stream.to_byte_array()
+
+        self._send_message(message_bytes)
+
     def _read_element(self, object_id):
         try:
             data = self.grpc_client.read_element(object_id)
@@ -149,9 +211,14 @@ class EmliteMediatorClient():
 
 
 if __name__ == '__main__':
-    client = EmliteMediatorClient()
+    mediator_port: str = os.environ.get("MEDIATOR_PORT")
+
+    client = EmliteMediatorClient(port=mediator_port)
     # print(client.three_phase_instantaneous_voltage())
     # print(client.csq())
+
     # print(client.prepay_send_token('53251447227692530360'))
-    print(client.prepay_balance())
     # print(client.prepay_enabled())
+
+    # print(client.tariffs_read())
+    print(client.tariffs_time_switches_read())

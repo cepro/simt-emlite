@@ -35,6 +35,8 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         average_current = 727040
         instantaneous_voltage = 788224
         average_voltage = 792576
+        tariff_time_switch_element_a_or_single = 851968
+        tariff_time_switch_element_b = 852223
         instantaneous_power_factor = 853760
         instantaneous_frequency = 919296
         average_frequency = 923648
@@ -51,8 +53,16 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         three_phase_serial = 14155536
         prepay_balance = 16762882
         prepay_token_send = 16762883
+        tariff_emergency_credit = 16762885
+        tariff_ecredit_availability = 16762886
+        tariff_debt_recovery_rate = 16762887
         csq_net_op = 16776477
         prepay_enabled_flag = 16776973
+        tariff_active_standing_charge = 16776994
+        tariff_active_tou_rate = 16777003
+        tariff_active_block_rate = 16777004
+        tariff_active_price_index = 16777005
+        tariff_active_price = 16777006
         element_b = 16777208
         element_a = 16777212
     def __init__(self, len_response, object_id, _io=None, _parent=None, _root=None):
@@ -64,9 +74,17 @@ class EmliteResponse(ReadWriteKaitaiStruct):
 
     def _read(self):
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+        if _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+            pass
+            self.response = EmliteResponse.TariffActivePriceIndexRec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
             pass
             self.response = EmliteResponse.ThreePhaseInstantaneousVoltageL3Rec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_a_or_single:
+            pass
+            self.response = EmliteResponse.TariffTimeSwitchSettingsRec(self._io, self, self._root)
             self.response._read()
         elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
             pass
@@ -76,17 +94,33 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.CsqNetOpRec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_ecredit_availability:
+            pass
+            self.response = EmliteResponse.TariffEcreditAvailabilityRec(self._io, self, self._root)
+            self.response._read()
         elif _on == EmliteResponse.ObjectIdType.hardware_version:
             pass
             self.response = EmliteResponse.HardwareRec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_emergency_credit:
+            pass
+            self.response = EmliteResponse.TariffEmergencyCreditRec(self._io, self, self._root)
             self.response._read()
         elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response = EmliteResponse.TimeRec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_b:
+            pass
+            self.response = EmliteResponse.TariffTimeSwitchSettingsRec(self._io, self, self._root)
+            self.response._read()
         elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l1:
             pass
             self.response = EmliteResponse.ThreePhaseInstantaneousVoltageL1Rec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_standing_charge:
+            pass
+            self.response = EmliteResponse.TariffActiveStandingChargeRec(self._io, self, self._root)
             self.response._read()
         elif _on == EmliteResponse.ObjectIdType.serial:
             pass
@@ -96,6 +130,10 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.InstantaneousVoltageRec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+            pass
+            self.response = EmliteResponse.TariffActiveBlockRateRec(self._io, self, self._root)
+            self.response._read()
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
             self.response = EmliteResponse.PrepayBalanceRec(self._io, self, self._root)
@@ -104,9 +142,21 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
             self.response = EmliteResponse.ThreePhaseInstantaneousVoltageL2Rec(self._io, self, self._root)
             self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_debt_recovery_rate:
+            pass
+            self.response = EmliteResponse.TariffDebtRecoveryRateRec(self._io, self, self._root)
+            self.response._read()
         elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
             pass
             self.response = EmliteResponse.PrepayEnabledRec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price:
+            pass
+            self.response = EmliteResponse.TariffActivePriceRec(self._io, self, self._root)
+            self.response._read()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
+            pass
+            self.response = EmliteResponse.TariffActiveTouRateRec(self._io, self, self._root)
             self.response._read()
         else:
             pass
@@ -117,7 +167,13 @@ class EmliteResponse(ReadWriteKaitaiStruct):
     def _fetch_instances(self):
         pass
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+        if _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_a_or_single:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
@@ -126,13 +182,25 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_ecredit_availability:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.hardware_version:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_emergency_credit:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_b:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l1:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_standing_charge:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.serial:
@@ -141,13 +209,25 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.instantaneous_voltage:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l2:
             pass
             self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_debt_recovery_rate:
+            pass
+            self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price:
+            pass
+            self.response._fetch_instances()
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
             pass
             self.response._fetch_instances()
         else:
@@ -158,7 +238,13 @@ class EmliteResponse(ReadWriteKaitaiStruct):
     def _write__seq(self, io=None):
         super(EmliteResponse, self)._write__seq(io)
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+        if _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_a_or_single:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.prepay_token_send:
@@ -167,13 +253,25 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.csq_net_op:
             pass
             self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_ecredit_availability:
+            pass
+            self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.hardware_version:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_emergency_credit:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.time:
             pass
             self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_b:
+            pass
+            self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l1:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_standing_charge:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.serial:
@@ -182,13 +280,25 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.instantaneous_voltage:
             pass
             self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+            pass
+            self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l2:
             pass
             self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_debt_recovery_rate:
+            pass
+            self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price:
+            pass
+            self.response._write__seq(self._io)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
             pass
             self.response._write__seq(self._io)
         else:
@@ -199,7 +309,19 @@ class EmliteResponse(ReadWriteKaitaiStruct):
     def _check(self):
         pass
         _on = self.object_id
-        if _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+        if _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l3:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_a_or_single:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -217,7 +339,19 @@ class EmliteResponse(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_ecredit_availability:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
         elif _on == EmliteResponse.ObjectIdType.hardware_version:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_emergency_credit:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -229,7 +363,19 @@ class EmliteResponse(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_time_switch_element_b:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
         elif _on == EmliteResponse.ObjectIdType.three_phase_instantaneous_voltage_l1:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_standing_charge:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -247,6 +393,12 @@ class EmliteResponse(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
         elif _on == EmliteResponse.ObjectIdType.prepay_balance:
             pass
             if self.response._root != self._root:
@@ -259,7 +411,25 @@ class EmliteResponse(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_debt_recovery_rate:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
         elif _on == EmliteResponse.ObjectIdType.prepay_enabled_flag:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price:
+            pass
+            if self.response._root != self._root:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
+            if self.response._parent != self:
+                raise kaitaistruct.ConsistencyError(u"response", self.response._parent, self)
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(u"response", self.response._root, self._root)
@@ -343,6 +513,52 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
 
 
+    class TariffEmergencyCreditRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u4le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffEmergencyCreditRec, self)._write__seq(io)
+            self._io.write_u4le(self.value)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffActivePriceIndexRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u1()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffActivePriceIndexRec, self)._write__seq(io)
+            self._io.write_u1(self.value)
+
+
+        def _check(self):
+            pass
+
+
     class PrepayTokenSendRec(ReadWriteKaitaiStruct):
         """Intentionally blank - empty payload response."""
         def __init__(self, _io=None, _parent=None, _root=None):
@@ -360,6 +576,75 @@ class EmliteResponse(ReadWriteKaitaiStruct):
 
         def _write__seq(self, io=None):
             super(EmliteResponse.PrepayTokenSendRec, self)._write__seq(io)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffActiveTouRateRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u1()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffActiveTouRateRec, self)._write__seq(io)
+            self._io.write_u1(self.value)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffActiveStandingChargeRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u4le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffActiveStandingChargeRec, self)._write__seq(io)
+            self._io.write_u4le(self.value)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffActiveBlockRateRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u1()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffActiveBlockRateRec, self)._write__seq(io)
+            self._io.write_u1(self.value)
 
 
         def _check(self):
@@ -385,6 +670,29 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             super(EmliteResponse.CsqNetOpRec, self)._write__seq(io)
             self._io.write_bits_int_be(3, self.network_operator)
             self._io.write_bits_int_be(5, self.csq)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffActivePriceRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u4le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffActivePriceRec, self)._write__seq(io)
+            self._io.write_u4le(self.value)
 
 
         def _check(self):
@@ -508,6 +816,54 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             pass
 
 
+    class TariffDebtRecoveryRateRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u4le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffDebtRecoveryRateRec, self)._write__seq(io)
+            self._io.write_u4le(self.value)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffTimeSwitchSettingsRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.switch_settings = self._io.read_bytes(80)
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffTimeSwitchSettingsRec, self)._write__seq(io)
+            self._io.write_bytes(self.switch_settings)
+
+
+        def _check(self):
+            pass
+            if (len(self.switch_settings) != 80):
+                raise kaitaistruct.ConsistencyError(u"switch_settings", len(self.switch_settings), 80)
+
+
     class TimeRec(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
             self._io = _io
@@ -562,6 +918,29 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self._io.write_bytes(self.payload)
             if not self._io.is_eof():
                 raise kaitaistruct.ConsistencyError(u"payload", self._io.size() - self._io.pos(), 0)
+
+
+        def _check(self):
+            pass
+
+
+    class TariffEcreditAvailabilityRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.value = self._io.read_u4le()
+
+
+        def _fetch_instances(self):
+            pass
+
+
+        def _write__seq(self, io=None):
+            super(EmliteResponse.TariffEcreditAvailabilityRec, self)._write__seq(io)
+            self._io.write_u4le(self.value)
 
 
         def _check(self):
