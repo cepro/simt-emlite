@@ -1,7 +1,7 @@
 # This is a generated file! Please edit source .ksy file and use kaitai-struct-compiler to rebuild
 
 import kaitaistruct
-from kaitaistruct import ReadWriteKaitaiStruct, KaitaiStream, BytesIO
+from kaitaistruct import ReadWriteKaitaiStruct, KaitaiStream
 from enum import Enum
 
 

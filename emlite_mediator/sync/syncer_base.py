@@ -38,7 +38,7 @@ class SyncerBase(ABC):
         self.meter_id = meter_id
 
         self.supabase_extra = None
-        if (sync_extra == True):
+        if (sync_extra is True):
             self.supabase_extra = supa_client(
                 supabase_url_extra, supabase_key_extra, flows_role_key_extra)
 
@@ -56,7 +56,7 @@ class SyncerBase(ABC):
         registry tables are updated
         """
         updates: UpdatesTuple = self.fetch_metrics_with_error_handling()
-        if updates == None:
+        if updates is None:
             return
 
         if updates.shadow:
@@ -90,7 +90,7 @@ class SyncerBase(ABC):
         except ConnectError as e:
             handle_supabase_faliure(self.log, e)
 
-        if sync_extra == True:
+        if sync_extra is True:
             # sync to extra database and don't terminate if this fails
             try:
                 update_meter_shadows_when_healthy(

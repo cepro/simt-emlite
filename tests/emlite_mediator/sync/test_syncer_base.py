@@ -1,9 +1,8 @@
 from typing import Any, Dict, List
 import unittest
-from unittest import mock, skip
+from unittest import skip
 from unittest.mock import MagicMock, Mock, patch
 
-from postgrest.base_request_builder import APIResponse
 from typing_extensions import override
 
 from emlite_mediator.sync.syncer_base import SyncerBase, UpdatesTuple
