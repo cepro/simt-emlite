@@ -13,7 +13,7 @@ class SyncerPrepayBalance(SyncerBase):
         result = self.supabase.table('meter_registry').select(
             'prepay_enabled').eq("id", self.meter_id).execute()
         enabled = result.data[0]['prepay_enabled']
-        if enabled != True:
+        if enabled is not True:
             logger.info('prepay not enabled, skipping balance lookup ...',
                         meter_id=self.meter_id)
             return None

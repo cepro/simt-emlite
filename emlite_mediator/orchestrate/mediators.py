@@ -111,7 +111,7 @@ class Mediators():
 
     def stop_one(self, meter_id: str):
         container = self.container_by_meter_id(meter_id)
-        if (container == None):
+        if (container is None):
             logger.info(
                 "stop_one: skip - container for meter already stopped", meter_id=meter_id)
             return

@@ -107,7 +107,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     """ sleep the minimum amount of time between requests if there was a request recently in that range """
 
     def _space_out_requests(self):
-        if (self.api.last_request_datetime == None):
+        if (self.api.last_request_datetime is None):
             return
 
         next_request_allowed_datetime = self.api.last_request_datetime + \

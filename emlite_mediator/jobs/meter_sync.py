@@ -86,12 +86,12 @@ if __name__ == '__main__':
 
     flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 
-    check_environment_vars(self.log, supabase_url,
+    check_environment_vars(logger, supabase_url,
                            supabase_key, flows_role_key, meter_id)
 
     run_frequency: str = os.environ.get("RUN_FREQUENCY")
     if not run_frequency:
-        self.log.error(
+        logger.error(
             "Environment variable RUN_FREQUENCY not set.")
         sys.exit(10)
 
@@ -107,5 +107,5 @@ if __name__ == '__main__':
         )
         job.sync()
     except Exception as e:
-        self.log.error("failure occured syncing", error=e)
+        logger.error("failure occured syncing", error=e)
         traceback.print_exc()

@@ -33,7 +33,7 @@ class SyncerHardware(SyncerBase):
         else:
             hardware_rsp = self.emlite_client.hardware()
             hardware = hardware_meter_str_to_registry_str[hardware_rsp]
-            if hardware == None:
+            if hardware is None:
                 logger.error("unhandled hardware in response: " +
                              hardware_rsp + ". skipping ...")
                 return UpdatesTuple(None, None)

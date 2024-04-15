@@ -34,7 +34,7 @@ def path_to_package_and_module(path: str):
 
 
 def logger_module_name(name, file=None):
-    if name != '__main__' or file == None:
+    if name != '__main__' or file is None:
         return name
     return path_to_package_and_module(file)
 

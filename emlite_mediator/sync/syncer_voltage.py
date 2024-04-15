@@ -13,7 +13,7 @@ class SyncerVoltage(SyncerBase):
         result = self.supabase.table('meter_registry').select(
             'serial').eq("id", self.meter_id).execute()
         serial = result.data[0]['serial']
-        if serial == None:
+        if serial is None:
             logger.info('no serial yet for meter, skipping ...',
                         meter_id=self.meter_id)
             return None

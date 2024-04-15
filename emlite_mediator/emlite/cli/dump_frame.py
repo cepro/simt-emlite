@@ -3,7 +3,6 @@ import sys
 from kaitaistruct import KaitaiStream, BytesIO
 
 from emlite_mediator.emlite.messages.emlite_frame import EmliteFrame
-from emlite_mediator.emlite.messages.emlite_data import EmliteData
 
 
 if __name__ == '__main__':
