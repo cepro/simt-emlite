@@ -155,18 +155,21 @@ class EmliteMediatorClient():
         data = self._read_element(ObjectIdEnum.tariff_debt_recovery_rate)
         self.log.info('debt recovery rate', value=data.value)
 
-    def tariffs_time_switches_read(self) -> None:
+    def tariffs_time_switches_element_a_or_single_read(self) -> bytes:
         data = self._read_element(
             ObjectIdEnum.tariff_time_switch_element_a_or_single)
-        self.log.info('el A settings bytes', value=data.switch_settings)
-
-        data = self._read_element(
-            ObjectIdEnum.tariff_time_switch_element_b)
-        self.log.info('el B settings bytes', value=data.switch_settings)
+        self.log.info('element A switch settings', value=data.switch_settings)
+        return data.switch_settings
 
     def tariffs_time_switches_element_a_or_single_write(self):
         self._tariffs_time_switches_write(
             ObjectIdEnum.tariff_time_switch_element_a_or_single)
+
+    def tariffs_time_switches_element_b_read(self) -> bytes:
+        data = self._read_element(
+            ObjectIdEnum.tariff_time_switch_element_b)
+        self.log.info('element B switch settings', value=data.switch_settings)
+        return data.switch_settings
 
     def tariffs_time_switches_element_b_write(self):
         self._tariffs_time_switches_write(
@@ -221,4 +224,8 @@ if __name__ == '__main__':
     # print(client.prepay_enabled())
 
     # print(client.tariffs_read())
-    print(client.tariffs_time_switches_read())
+    # print(client.tariffs_time_switches_read())
+    client.tariffs_time_switches_element_a_or_single_write()
+    client.tariffs_time_switches_element_b_write()
+    print(client.tariffs_time_switches_element_a_or_single_read())
+    print(client.tariffs_time_switches_element_b_read())
