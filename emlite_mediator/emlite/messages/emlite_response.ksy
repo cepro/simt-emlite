@@ -38,6 +38,9 @@ seq:
         "object_id_type::tariff_time_switch_element_a_or_single": tariff_time_switch_settings_rec
         "object_id_type::tariff_time_switch_element_b": tariff_time_switch_settings_rec
         "object_id_type::tariff_active_standing_charge": u4le_value_rec
+        "object_id_type::tariff_active_threshold_mask": tariff_threshold_mask_rec
+        "object_id_type::tariff_active_threshold_values": tariff_threshold_values_rec
+        "object_id_type::tariff_active_gas": u4le_value_rec
         "object_id_type::tariff_active_tou_rate": u1_value_rec
         "object_id_type::tariff_active_block_rate": u1_value_rec
         "object_id_type::tariff_active_price_index": u1_value_rec
@@ -45,7 +48,13 @@ seq:
         "object_id_type::tariff_active_prepayment_emergency_credit": u4le_value_rec
         "object_id_type::tariff_active_prepayment_ecredit_availability": u4le_value_rec
         "object_id_type::tariff_active_prepayment_debt_recovery_rate": u4le_value_rec
-
+        "object_id_type::tariff_active_element_b_tou_rate": u1_value_rec
+        "object_id_type::tariff_active_element_b_price_index": u1_value_rec
+        "object_id_type::tariff_active_element_b_price": u4le_value_rec
+        "object_id_type::tariff_active_element_b_tou_rate_1": u4le_value_rec
+        "object_id_type::tariff_active_element_b_tou_rate_2": u4le_value_rec
+        "object_id_type::tariff_active_element_b_tou_rate_3": u4le_value_rec
+        "object_id_type::tariff_active_element_b_tou_rate_4": u4le_value_rec
         "object_id_type::tariff_active_block_1_rate_1": u4le_value_rec
         "object_id_type::tariff_active_block_1_rate_2": u4le_value_rec
         "object_id_type::tariff_active_block_1_rate_3": u4le_value_rec
@@ -110,6 +119,19 @@ seq:
         "object_id_type::tariff_active_block_8_rate_6": u4le_value_rec
         "object_id_type::tariff_active_block_8_rate_7": u4le_value_rec
         "object_id_type::tariff_active_block_8_rate_8": u4le_value_rec
+        "object_id_type::tariff_future_tou_flag": u1_value_rec
+        "object_id_type::tariff_future_standing_charge": u4le_value_rec
+        "object_id_type::tariff_future_threshold_mask": tariff_threshold_mask_rec
+        "object_id_type::tariff_future_threshold_values": tariff_threshold_values_rec
+        "object_id_type::tariff_future_activation_date": u4le_value_rec
+        "object_id_type::tariff_future_gas": u4le_value_rec
+        "object_id_type::tariff_future_prepayment_emergency_credit": u4le_value_rec
+        "object_id_type::tariff_future_prepayment_ecredit_availability": u4le_value_rec
+        "object_id_type::tariff_future_prepayment_debt_recovery_rate": u4le_value_rec
+        "object_id_type::tariff_future_element_b_tou_rate_1": u4le_value_rec
+        "object_id_type::tariff_future_element_b_tou_rate_2": u4le_value_rec
+        "object_id_type::tariff_future_element_b_tou_rate_3": u4le_value_rec
+        "object_id_type::tariff_future_element_b_tou_rate_4": u4le_value_rec
         "object_id_type::tariff_future_block_1_rate_1": u4le_value_rec
         "object_id_type::tariff_future_block_1_rate_2": u4le_value_rec
         "object_id_type::tariff_future_block_1_rate_3": u4le_value_rec
@@ -243,14 +265,40 @@ types:
     seq:
       - id: voltage
         type: u2le
-  u4le_value_rec:
+  tariff_threshold_mask_rec:
     seq:
-      - id: value
-        type: u4le
-  u1_value_rec:
+      - id: rate1
+        type: b1
+      - id: rate2
+        type: b1
+      - id: rate3
+        type: b1
+      - id: rate4
+        type: b1
+      - id: rate5
+        type: b1
+      - id: rate6
+        type: b1
+      - id: rate7
+        type: b1
+      - id: rate8
+        type: b1
+  tariff_threshold_values_rec:
     seq:
-      - id: value
-        type: u1
+      - id: th1
+        type: u2le
+      - id: th2
+        type: u2le
+      - id: th3
+        type: u2le
+      - id: th4
+        type: u2le
+      - id: th5
+        type: u2le
+      - id: th6
+        type: u2le
+      - id: th7
+        type: u2le
   tariff_time_switch_settings_rec:
     seq:
       - id: switch_settings
@@ -260,6 +308,14 @@ types:
           large block for now as we only want the whole thing zero'd out.
           If in future we need time switches we could define the internals of
           these bytes here.
+  u4le_value_rec:
+    seq:
+      - id: value
+        type: u4le
+  u1_value_rec:
+    seq:
+      - id: value
+        type: u1
 
 enums:
   day_of_week_type:
