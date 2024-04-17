@@ -41,16 +41,16 @@ seq:
         "object_id_type::tariff_active_threshold_mask": tariff_threshold_mask_rec
         "object_id_type::tariff_active_threshold_values": tariff_threshold_values_rec
         "object_id_type::tariff_active_gas": u4le_value_rec
-        "object_id_type::tariff_active_tou_rate": u1_value_rec
-        "object_id_type::tariff_active_block_rate": u1_value_rec
-        "object_id_type::tariff_active_price_index": u1_value_rec
+        "object_id_type::tariff_active_tou_rate_current": u1_value_rec
+        "object_id_type::tariff_active_block_rate_current": u1_value_rec
+        "object_id_type::tariff_active_price_index_current": u1_value_rec
         "object_id_type::tariff_active_price": u4le_value_rec
         "object_id_type::tariff_active_prepayment_emergency_credit": u4le_value_rec
         "object_id_type::tariff_active_prepayment_ecredit_availability": u4le_value_rec
         "object_id_type::tariff_active_prepayment_debt_recovery_rate": u4le_value_rec
-        "object_id_type::tariff_active_element_b_tou_rate": u1_value_rec
-        "object_id_type::tariff_active_element_b_price_index": u1_value_rec
-        "object_id_type::tariff_active_element_b_price": u4le_value_rec
+        "object_id_type::tariff_active_element_b_tou_rate_current": u1_value_rec
+        "object_id_type::tariff_active_element_b_price_index_current": u1_value_rec
+        "object_id_type::tariff_active_element_b_price_current": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_1": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_2": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_3": u4le_value_rec
@@ -123,7 +123,7 @@ seq:
         "object_id_type::tariff_future_standing_charge": u4le_value_rec
         "object_id_type::tariff_future_threshold_mask": tariff_threshold_mask_rec
         "object_id_type::tariff_future_threshold_values": tariff_threshold_values_rec
-        "object_id_type::tariff_future_activation_date": u4le_value_rec
+        "object_id_type::tariff_future_activation_datetime": u4le_value_rec
         "object_id_type::tariff_future_gas": u4le_value_rec
         "object_id_type::tariff_future_prepayment_emergency_credit": u4le_value_rec
         "object_id_type::tariff_future_prepayment_ecredit_availability": u4le_value_rec
@@ -370,9 +370,9 @@ enums:
     16776992: tariff_active_threshold_mask # ffff20
     16776990: tariff_active_threshold_values # ffff1e
     16763236: tariff_active_gas # ffc964
-    16777003: tariff_active_tou_rate # ffff2b
-    16777004: tariff_active_block_rate # ffff2c
-    16777005: tariff_active_price_index # ffff2d
+    16777003: tariff_active_tou_rate_current # ffff2b
+    16777004: tariff_active_block_rate_current # ffff2c
+    16777005: tariff_active_price_index_current # ffff2d
     16777006: tariff_active_price # ffff2e
     16762885: tariff_active_prepayment_emergency_credit # ffc805
     16762886: tariff_active_prepayment_ecredit_availability # ffc806
@@ -452,7 +452,7 @@ enums:
     16776995: tariff_future_standing_charge # ffff23
     16776993: tariff_future_threshold_mask # ffff21
     16776991: tariff_future_threshold_values # ffff1f
-    16776996: tariff_future_activation_date # ffff24
+    16776996: tariff_future_activation_datetime # ffff24
     16763237: tariff_future_gas # ffc965
     16762888: tariff_future_prepayment_emergency_credit # ffc808
     16762889: tariff_future_prepayment_ecredit_availability # ffc809

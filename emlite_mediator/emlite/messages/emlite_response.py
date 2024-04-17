@@ -207,10 +207,10 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         tariff_future_threshold_mask = 16776993
         tariff_active_standing_charge = 16776994
         tariff_future_standing_charge = 16776995
-        tariff_future_activation_date = 16776996
-        tariff_active_tou_rate = 16777003
-        tariff_active_block_rate = 16777004
-        tariff_active_price_index = 16777005
+        tariff_future_activation_datetime = 16776996
+        tariff_active_tou_rate_current = 16777003
+        tariff_active_block_rate_current = 16777004
+        tariff_active_price_index_current = 16777005
         tariff_active_price = 16777006
         tariff_active_element_b_tou_rate = 16777035
         tariff_active_element_b_price_index = 16777036
@@ -294,7 +294,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self.response = EmliteResponse.U4leValueRec(
                 self._io, self, self._root)
             self.response._read()
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index_current:
             pass
             self.response = EmliteResponse.U1ValueRec(
                 self._io, self, self._root)
@@ -728,7 +728,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self.response = EmliteResponse.U4leValueRec(
                 self._io, self, self._root)
             self.response._read()
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate_current:
             pass
             self.response = EmliteResponse.U1ValueRec(
                 self._io, self, self._root)
@@ -843,7 +843,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self.response = EmliteResponse.U4leValueRec(
                 self._io, self, self._root)
             self.response._read()
-        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_date:
+        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_datetime:
             pass
             self.response = EmliteResponse.U4leValueRec(
                 self._io, self, self._root)
@@ -1068,7 +1068,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             self.response = EmliteResponse.TariffThresholdMaskRec(
                 self._io, self, self._root)
             self.response._read()
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate_current:
             pass
             self.response = EmliteResponse.U1ValueRec(
                 self._io, self, self._root)
@@ -1136,7 +1136,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_block_8_rate_4:
             pass
             self.response._fetch_instances()
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index_current:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.tariff_future_block_7_rate_3:
@@ -1397,7 +1397,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_block_2_rate_8:
             pass
             self.response._fetch_instances()
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate_current:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.tariff_active_gas:
@@ -1466,7 +1466,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_block_3_rate_6:
             pass
             self.response._fetch_instances()
-        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_date:
+        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_datetime:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.tariff_future_block_4_rate_4:
@@ -1601,7 +1601,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_threshold_mask:
             pass
             self.response._fetch_instances()
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate_current:
             pass
             self.response._fetch_instances()
         elif _on == EmliteResponse.ObjectIdType.tariff_future_block_5_rate_6:
@@ -1659,7 +1659,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_block_8_rate_4:
             pass
             self.response._write__seq(self._io)
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index_current:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.tariff_future_block_7_rate_3:
@@ -1920,7 +1920,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_block_2_rate_8:
             pass
             self.response._write__seq(self._io)
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate_current:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.tariff_active_gas:
@@ -1989,7 +1989,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_block_3_rate_6:
             pass
             self.response._write__seq(self._io)
-        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_date:
+        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_datetime:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.tariff_future_block_4_rate_4:
@@ -2124,7 +2124,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
         elif _on == EmliteResponse.ObjectIdType.tariff_active_threshold_mask:
             pass
             self.response._write__seq(self._io)
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate_current:
             pass
             self.response._write__seq(self._io)
         elif _on == EmliteResponse.ObjectIdType.tariff_future_block_5_rate_6:
@@ -2247,7 +2247,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(
                     u"response", self.response._parent, self)
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_price_index_current:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2943,7 +2943,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(
                     u"response", self.response._parent, self)
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_block_rate_current:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3127,7 +3127,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(
                     u"response", self.response._parent, self)
-        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_date:
+        elif _on == EmliteResponse.ObjectIdType.tariff_future_activation_datetime:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3487,7 +3487,7 @@ class EmliteResponse(ReadWriteKaitaiStruct):
             if self.response._parent != self:
                 raise kaitaistruct.ConsistencyError(
                     u"response", self.response._parent, self)
-        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate:
+        elif _on == EmliteResponse.ObjectIdType.tariff_active_tou_rate_current:
             pass
             if self.response._root != self._root:
                 raise kaitaistruct.ConsistencyError(
