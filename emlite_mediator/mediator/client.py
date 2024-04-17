@@ -372,8 +372,8 @@ if __name__ == "__main__":
     # print(client.prepay_send_token('53251447227692530360'))
     # print(client.prepay_enabled())
 
-    # print(client.tariffs_active_read())
-    print(client.tariffs_future_read())
+    print(client.tariffs_active_read())
+    # print(client.tariffs_future_read())
 
     # client.tariffs_time_switches_element_a_or_single_write()
     # client.tariffs_time_switches_element_b_write()
