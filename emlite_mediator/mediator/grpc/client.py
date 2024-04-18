@@ -1,8 +1,8 @@
 from kaitaistruct import BytesIO, KaitaiStream
 
 import grpc
+from emlite_mediator.emlite.messages.emlite_message import EmliteMessage
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
-from emlite_mediator.emlite.messages.emlite_response import EmliteResponse
 from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
@@ -75,7 +75,7 @@ class EmliteMediatorGrpcClient:
         payload_bytes = rsp_obj.response
         self.log.info("response received", response_payload=payload_bytes.hex())
 
-        emlite_rsp = EmliteResponse(
+        emlite_rsp = EmliteMessage(
             len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes))
         )
         emlite_rsp._read()

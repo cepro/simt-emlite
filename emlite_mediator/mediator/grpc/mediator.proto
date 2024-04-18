@@ -28,7 +28,7 @@ message ReadElementRequest {
   //
   // An enum of names to object ids can be imported from
   // emlite_object_id_enum.py and underlying kaitai enum is defined in
-  // emlite_response.ksy.
+  // emlite_message.ksy.
   // 
   // We don't use the enum on the server side and instead just pass through
   // the corresponding integer value so no upgrade would be required on the
@@ -47,7 +47,7 @@ message WriteElementRequest {
   //
   // An enum of names to object ids can be imported from
   // emlite_object_id_enum.py and underlying kaitai enum is defined in
-  // emlite_response.ksy.
+  // emlite_message.ksy.
   // 
   // We don't use the enum on the server side and instead just pass through
   // the corresponding integer value so no upgrade would be required on the

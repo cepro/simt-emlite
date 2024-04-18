@@ -1,26 +1,25 @@
 meta:
-  id: emlite_response
-  title: Emlite object protocol (EMOP) response data
+  id: emlite_message
+  title: Emlite object protocol (EMOP) message structure
   ks-version: 0.10
 
 doc: |
-  EMOP response data depends on the object being read. 
-  This spec defines a number of known response types.
-  Some are defined in the document "Meter and Smart Module
-  Obis Commands iss1.5.pdf". Some were obtained by reverse
-  engineering the protocol.
+  EMOP message data structure depends on the object being read. 
+  This spec defines the structure for a number of known EMOP messages.
+  Some are defined in the document "Meter and Smart Module Obis Commands
+  iss1.5.pdf". Most were obtained by reverse engineering the protocol.
 
 params:
-  - id: len_response
+  - id: len_message
     type: u1
-    doc: Length of the response bytes.
+    doc: Length of the message bytes.
   - id: object_id
     type: u4
     enum: object_id_type
-    doc: Object id of request that obtained the response bytes.
+    doc: Object id of message.
 
 seq:
-  - id: response
+  - id: message
     type:
       switch-on: object_id
       cases:
@@ -252,6 +251,7 @@ types:
       - id: balance
         type: s4le
   prepay_token_send_rec:
+    # TODO: change this to the token bytes and refactor that function to use this record
     doc: Intentionally blank - empty payload response
   three_phase_instantaneous_voltage_l1_rec:
     seq:
