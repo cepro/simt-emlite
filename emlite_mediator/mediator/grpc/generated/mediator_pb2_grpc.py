@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from .mediator_pb2 import ReadElementRequest, ReadElementReply, SendRawMessageRequest, SendRawMessageReply
+import mediator_pb2 as mediator__pb2
 
 
 class EmliteMediatorServiceStub(object):
@@ -16,13 +16,18 @@ class EmliteMediatorServiceStub(object):
         """
         self.sendRawMessage = channel.unary_unary(
                 '/emlite_mediator.mediator.grpc.EmliteMediatorService/sendRawMessage',
-                request_serializer=SendRawMessageRequest.SerializeToString,
-                response_deserializer=SendRawMessageReply.FromString,
+                request_serializer=mediator__pb2.SendRawMessageRequest.SerializeToString,
+                response_deserializer=mediator__pb2.SendRawMessageReply.FromString,
                 )
         self.readElement = channel.unary_unary(
                 '/emlite_mediator.mediator.grpc.EmliteMediatorService/readElement',
-                request_serializer=ReadElementRequest.SerializeToString,
-                response_deserializer=ReadElementReply.FromString,
+                request_serializer=mediator__pb2.ReadElementRequest.SerializeToString,
+                response_deserializer=mediator__pb2.ReadElementReply.FromString,
+                )
+        self.writeElement = channel.unary_unary(
+                '/emlite_mediator.mediator.grpc.EmliteMediatorService/writeElement',
+                request_serializer=mediator__pb2.WriteElementRequest.SerializeToString,
+                response_deserializer=mediator__pb2.WriteElementReply.FromString,
                 )
 
 
@@ -41,18 +46,29 @@ class EmliteMediatorServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def writeElement(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_EmliteMediatorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'sendRawMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.sendRawMessage,
-                    request_deserializer=SendRawMessageRequest.FromString,
-                    response_serializer=SendRawMessageReply.SerializeToString,
+                    request_deserializer=mediator__pb2.SendRawMessageRequest.FromString,
+                    response_serializer=mediator__pb2.SendRawMessageReply.SerializeToString,
             ),
             'readElement': grpc.unary_unary_rpc_method_handler(
                     servicer.readElement,
-                    request_deserializer=ReadElementRequest.FromString,
-                    response_serializer=ReadElementReply.SerializeToString,
+                    request_deserializer=mediator__pb2.ReadElementRequest.FromString,
+                    response_serializer=mediator__pb2.ReadElementReply.SerializeToString,
+            ),
+            'writeElement': grpc.unary_unary_rpc_method_handler(
+                    servicer.writeElement,
+                    request_deserializer=mediator__pb2.WriteElementRequest.FromString,
+                    response_serializer=mediator__pb2.WriteElementReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -76,8 +92,8 @@ class EmliteMediatorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/emlite_mediator.mediator.grpc.EmliteMediatorService/sendRawMessage',
-            SendRawMessageRequest.SerializeToString,
-            SendRawMessageReply.FromString,
+            mediator__pb2.SendRawMessageRequest.SerializeToString,
+            mediator__pb2.SendRawMessageReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -93,7 +109,24 @@ class EmliteMediatorService(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/emlite_mediator.mediator.grpc.EmliteMediatorService/readElement',
-            ReadElementRequest.SerializeToString,
-            ReadElementReply.FromString,
+            mediator__pb2.ReadElementRequest.SerializeToString,
+            mediator__pb2.ReadElementReply.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def writeElement(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/emlite_mediator.mediator.grpc.EmliteMediatorService/writeElement',
+            mediator__pb2.WriteElementRequest.SerializeToString,
+            mediator__pb2.WriteElementReply.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

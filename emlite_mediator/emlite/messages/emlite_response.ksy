@@ -50,7 +50,7 @@ seq:
         "object_id_type::tariff_active_prepayment_debt_recovery_rate": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_current": u1_value_rec
         "object_id_type::tariff_active_element_b_price_index_current": u1_value_rec
-        "object_id_type::tariff_active_element_b_price_current": u4le_value_rec
+        "object_id_type::tariff_active_element_b_price": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_1": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_2": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_3": u4le_value_rec
@@ -377,8 +377,8 @@ enums:
     16762885: tariff_active_prepayment_emergency_credit # ffc805
     16762886: tariff_active_prepayment_ecredit_availability # ffc806
     16762887: tariff_active_prepayment_debt_recovery_rate # ffc807
-    16777035: tariff_active_element_b_tou_rate # ffff4b
-    16777036: tariff_active_element_b_price_index # ffff4c
+    16777035: tariff_active_element_b_tou_rate_current # ffff4b
+    16777036: tariff_active_element_b_price_index_current # ffff4c
     16777037: tariff_active_element_b_price # ffff4d
     16774913: tariff_active_element_b_tou_rate_1 # fff701
     16774914: tariff_active_element_b_tou_rate_2 # fff702

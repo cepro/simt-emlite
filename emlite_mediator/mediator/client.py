@@ -1,18 +1,17 @@
+import datetime
 from decimal import Decimal
-from typing import TypedDict, List
-from kaitaistruct import KaitaiStream, BytesIO
-from emlite_mediator.emlite.messages.emlite_data import EmliteData
+from typing import List, TypedDict
+
+import fire
+import grpc
+
+from emlite_mediator.emlite.emlite_util import emop_timestamp_encode
+from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
 from emlite_mediator.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from emlite_mediator.util.logging import get_logger
-
-import datetime
-import grpc
-import os
-
-from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 
 from .grpc.client import EmliteMediatorGrpcClient
 
@@ -96,8 +95,8 @@ class TariffsFuture(TypedDict):
 """
 
 
-class EmliteMediatorClient:
-    def __init__(self, host="0.0.0.0", port=51498, meter_id=None):
+class EmliteMediatorClient(object):
+    def __init__(self, port, meter_id=None, host="0.0.0.0"):
         self.grpc_client = EmliteMediatorGrpcClient(host, port, meter_id)
         global logger
         self.log = logger.bind(meter_id=meter_id, mediator_port=port)
@@ -149,23 +148,7 @@ class EmliteMediatorClient:
 
     def prepay_send_token(self, token: str):
         token_bytes = token.encode("ascii")
-
-        # assemble the request payload manually
-        data_rec_length = 5 + len(token_bytes)
-        data_rec = EmliteData(data_rec_length)
-
-        data_rec.format = b"\x01"
-        data_rec.object_id = ObjectIdEnum.prepay_token_send.value.to_bytes(
-            3, byteorder="big"
-        )
-        data_rec.read_write = EmliteData.ReadWriteFlags.write
-        data_rec.payload = token_bytes
-
-        kt_stream = KaitaiStream(BytesIO(bytearray(data_rec_length)))
-        data_rec._write(kt_stream)
-        message_bytes = kt_stream.to_byte_array()
-
-        self._send_message(message_bytes)
+        self._write_element(ObjectIdEnum.prepay_token_send, token_bytes)
 
     def three_phase_instantaneous_voltage(self) -> tuple[float, float, float]:
         vl1 = self._read_element(ObjectIdEnum.three_phase_instantaneous_voltage_l1)
@@ -289,6 +272,22 @@ class EmliteMediatorClient:
             "pricings": pricings,
         }
 
+    def tariffs_future_write(self, from_ts: datetime, standing_charge: Decimal):
+        self._write_element(ObjectIdEnum.tariff_future_activation_datetime, from_ts)
+        self._write_element(ObjectIdEnum.tariff_future_standing_charge, standing_charge)
+
+    def tariffs_future_write_str_args(
+        self, from_ts_iso_str: str, standing_charge_str: str
+    ):
+        from_ts = datetime.datetime.fromisoformat(from_ts_iso_str)
+        from_ts_emop_bytes = emop_timestamp_encode(from_ts)
+        self._write_element(
+            ObjectIdEnum.tariff_future_activation_datetime, from_ts_emop_bytes
+        )
+
+        standing_charge = Decimal(standing_charge_str)
+        self._write_element(ObjectIdEnum.tariff_future_standing_charge, standing_charge)
+
     def tariffs_time_switches_element_a_or_single_read(self) -> bytes:
         data = self._read_element(ObjectIdEnum.tariff_time_switch_element_a_or_single)
         self.log.debug("element A switch settings", value=data.switch_settings)
@@ -308,21 +307,8 @@ class EmliteMediatorClient:
         self._tariffs_time_switches_write(ObjectIdEnum.tariff_time_switch_element_b)
 
     def _tariffs_time_switches_write(self, object_id: ObjectIdEnum):
-        # assemble the request payload manually
         payload = bytes(80)  # all switches off - all zeros
-        data_rec_length = 5 + len(payload)
-        data_rec = EmliteData(data_rec_length)
-
-        data_rec.format = b"\x01"
-        data_rec.object_id = object_id.value.to_bytes(3, byteorder="big")
-        data_rec.read_write = EmliteData.ReadWriteFlags.write
-        data_rec.payload = payload
-
-        kt_stream = KaitaiStream(BytesIO(bytearray(data_rec_length)))
-        data_rec._write(kt_stream)
-        message_bytes = kt_stream.to_byte_array()
-
-        self._send_message(message_bytes)
+        self._write_element(object_id, payload)
 
     def _tariffs_pricing_blocks_read(self, is_active: bool) -> PricingTable:
         # create a pricings table with all values initialised to Decimal zero
@@ -343,7 +329,7 @@ class EmliteMediatorClient:
 
         return pricings
 
-    def _read_element(self, object_id):
+    def _read_element(self, object_id: ObjectIdEnum):
         try:
             data = self.grpc_client.read_element(object_id)
         except EmliteConnectionFailure as e:
@@ -354,6 +340,16 @@ class EmliteMediatorClient:
             raise MediatorClientException(e.code().name, e.details())
         return data
 
+    def _write_element(self, object_id: ObjectIdEnum, payload: bytes):
+        try:
+            self.grpc_client.write_element(object_id, payload)
+        except EmliteConnectionFailure as e:
+            raise MediatorClientException("EMLITE_CONNECTION_FAILURE", e.message)
+        except EmliteEOFError as e:
+            raise MediatorClientException("EMLITE_EOF_ERROR", e.message)
+        except grpc.RpcError as e:
+            raise MediatorClientException(e.code().name, e.details())
+
     def _send_message(self, message: bytes):
         try:
             data = self.grpc_client.send_message(message)
@@ -363,19 +359,4 @@ class EmliteMediatorClient:
 
 
 if __name__ == "__main__":
-    mediator_port: str = os.environ.get("MEDIATOR_PORT")
-
-    client = EmliteMediatorClient(port=mediator_port)
-    # print(client.three_phase_instantaneous_voltage())
-    # print(client.csq())
-
-    # print(client.prepay_send_token('53251447227692530360'))
-    # print(client.prepay_enabled())
-
-    print(client.tariffs_active_read())
-    # print(client.tariffs_future_read())
-
-    # client.tariffs_time_switches_element_a_or_single_write()
-    # client.tariffs_time_switches_element_b_write()
-    # print(client.tariffs_time_switches_element_a_or_single_read())
-    # print(client.tariffs_time_switches_element_b_read())
+    fire.Fire(EmliteMediatorClient)

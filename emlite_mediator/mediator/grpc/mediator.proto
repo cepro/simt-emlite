@@ -5,6 +5,7 @@ package emlite_mediator.mediator.grpc;
 service EmliteMediatorService {
   rpc sendRawMessage (SendRawMessageRequest) returns (SendRawMessageReply) {}
   rpc readElement (ReadElementRequest) returns (ReadElementReply) {}
+  rpc writeElement (WriteElementRequest) returns (WriteElementReply) {}
 }
 
 message SendRawMessageRequest {
@@ -38,4 +39,25 @@ message ReadElementRequest {
 message ReadElementReply {
   // variable format response depending on which objectId was sent in the request
   bytes response = 1;
+}
+
+message WriteElementRequest {
+  // Request the data for a given 3 byte Object Id.
+  // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
+  //
+  // An enum of names to object ids can be imported from
+  // emlite_object_id_enum.py and underlying kaitai enum is defined in
+  // emlite_response.ksy.
+  // 
+  // We don't use the enum on the server side and instead just pass through
+  // the corresponding integer value so no upgrade would be required on the
+  // server side for new object ids.
+  int32 objectId = 1;
+
+  // Payload to write into the EMOP request - EmliteData.payload field
+  bytes payload = 2;
+}
+
+message WriteElementReply {
+  // no response data for writes
 }

@@ -27,3 +27,15 @@ class ReadElementReply(_message.Message):
     RESPONSE_FIELD_NUMBER: _ClassVar[int]
     response: bytes
     def __init__(self, response: _Optional[bytes] = ...) -> None: ...
+
+class WriteElementRequest(_message.Message):
+    __slots__ = ["objectId", "payload"]
+    OBJECTID_FIELD_NUMBER: _ClassVar[int]
+    PAYLOAD_FIELD_NUMBER: _ClassVar[int]
+    objectId: int
+    payload: bytes
+    def __init__(self, objectId: _Optional[int] = ..., payload: _Optional[bytes] = ...) -> None: ...
+
+class WriteElementReply(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...

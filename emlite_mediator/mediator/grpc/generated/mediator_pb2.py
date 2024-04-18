@@ -6,6 +6,7 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -13,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emediator.proto\x12\x1d\x65mlite_mediator.mediator.grpc\"*\n\x15SendRawMessageRequest\x12\x11\n\tdataField\x18\x01 \x01(\x0c\"\'\n\x13SendRawMessageReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"&\n\x12ReadElementRequest\x12\x10\n\x08objectId\x18\x01 \x01(\x05\"$\n\x10ReadElementReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\x32\x8a\x02\n\x15\x45mliteMediatorService\x12|\n\x0esendRawMessage\x12\x34.emlite_mediator.mediator.grpc.SendRawMessageRequest\x1a\x32.emlite_mediator.mediator.grpc.SendRawMessageReply\"\x00\x12s\n\x0breadElement\x12\x31.emlite_mediator.mediator.grpc.ReadElementRequest\x1a/.emlite_mediator.mediator.grpc.ReadElementReply\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emediator.proto\x12\x1d\x65mlite_mediator.mediator.grpc\"*\n\x15SendRawMessageRequest\x12\x11\n\tdataField\x18\x01 \x01(\x0c\"\'\n\x13SendRawMessageReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"&\n\x12ReadElementRequest\x12\x10\n\x08objectId\x18\x01 \x01(\x05\"$\n\x10ReadElementReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"8\n\x13WriteElementRequest\x12\x10\n\x08objectId\x18\x01 \x01(\x05\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\"\x13\n\x11WriteElementReply2\x82\x03\n\x15\x45mliteMediatorService\x12|\n\x0esendRawMessage\x12\x34.emlite_mediator.mediator.grpc.SendRawMessageRequest\x1a\x32.emlite_mediator.mediator.grpc.SendRawMessageReply\"\x00\x12s\n\x0breadElement\x12\x31.emlite_mediator.mediator.grpc.ReadElementRequest\x1a/.emlite_mediator.mediator.grpc.ReadElementReply\"\x00\x12v\n\x0cwriteElement\x12\x32.emlite_mediator.mediator.grpc.WriteElementRequest\x1a\x30.emlite_mediator.mediator.grpc.WriteElementReply\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -29,6 +30,10 @@ if _descriptor._USE_C_DESCRIPTORS is False:
   _globals['_READELEMENTREQUEST']._serialized_end=172
   _globals['_READELEMENTREPLY']._serialized_start=174
   _globals['_READELEMENTREPLY']._serialized_end=210
-  _globals['_EMLITEMEDIATORSERVICE']._serialized_start=213
-  _globals['_EMLITEMEDIATORSERVICE']._serialized_end=479
+  _globals['_WRITEELEMENTREQUEST']._serialized_start=212
+  _globals['_WRITEELEMENTREQUEST']._serialized_end=268
+  _globals['_WRITEELEMENTREPLY']._serialized_start=270
+  _globals['_WRITEELEMENTREPLY']._serialized_end=289
+  _globals['_EMLITEMEDIATORSERVICE']._serialized_start=292
+  _globals['_EMLITEMEDIATORSERVICE']._serialized_end=678
 # @@protoc_insertion_point(module_scope)

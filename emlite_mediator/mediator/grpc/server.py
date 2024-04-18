@@ -1,17 +1,20 @@
-from emlite_mediator.util.logging import get_logger
-
-import grpc
 import os
 import signal
 import sys
 import time
-
 from concurrent import futures
 from datetime import datetime, timedelta
 
+import grpc
 from emlite_mediator.emlite.emlite_api import EmliteAPI
+from emlite_mediator.emlite.emlite_util import emop_u3be_encode
+from emlite_mediator.util.logging import get_logger
 
-from .generated.mediator_pb2 import ReadElementReply, SendRawMessageReply
+from .generated.mediator_pb2 import (
+    ReadElementReply,
+    SendRawMessageReply,
+    WriteElementReply,
+)
 from .generated.mediator_pb2_grpc import (
     EmliteMediatorServiceServicer,
     add_EmliteMediatorServiceServicer_to_server,
@@ -78,11 +81,11 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return SendRawMessageReply()
 
     def readElement(self, request, context):
-        object_id_bytes = request.objectId.to_bytes(3, byteorder="big")
+        object_id_bytes = emop_u3be_encode(request.objectId)
         self.log.info("readElement request", object_id=object_id_bytes.hex())
         # self._space_out_requests()
         try:
-            rsp_payload = self.api.read_element_with_object_id_bytes(object_id_bytes)
+            rsp_payload = self.api.read_element(object_id_bytes)
             self.log.info(
                 "readElement response",
                 object_id=object_id_bytes.hex(),
@@ -92,6 +95,24 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         except Exception as e:
             self._handle_failure(e, "readElement", context)
             return ReadElementReply()
+
+    def writeElement(self, request, context):
+        object_id_bytes = emop_u3be_encode(request.objectId)
+        self.log.info(
+            "writeElement request",
+            object_id=object_id_bytes.hex(),
+            payload=request.payload,
+        )
+        try:
+            self.api.write_element(object_id_bytes, request.payload)
+            self.log.info(
+                "writeElement returned",
+                object_id=object_id_bytes.hex(),
+            )
+            return WriteElementReply()
+        except Exception as e:
+            self._handle_failure(e, "writeElement", context)
+            return WriteElementReply()
 
     def _handle_failure(self, exception, call_name, context):
         if exception.__class__.__name__.startswith("RetryError"):
