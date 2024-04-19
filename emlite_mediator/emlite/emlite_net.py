@@ -31,17 +31,20 @@ class EmliteNET:
             logger.info("sending", request_payload=req_bytes.hex())
             self._write_bytes(sock, req_bytes)
             rsp_bytes = self._read_bytes(sock, 128)
+            logger.info("closing socket ...")
             sock.close()
         except socket.timeout as e:
             logger.warn("Timeout in send_message", host=self.host)
+            logger.info("closing socket in timeout exception ...")
             sock.close()
             sock = None
             raise e
         except socket.error as e:
+            logger.info("closing socket in socket.error ...")
             sock.close()
             sock = None
             raise e
-        logger.info("received", response_payload=rsp_bytes.hex())
+        logger.info("received response", response_payload=rsp_bytes.hex())
         return rsp_bytes
 
     @retry(stop=stop_after_attempt(3))

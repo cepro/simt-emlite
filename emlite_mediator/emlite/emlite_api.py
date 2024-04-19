@@ -3,7 +3,7 @@ from datetime import datetime
 import crcmod.predefined
 from kaitaistruct import BytesIO, KaitaiStream
 
-from emlite_mediator.emlite.emlite_util import emop_u3be_encode
+from emlite_mediator.emlite.emlite_util import emop_encode_u3be
 from emlite_mediator.util.logging import get_logger
 
 from . import emlite_net
@@ -94,7 +94,7 @@ class EmliteAPI:
         req_frame.destination_address = b"\x00\x00\x00"
         req_frame.source_device_type = b"\x00"
         # TODO: generate a random address here (not fixed):
-        req_frame.source_address = emop_u3be_encode(2207298)
+        req_frame.source_address = emop_encode_u3be(2207298)
 
         req_frame.data = data_field
 

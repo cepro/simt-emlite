@@ -5,7 +5,12 @@ from typing import List, TypedDict
 import fire
 import grpc
 
-from emlite_mediator.emlite.emlite_util import emop_timestamp_encode
+from emlite_mediator.emlite.emlite_util import (
+    emop_encode_amount_as_u4le_rec,
+    emop_encode_timestamp_as_u4le_rec,
+    emop_epoch_seconds_to_datetime,
+    emop_scale_price_amount,
+)
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
@@ -27,10 +32,6 @@ class MediatorClientException(Exception):
 
 # 8 blocks x 8 rates for tariff pricings
 PricingTable = List[List[Decimal]]
-
-
-def emop_price_amount_to_decimal(amount: Decimal) -> Decimal:
-    return amount / Decimal(100000)
 
 
 class TariffsActive(TypedDict):
@@ -217,18 +218,18 @@ class EmliteMediatorClient(object):
         self.log.debug("pricings", pricings=pricings)
 
         return {
-            "standing_charge": emop_price_amount_to_decimal(standing_charge_rec.value),
-            "price_current": emop_price_amount_to_decimal(price_rec.value),
+            "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
+            "price_current": emop_scale_price_amount(price_rec.value),
             "price_index_current": price_index_rec.value,
             "tou_rate_current": tou_rate_rec.value,
             "block_rate_current": block_rate_rec.value,
-            "prepayment_debt_recovery_rate": emop_price_amount_to_decimal(
+            "prepayment_debt_recovery_rate": emop_scale_price_amount(
                 debt_recovery_rec.value
             ),
-            "prepayment_ecredit_availability": emop_price_amount_to_decimal(
+            "prepayment_ecredit_availability": emop_scale_price_amount(
                 ecredit_rec.value
             ),
-            "prepayment_emergency_credit": emop_price_amount_to_decimal(
+            "prepayment_emergency_credit": emop_scale_price_amount(
                 emergency_credit_rec.value
             ),
             "pricings": pricings,
@@ -236,9 +237,14 @@ class EmliteMediatorClient(object):
 
     def tariffs_future_read(self) -> TariffsFuture:
         standing_charge_rec = self._read_element(
-            ObjectIdEnum.tariff_active_standing_charge
+            ObjectIdEnum.tariff_future_standing_charge
         )
         self.log.debug("standing charge", value=standing_charge_rec.value)
+
+        activation_timestamp_rec = self._read_element(
+            ObjectIdEnum.tariff_future_activation_datetime
+        )
+        self.log.debug("activation timestamp", value=activation_timestamp_rec.value)
 
         emergency_credit_rec = self._read_element(
             ObjectIdEnum.tariff_future_prepayment_emergency_credit
@@ -259,34 +265,39 @@ class EmliteMediatorClient(object):
         self.log.debug("pricings", pricings=pricings)
 
         return {
-            "standing_charge": emop_price_amount_to_decimal(standing_charge_rec.value),
-            "prepayment_debt_recovery_rate": emop_price_amount_to_decimal(
+            "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
+            "activation_datetime": emop_epoch_seconds_to_datetime(
+                activation_timestamp_rec.value
+            ),
+            "prepayment_debt_recovery_rate": emop_scale_price_amount(
                 debt_recovery_rec.value
             ),
-            "prepayment_ecredit_availability": emop_price_amount_to_decimal(
+            "prepayment_ecredit_availability": emop_scale_price_amount(
                 ecredit_rec.value
             ),
-            "prepayment_emergency_credit": emop_price_amount_to_decimal(
+            "prepayment_emergency_credit": emop_scale_price_amount(
                 emergency_credit_rec.value
             ),
             "pricings": pricings,
         }
 
     def tariffs_future_write(self, from_ts: datetime, standing_charge: Decimal):
-        self._write_element(ObjectIdEnum.tariff_future_activation_datetime, from_ts)
-        self._write_element(ObjectIdEnum.tariff_future_standing_charge, standing_charge)
+        self._write_element(
+            ObjectIdEnum.tariff_future_activation_datetime,
+            emop_encode_timestamp_as_u4le_rec(from_ts),
+        )
+        self._write_element(
+            ObjectIdEnum.tariff_future_standing_charge,
+            emop_encode_amount_as_u4le_rec(standing_charge),
+        )
 
     def tariffs_future_write_str_args(
         self, from_ts_iso_str: str, standing_charge_str: str
     ):
-        from_ts = datetime.datetime.fromisoformat(from_ts_iso_str)
-        from_ts_emop_bytes = emop_timestamp_encode(from_ts)
-        self._write_element(
-            ObjectIdEnum.tariff_future_activation_datetime, from_ts_emop_bytes
+        self.tariffs_future_write(
+            datetime.datetime.fromisoformat(from_ts_iso_str),
+            standing_charge=Decimal(standing_charge_str),
         )
-
-        standing_charge = Decimal(standing_charge_str)
-        self._write_element(ObjectIdEnum.tariff_future_standing_charge, standing_charge)
 
     def tariffs_time_switches_element_a_or_single_read(self) -> bytes:
         data = self._read_element(ObjectIdEnum.tariff_time_switch_element_a_or_single)
@@ -323,9 +334,7 @@ class EmliteMediatorClient(object):
                 price_rec = self._read_element(ObjectIdEnum[object_id_str])
                 self.log.debug(price_rec.value)
 
-                pricings[block - 1][rate - 1] = emop_price_amount_to_decimal(
-                    price_rec.value
-                )
+                pricings[block - 1][rate - 1] = emop_scale_price_amount(price_rec.value)
 
         return pricings
 

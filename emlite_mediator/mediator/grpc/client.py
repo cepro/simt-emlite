@@ -79,7 +79,7 @@ class EmliteMediatorGrpcClient:
             len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes))
         )
         emlite_rsp._read()
-        return emlite_rsp.response
+        return emlite_rsp.message
 
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
         with grpc.insecure_channel(self.address) as channel:

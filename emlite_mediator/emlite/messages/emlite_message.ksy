@@ -251,8 +251,11 @@ types:
       - id: balance
         type: s4le
   prepay_token_send_rec:
-    # TODO: change this to the token bytes and refactor that function to use this record
-    doc: Intentionally blank - empty payload response
+    seq:
+      - id: token
+        type: str
+        size: 20
+        encoding: ASCII
   three_phase_instantaneous_voltage_l1_rec:
     seq:
       - id: voltage

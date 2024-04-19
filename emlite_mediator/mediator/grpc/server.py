@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 import grpc
 from emlite_mediator.emlite.emlite_api import EmliteAPI
-from emlite_mediator.emlite.emlite_util import emop_u3be_encode
+from emlite_mediator.emlite.emlite_util import emop_encode_u3be
 from emlite_mediator.util.logging import get_logger
 
 from .generated.mediator_pb2 import (
@@ -81,7 +81,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return SendRawMessageReply()
 
     def readElement(self, request, context):
-        object_id_bytes = emop_u3be_encode(request.objectId)
+        object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info("readElement request", object_id=object_id_bytes.hex())
         # self._space_out_requests()
         try:
@@ -97,7 +97,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return ReadElementReply()
 
     def writeElement(self, request, context):
-        object_id_bytes = emop_u3be_encode(request.objectId)
+        object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info(
             "writeElement request",
             object_id=object_id_bytes.hex(),
