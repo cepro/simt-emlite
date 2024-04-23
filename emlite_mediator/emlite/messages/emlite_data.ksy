@@ -19,7 +19,7 @@ seq:
     contents: [0x01]
   - id: object_id
     size: 3
-    # ideally would use enum from `emlite_response.object_id_type` here
+    # ideally would use enum from `emlite_message.object_id_type` here
     # but there is no u3 so how to make it work with u4?
     # enum: object_id_type
   - id: read_write
