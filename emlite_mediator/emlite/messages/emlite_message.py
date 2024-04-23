@@ -62,6 +62,8 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         tariff_future_prepayment_emergency_credit = 16762888
         tariff_future_prepayment_ecredit_availability = 16762889
         tariff_future_prepayment_debt_recovery_rate = 16762890
+        monetary_info_transaction_count = 16762942
+        monetary_info_transaction_details = 16762944
         tariff_active_gas = 16763236
         tariff_future_gas = 16763237
         tariff_future_element_b_tou_rate_1 = 16774657
@@ -80,62 +82,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         tariff_future_block_1_rate_6 = 16775174
         tariff_future_block_1_rate_7 = 16775175
         tariff_future_block_1_rate_8 = 16775176
-        tariff_future_block_2_rate_1 = 16775177
-        tariff_future_block_2_rate_2 = 16775178
-        tariff_future_block_2_rate_3 = 16775179
-        tariff_future_block_2_rate_4 = 16775180
-        tariff_future_block_2_rate_5 = 16775181
-        tariff_future_block_2_rate_6 = 16775182
-        tariff_future_block_2_rate_7 = 16775183
-        tariff_future_block_2_rate_8 = 16775184
-        tariff_future_block_3_rate_1 = 16775185
-        tariff_future_block_3_rate_2 = 16775186
-        tariff_future_block_3_rate_3 = 16775187
-        tariff_future_block_3_rate_4 = 16775188
-        tariff_future_block_3_rate_5 = 16775189
-        tariff_future_block_3_rate_6 = 16775190
-        tariff_future_block_3_rate_7 = 16775191
-        tariff_future_block_3_rate_8 = 16775192
-        tariff_future_block_4_rate_1 = 16775193
-        tariff_future_block_4_rate_2 = 16775194
-        tariff_future_block_4_rate_3 = 16775195
-        tariff_future_block_4_rate_4 = 16775196
-        tariff_future_block_4_rate_5 = 16775197
-        tariff_future_block_4_rate_6 = 16775198
-        tariff_future_block_4_rate_7 = 16775199
-        tariff_future_block_4_rate_8 = 16775200
-        tariff_future_block_5_rate_1 = 16775201
-        tariff_future_block_5_rate_2 = 16775202
-        tariff_future_block_5_rate_3 = 16775203
-        tariff_future_block_5_rate_4 = 16775204
-        tariff_future_block_5_rate_5 = 16775205
-        tariff_future_block_5_rate_6 = 16775206
-        tariff_future_block_5_rate_7 = 16775207
-        tariff_future_block_5_rate_8 = 16775208
-        tariff_future_block_6_rate_1 = 16775209
-        tariff_future_block_6_rate_2 = 16775210
-        tariff_future_block_6_rate_3 = 16775211
-        tariff_future_block_6_rate_4 = 16775212
-        tariff_future_block_6_rate_5 = 16775213
-        tariff_future_block_6_rate_6 = 16775214
-        tariff_future_block_6_rate_7 = 16775215
-        tariff_future_block_6_rate_8 = 16775216
-        tariff_future_block_7_rate_1 = 16775217
-        tariff_future_block_7_rate_2 = 16775218
-        tariff_future_block_7_rate_3 = 16775219
-        tariff_future_block_7_rate_4 = 16775220
-        tariff_future_block_7_rate_5 = 16775221
-        tariff_future_block_7_rate_6 = 16775222
-        tariff_future_block_7_rate_7 = 16775223
-        tariff_future_block_7_rate_8 = 16775224
-        tariff_future_block_8_rate_1 = 16775225
-        tariff_future_block_8_rate_2 = 16775226
-        tariff_future_block_8_rate_3 = 16775227
-        tariff_future_block_8_rate_4 = 16775228
-        tariff_future_block_8_rate_5 = 16775229
-        tariff_future_block_8_rate_6 = 16775230
-        tariff_future_block_8_rate_7 = 16775231
-        tariff_future_block_8_rate_8 = 16775232
         tariff_active_block_1_rate_1 = 16775425
         tariff_active_block_1_rate_2 = 16775426
         tariff_active_block_1_rate_3 = 16775427
@@ -144,62 +90,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         tariff_active_block_1_rate_6 = 16775430
         tariff_active_block_1_rate_7 = 16775431
         tariff_active_block_1_rate_8 = 16775432
-        tariff_active_block_2_rate_1 = 16775433
-        tariff_active_block_2_rate_2 = 16775434
-        tariff_active_block_2_rate_3 = 16775435
-        tariff_active_block_2_rate_4 = 16775436
-        tariff_active_block_2_rate_5 = 16775437
-        tariff_active_block_2_rate_6 = 16775438
-        tariff_active_block_2_rate_7 = 16775439
-        tariff_active_block_2_rate_8 = 16775440
-        tariff_active_block_3_rate_1 = 16775441
-        tariff_active_block_3_rate_2 = 16775442
-        tariff_active_block_3_rate_3 = 16775443
-        tariff_active_block_3_rate_4 = 16775444
-        tariff_active_block_3_rate_5 = 16775445
-        tariff_active_block_3_rate_6 = 16775446
-        tariff_active_block_3_rate_7 = 16775447
-        tariff_active_block_3_rate_8 = 16775448
-        tariff_active_block_4_rate_1 = 16775449
-        tariff_active_block_4_rate_2 = 16775450
-        tariff_active_block_4_rate_3 = 16775451
-        tariff_active_block_4_rate_4 = 16775452
-        tariff_active_block_4_rate_5 = 16775453
-        tariff_active_block_4_rate_6 = 16775454
-        tariff_active_block_4_rate_7 = 16775455
-        tariff_active_block_4_rate_8 = 16775456
-        tariff_active_block_5_rate_1 = 16775457
-        tariff_active_block_5_rate_2 = 16775458
-        tariff_active_block_5_rate_3 = 16775459
-        tariff_active_block_5_rate_4 = 16775460
-        tariff_active_block_5_rate_5 = 16775461
-        tariff_active_block_5_rate_6 = 16775462
-        tariff_active_block_5_rate_7 = 16775463
-        tariff_active_block_5_rate_8 = 16775464
-        tariff_active_block_6_rate_1 = 16775465
-        tariff_active_block_6_rate_2 = 16775466
-        tariff_active_block_6_rate_3 = 16775467
-        tariff_active_block_6_rate_4 = 16775468
-        tariff_active_block_6_rate_5 = 16775469
-        tariff_active_block_6_rate_6 = 16775470
-        tariff_active_block_6_rate_7 = 16775471
-        tariff_active_block_6_rate_8 = 16775472
-        tariff_active_block_7_rate_1 = 16775473
-        tariff_active_block_7_rate_2 = 16775474
-        tariff_active_block_7_rate_3 = 16775475
-        tariff_active_block_7_rate_4 = 16775476
-        tariff_active_block_7_rate_5 = 16775477
-        tariff_active_block_7_rate_6 = 16775478
-        tariff_active_block_7_rate_7 = 16775479
-        tariff_active_block_7_rate_8 = 16775480
-        tariff_active_block_8_rate_1 = 16775481
-        tariff_active_block_8_rate_2 = 16775482
-        tariff_active_block_8_rate_3 = 16775483
-        tariff_active_block_8_rate_4 = 16775484
-        tariff_active_block_8_rate_5 = 16775485
-        tariff_active_block_8_rate_6 = 16775486
-        tariff_active_block_8_rate_7 = 16775487
-        tariff_active_block_8_rate_8 = 16775488
         csq_net_op = 16776477
         prepay_enabled_flag = 16776973
         tariff_active_threshold_values = 16776990
@@ -230,35 +120,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
 
     def _read(self):
         _on = self.object_id
-        if _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_6:
+        if _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -268,39 +130,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_3:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -319,19 +149,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_2:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_8:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -341,14 +163,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif (
             _on
             == EmliteMessage.ObjectIdType.tariff_active_element_b_price_index_current
@@ -356,17 +170,9 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U1ValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_active_prepayment_emergency_credit
         ):
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_7:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -374,19 +180,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_2:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -396,10 +190,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.prepay_token_send:
             pass
             self.message = EmliteMessage.PrepayTokenSendRec(self._io, self, self._root)
@@ -408,35 +198,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.CsqNetOpRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_8:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_1:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -448,63 +214,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.HardwareRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_standing_charge:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_6:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -523,10 +237,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_future_prepayment_emergency_credit
         ):
@@ -541,49 +251,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_8:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_details:
             pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
+            self.message = EmliteMessage.MonetaryInfoTransactionDetailsRec(
+                self._io, self, self._root
+            )
             self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_time_switch_element_b:
             pass
@@ -597,39 +269,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_standing_charge:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_4:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -647,27 +287,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_gas:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_5:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -675,43 +295,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_2:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_3:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -723,51 +311,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.PrepayBalanceRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_price_index_current:
             pass
             self.message = EmliteMessage.U1ValueRec(self._io, self, self._root)
             self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_2:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_4:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -785,10 +333,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_3:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
@@ -799,18 +343,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_current:
             pass
             self.message = EmliteMessage.U1ValueRec(self._io, self, self._root)
@@ -823,23 +355,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_rate_current:
             pass
             self.message = EmliteMessage.U1ValueRec(self._io, self, self._root)
             self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_5:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_5:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -849,37 +369,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_4:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_6:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_2:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
         elif _on == EmliteMessage.ObjectIdType.prepay_enabled_flag:
             pass
             self.message = EmliteMessage.PrepayEnabledRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
         elif (
             _on
@@ -888,31 +384,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_1:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_price:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_3:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_6:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -920,22 +392,14 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_6:
+        elif _on == EmliteMessage.ObjectIdType.firmware_version:
             pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
+            self.message = EmliteMessage.FirmwareRec(self._io, self, self._root)
             self.message._read()
         elif (
             _on
             == EmliteMessage.ObjectIdType.tariff_future_prepayment_ecredit_availability
         ):
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_1:
             pass
             self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
             self.message._read()
@@ -945,17 +409,11 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 self._io, self, self._root
             )
             self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_6:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_count:
             pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_8:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
-            self.message._read()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_7:
-            pass
-            self.message = EmliteMessage.U4leValueRec(self._io, self, self._root)
+            self.message = EmliteMessage.MonetaryInfoTransactionCountRec(
+                self._io, self, self._root
+            )
             self.message._read()
         else:
             pass
@@ -965,58 +423,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
     def _fetch_instances(self):
         pass
         _on = self.object_id
-        if _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_6:
+        if _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_threshold_values:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_3:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_3:
             pass
             self.message._fetch_instances()
         elif (
@@ -1031,25 +444,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_8:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_6:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_2:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_1:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_8:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_1:
             pass
             self.message._fetch_instances()
         elif (
@@ -1058,36 +459,18 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         ):
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_2:
-            pass
-            self.message._fetch_instances()
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_active_prepayment_emergency_credit
         ):
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_7:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_activation_datetime:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_1:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_4:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_2:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_time_switch_element_a_or_single:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_2:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.prepay_token_send:
@@ -1096,28 +479,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.csq_net_op:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_1:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_8:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_1:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_7:
@@ -1126,49 +491,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.hardware_version:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_4:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_standing_charge:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_4:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_6:
             pass
             self.message._fetch_instances()
         elif (
@@ -1183,9 +509,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_1:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_3:
-            pass
-            self.message._fetch_instances()
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_future_prepayment_emergency_credit
         ):
@@ -1197,37 +520,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_5:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_1:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_details:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_time_switch_element_b:
@@ -1236,31 +529,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l1:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_2:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_standing_charge:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_4:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.serial:
@@ -1272,55 +541,16 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.instantaneous_voltage:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_8:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_gas:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_5:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_6:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_5:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_2:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_3:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_3:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_gas:
@@ -1329,40 +559,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.prepay_balance:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_5:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_2:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_price_index_current:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_4:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_4:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_3:
@@ -1374,22 +574,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_future_threshold_values:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_3:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_3:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l2:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_4:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_current:
@@ -1401,46 +589,19 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_7:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_8:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_rate_current:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_5:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_5:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_threshold_mask:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_6:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_4:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_2:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.prepay_enabled_flag:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_1:
             pass
             self.message._fetch_instances()
         elif (
@@ -1449,34 +610,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         ):
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_7:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_1:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_8:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_price:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_3:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_6:
             pass
             self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_price:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_8:
+        elif _on == EmliteMessage.ObjectIdType.firmware_version:
             pass
             self.message._fetch_instances()
         elif (
@@ -1485,19 +625,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         ):
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_1:
-            pass
-            self.message._fetch_instances()
         elif _on == EmliteMessage.ObjectIdType.tariff_active_threshold_mask:
             pass
             self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_6:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_8:
-            pass
-            self.message._fetch_instances()
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_7:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_count:
             pass
             self.message._fetch_instances()
         else:
@@ -1507,58 +638,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
     def _write__seq(self, io=None):
         super(EmliteMessage, self)._write__seq(io)
         _on = self.object_id
-        if _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_6:
+        if _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_threshold_values:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_3:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_3:
             pass
             self.message._write__seq(self._io)
         elif (
@@ -1573,25 +659,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_8:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_6:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_2:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_1:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_8:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_1:
             pass
             self.message._write__seq(self._io)
         elif (
@@ -1600,36 +674,18 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         ):
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_2:
-            pass
-            self.message._write__seq(self._io)
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_active_prepayment_emergency_credit
         ):
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_7:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_activation_datetime:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_1:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_4:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_2:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_time_switch_element_a_or_single:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_2:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.prepay_token_send:
@@ -1638,28 +694,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.csq_net_op:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_1:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_8:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_1:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_7:
@@ -1668,49 +706,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.hardware_version:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_4:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_standing_charge:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_4:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_6:
             pass
             self.message._write__seq(self._io)
         elif (
@@ -1725,9 +724,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_1:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_3:
-            pass
-            self.message._write__seq(self._io)
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_future_prepayment_emergency_credit
         ):
@@ -1739,37 +735,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_5:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_1:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_details:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_time_switch_element_b:
@@ -1778,31 +744,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l1:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_2:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_standing_charge:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_4:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.serial:
@@ -1814,55 +756,16 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.instantaneous_voltage:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_8:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_gas:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_5:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_6:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_5:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_2:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_3:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_3:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_gas:
@@ -1871,40 +774,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.prepay_balance:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_5:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_2:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_price_index_current:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_4:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_4:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_3:
@@ -1916,22 +789,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_future_threshold_values:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_3:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_3:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l2:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_4:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_current:
@@ -1943,46 +804,19 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_7:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_8:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_rate_current:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_5:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_5:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_threshold_mask:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_6:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_4:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_2:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.prepay_enabled_flag:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_1:
             pass
             self.message._write__seq(self._io)
         elif (
@@ -1991,34 +825,13 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         ):
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_7:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_1:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_8:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_price:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_3:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_6:
             pass
             self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_price:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_8:
+        elif _on == EmliteMessage.ObjectIdType.firmware_version:
             pass
             self.message._write__seq(self._io)
         elif (
@@ -2027,19 +840,10 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         ):
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_1:
-            pass
-            self.message._write__seq(self._io)
         elif _on == EmliteMessage.ObjectIdType.tariff_active_threshold_mask:
             pass
             self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_6:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_8:
-            pass
-            self.message._write__seq(self._io)
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_7:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_count:
             pass
             self.message._write__seq(self._io)
         else:
@@ -2049,77 +853,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
     def _check(self):
         pass
         _on = self.object_id
-        if _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_6:
+        if _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_3:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2139,87 +873,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_3:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2262,16 +916,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_2:
             pass
             if self.message._root != self._root:
@@ -2292,37 +936,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_1:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2345,29 +959,9 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_active_prepayment_emergency_credit
         ):
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_7:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2387,16 +981,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_4:
             pass
             if self.message._root != self._root:
@@ -2407,37 +991,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_time_switch_element_a_or_single:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_2:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2467,36 +1021,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_8:
             pass
             if self.message._root != self._root:
@@ -2508,36 +1032,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                     "message", self.message._parent, self
                 )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_1:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2567,16 +1061,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_standing_charge:
             pass
             if self.message._root != self._root:
@@ -2587,127 +1071,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_6:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2750,16 +1114,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif (
             _on == EmliteMessage.ObjectIdType.tariff_future_prepayment_emergency_credit
         ):
@@ -2792,107 +1146,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_1:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_details:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -2922,87 +1176,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_standing_charge:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_4:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3042,57 +1216,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_gas:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_5:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3112,36 +1236,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_tou_rate_2:
             pass
             if self.message._root != self._root:
@@ -3152,57 +1246,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_block_1_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_3:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3232,36 +1276,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_price_index_current:
             pass
             if self.message._root != self._root:
@@ -3273,76 +1287,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                     "message", self.message._parent, self
                 )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_1_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_3_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_4:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_4:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3382,16 +1326,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_element_b_tou_rate_3:
             pass
             if self.message._root != self._root:
@@ -3403,36 +1337,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                     "message", self.message._parent, self
                 )
         elif _on == EmliteMessage.ObjectIdType.three_phase_instantaneous_voltage_l2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_4:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3472,16 +1376,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_block_rate_current:
             pass
             if self.message._root != self._root:
@@ -3502,37 +1396,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_5:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_future_threshold_mask:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_6:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3552,57 +1416,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_5_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_3_rate_2:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.prepay_enabled_flag:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_2_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_7_rate_1:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3625,67 +1439,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_7:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_6_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_element_b_price:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_2_rate_3:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_8_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_4_rate_6:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3705,17 +1459,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_6_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_7_rate_8:
+        elif _on == EmliteMessage.ObjectIdType.firmware_version:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3738,16 +1482,6 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_1:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
         elif _on == EmliteMessage.ObjectIdType.tariff_active_threshold_mask:
             pass
             if self.message._root != self._root:
@@ -3758,27 +1492,7 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_5_rate_6:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_future_block_4_rate_8:
-            pass
-            if self.message._root != self._root:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._root, self._root
-                )
-            if self.message._parent != self:
-                raise kaitaistruct.ConsistencyError(
-                    "message", self.message._parent, self
-                )
-        elif _on == EmliteMessage.ObjectIdType.tariff_active_block_8_rate_7:
+        elif _on == EmliteMessage.ObjectIdType.monetary_info_transaction_count:
             pass
             if self.message._root != self._root:
                 raise kaitaistruct.ConsistencyError(
@@ -3798,6 +1512,25 @@ class EmliteMessage(ReadWriteKaitaiStruct):
                 raise kaitaistruct.ConsistencyError(
                     "message", self.message._parent, self
                 )
+
+    class MonetaryInfoTransactionCountRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.count = self._io.read_u2le()
+
+        def _fetch_instances(self):
+            pass
+
+        def _write__seq(self, io=None):
+            super(EmliteMessage.MonetaryInfoTransactionCountRec, self)._write__seq(io)
+            self._io.write_u2le(self.count)
+
+        def _check(self):
+            pass
 
     class ThreePhaseInstantaneousVoltageL1Rec(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
@@ -3863,24 +1596,27 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             pass
 
     class PrepayTokenSendRec(ReadWriteKaitaiStruct):
-        """Intentionally blank - empty payload response."""
-
         def __init__(self, _io=None, _parent=None, _root=None):
             self._io = _io
             self._parent = _parent
             self._root = _root
 
         def _read(self):
-            pass
+            self.token = (self._io.read_bytes(20)).decode("ASCII")
 
         def _fetch_instances(self):
             pass
 
         def _write__seq(self, io=None):
             super(EmliteMessage.PrepayTokenSendRec, self)._write__seq(io)
+            self._io.write_bytes((self.token).encode("ASCII"))
 
         def _check(self):
             pass
+            if len((self.token).encode("ASCII")) != 20:
+                raise kaitaistruct.ConsistencyError(
+                    "token", len((self.token).encode("ASCII")), 20
+                )
 
     class U1ValueRec(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
@@ -3900,6 +1636,33 @@ class EmliteMessage(ReadWriteKaitaiStruct):
 
         def _check(self):
             pass
+
+    class MonetaryInfoTransactionDetailsRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.undecoded_bytes = self._io.read_bytes(8)
+            self.payment_time = self._io.read_u4le()
+            self.payment_value = self._io.read_s4le()
+
+        def _fetch_instances(self):
+            pass
+
+        def _write__seq(self, io=None):
+            super(EmliteMessage.MonetaryInfoTransactionDetailsRec, self)._write__seq(io)
+            self._io.write_bytes(self.undecoded_bytes)
+            self._io.write_u4le(self.payment_time)
+            self._io.write_s4le(self.payment_value)
+
+        def _check(self):
+            pass
+            if len(self.undecoded_bytes) != 8:
+                raise kaitaistruct.ConsistencyError(
+                    "undecoded_bytes", len(self.undecoded_bytes), 8
+                )
 
     class CsqNetOpRec(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
@@ -3991,6 +1754,29 @@ class EmliteMessage(ReadWriteKaitaiStruct):
         def _write__seq(self, io=None):
             super(EmliteMessage.InstantaneousVoltageRec, self)._write__seq(io)
             self._io.write_u2le(self.voltage)
+
+        def _check(self):
+            pass
+
+    class FirmwareRec(ReadWriteKaitaiStruct):
+        def __init__(self, _io=None, _parent=None, _root=None):
+            self._io = _io
+            self._parent = _parent
+            self._root = _root
+
+        def _read(self):
+            self.version = (self._io.read_bytes_full()).decode("ASCII")
+
+        def _fetch_instances(self):
+            pass
+
+        def _write__seq(self, io=None):
+            super(EmliteMessage.FirmwareRec, self)._write__seq(io)
+            self._io.write_bytes((self.version).encode("ASCII"))
+            if not self._io.is_eof():
+                raise kaitaistruct.ConsistencyError(
+                    "version", self._io.size() - self._io.pos(), 0
+                )
 
         def _check(self):
             pass

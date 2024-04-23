@@ -91,18 +91,6 @@ class TestEmliteMessage(unittest.TestCase):
         )
         self.assertEqual(message.voltage, 2397)  # 239.7
 
-    def test_prepay_token_send(self):
-        # add credit token
-        #
-        # see screen shot "Pre-pay - Screen - Payment Code - Generate Add Code.jpg"
-        # message payload is empty:
-        message_hex = ""
-        message = self._deserialize(
-            EmliteMessage.ObjectIdType.prepay_token_send, message_hex
-        )
-        # nothing to check except that we got a message
-        self.assertIsNotNone(message)
-
     def _deserialize(self, object_id, message_hex):
         rsp_bytes = bytearray.fromhex(message_hex)
         data = EmliteMessage(

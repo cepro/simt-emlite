@@ -26,6 +26,7 @@ seq:
         "object_id_type::time": time_rec
         "object_id_type::serial": serial_rec
         "object_id_type::hardware_version": hardware_rec
+        "object_id_type::firmware_version": firmware_rec
         "object_id_type::csq_net_op": csq_net_op_rec
         "object_id_type::instantaneous_voltage": instantaneous_voltage_rec
         "object_id_type::prepay_enabled_flag": prepay_enabled_rec
@@ -34,6 +35,8 @@ seq:
         "object_id_type::three_phase_instantaneous_voltage_l1": three_phase_instantaneous_voltage_l1_rec
         "object_id_type::three_phase_instantaneous_voltage_l2": three_phase_instantaneous_voltage_l2_rec
         "object_id_type::three_phase_instantaneous_voltage_l3": three_phase_instantaneous_voltage_l3_rec
+        "object_id_type::monetary_info_transaction_count": monetary_info_transaction_count_rec
+        "object_id_type::monetary_info_transaction_details": monetary_info_transaction_details_rec
         "object_id_type::tariff_time_switch_element_a_or_single": tariff_time_switch_settings_rec
         "object_id_type::tariff_time_switch_element_b": tariff_time_switch_settings_rec
         "object_id_type::tariff_active_standing_charge": u4le_value_rec
@@ -62,62 +65,62 @@ seq:
         "object_id_type::tariff_active_block_1_rate_6": u4le_value_rec
         "object_id_type::tariff_active_block_1_rate_7": u4le_value_rec
         "object_id_type::tariff_active_block_1_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_2_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_3_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_4_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_5_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_6_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_7_rate_8": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_8_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_2_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_3_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_4_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_5_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_6_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_7_rate_8": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_8_rate_8": u4le_value_rec
         "object_id_type::tariff_future_tou_flag": u1_value_rec
         "object_id_type::tariff_future_standing_charge": u4le_value_rec
         "object_id_type::tariff_future_threshold_mask": tariff_threshold_mask_rec
@@ -139,62 +142,62 @@ seq:
         "object_id_type::tariff_future_block_1_rate_6": u4le_value_rec
         "object_id_type::tariff_future_block_1_rate_7": u4le_value_rec
         "object_id_type::tariff_future_block_1_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_2_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_3_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_4_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_5_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_6_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_7_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_8_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_2_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_3_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_4_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_5_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_6_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_7_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_8_rate_8": u4le_value_rec
 
         _: default_rec
 
@@ -212,6 +215,12 @@ types:
   hardware_rec:
     seq:
       - id: hardware
+        type: str
+        size-eos: true
+        encoding: ASCII
+  firmware_rec:
+    seq:
+      - id: version
         type: str
         size-eos: true
         encoding: ASCII
@@ -268,6 +277,21 @@ types:
     seq:
       - id: voltage
         type: u2le
+  monetary_info_transaction_count_rec:
+    seq:
+      - id: count
+        type: u2le
+  monetary_info_transaction_details_rec:
+    seq:
+      - id: undecoded_bytes
+        size: 8
+        doc: |
+          As yet undecoded - looks like various properties under
+          'transaction details' in the emlite software.
+      - id: payment_time
+        type: u4le
+      - id: payment_value
+        type: s4le
   tariff_threshold_mask_rec:
     seq:
       - id: rate1
@@ -366,6 +390,8 @@ enums:
     2098944: three_phase_instantaneous_voltage_l1 # 200700
     3409664: three_phase_instantaneous_voltage_l2 # 340700
     4720384: three_phase_instantaneous_voltage_l3 # 480700
+    16762942: monetary_info_transaction_count # ffc83e
+    16762944: monetary_info_transaction_details # ffc840
     851968: tariff_time_switch_element_a_or_single # 0d0000
     852223: tariff_time_switch_element_b # 0d00ff
     16777038: tariff_active_tou_flag # ffff4e
@@ -395,62 +421,62 @@ enums:
     16775430: tariff_active_block_1_rate_6 # fff906
     16775431: tariff_active_block_1_rate_7 # fff907
     16775432: tariff_active_block_1_rate_8 # fff908
-    16775433: tariff_active_block_2_rate_1 # fff909
-    16775434: tariff_active_block_2_rate_2 # fff90a
-    16775435: tariff_active_block_2_rate_3 # fff90b
-    16775436: tariff_active_block_2_rate_4 # fff90c
-    16775437: tariff_active_block_2_rate_5 # fff90d
-    16775438: tariff_active_block_2_rate_6 # fff90e
-    16775439: tariff_active_block_2_rate_7 # fff90f
-    16775440: tariff_active_block_2_rate_8 # fff910
-    16775441: tariff_active_block_3_rate_1 # fff911
-    16775442: tariff_active_block_3_rate_2 # fff912
-    16775443: tariff_active_block_3_rate_3 # fff913
-    16775444: tariff_active_block_3_rate_4 # fff914
-    16775445: tariff_active_block_3_rate_5 # fff915
-    16775446: tariff_active_block_3_rate_6 # fff916
-    16775447: tariff_active_block_3_rate_7 # fff917
-    16775448: tariff_active_block_3_rate_8 # fff918
-    16775449: tariff_active_block_4_rate_1 # fff919
-    16775450: tariff_active_block_4_rate_2 # fff91a
-    16775451: tariff_active_block_4_rate_3 # fff91b
-    16775452: tariff_active_block_4_rate_4 # fff91c
-    16775453: tariff_active_block_4_rate_5 # fff91d
-    16775454: tariff_active_block_4_rate_6 # fff91e
-    16775455: tariff_active_block_4_rate_7 # fff91f
-    16775456: tariff_active_block_4_rate_8 # fff920
-    16775457: tariff_active_block_5_rate_1 # fff921
-    16775458: tariff_active_block_5_rate_2 # fff922
-    16775459: tariff_active_block_5_rate_3 # fff923
-    16775460: tariff_active_block_5_rate_4 # fff924
-    16775461: tariff_active_block_5_rate_5 # fff925
-    16775462: tariff_active_block_5_rate_6 # fff926
-    16775463: tariff_active_block_5_rate_7 # fff927
-    16775464: tariff_active_block_5_rate_8 # fff928
-    16775465: tariff_active_block_6_rate_1 # fff929
-    16775466: tariff_active_block_6_rate_2 # fff92a
-    16775467: tariff_active_block_6_rate_3 # fff92b
-    16775468: tariff_active_block_6_rate_4 # fff92c
-    16775469: tariff_active_block_6_rate_5 # fff92d
-    16775470: tariff_active_block_6_rate_6 # fff92e
-    16775471: tariff_active_block_6_rate_7 # fff92f
-    16775472: tariff_active_block_6_rate_8 # fff930
-    16775473: tariff_active_block_7_rate_1 # fff931
-    16775474: tariff_active_block_7_rate_2 # fff932
-    16775475: tariff_active_block_7_rate_3 # fff933
-    16775476: tariff_active_block_7_rate_4 # fff934
-    16775477: tariff_active_block_7_rate_5 # fff935
-    16775478: tariff_active_block_7_rate_6 # fff936
-    16775479: tariff_active_block_7_rate_7 # fff937
-    16775480: tariff_active_block_7_rate_8 # fff938
-    16775481: tariff_active_block_8_rate_1 # fff939
-    16775482: tariff_active_block_8_rate_2 # fff93a
-    16775483: tariff_active_block_8_rate_3 # fff93b
-    16775484: tariff_active_block_8_rate_4 # fff93c
-    16775485: tariff_active_block_8_rate_5 # fff93d
-    16775486: tariff_active_block_8_rate_6 # fff93e
-    16775487: tariff_active_block_8_rate_7 # fff93f
-    16775488: tariff_active_block_8_rate_8 # fff940
+    # 16775433: tariff_active_block_2_rate_1 # fff909
+    # 16775434: tariff_active_block_2_rate_2 # fff90a
+    # 16775435: tariff_active_block_2_rate_3 # fff90b
+    # 16775436: tariff_active_block_2_rate_4 # fff90c
+    # 16775437: tariff_active_block_2_rate_5 # fff90d
+    # 16775438: tariff_active_block_2_rate_6 # fff90e
+    # 16775439: tariff_active_block_2_rate_7 # fff90f
+    # 16775440: tariff_active_block_2_rate_8 # fff910
+    # 16775441: tariff_active_block_3_rate_1 # fff911
+    # 16775442: tariff_active_block_3_rate_2 # fff912
+    # 16775443: tariff_active_block_3_rate_3 # fff913
+    # 16775444: tariff_active_block_3_rate_4 # fff914
+    # 16775445: tariff_active_block_3_rate_5 # fff915
+    # 16775446: tariff_active_block_3_rate_6 # fff916
+    # 16775447: tariff_active_block_3_rate_7 # fff917
+    # 16775448: tariff_active_block_3_rate_8 # fff918
+    # 16775449: tariff_active_block_4_rate_1 # fff919
+    # 16775450: tariff_active_block_4_rate_2 # fff91a
+    # 16775451: tariff_active_block_4_rate_3 # fff91b
+    # 16775452: tariff_active_block_4_rate_4 # fff91c
+    # 16775453: tariff_active_block_4_rate_5 # fff91d
+    # 16775454: tariff_active_block_4_rate_6 # fff91e
+    # 16775455: tariff_active_block_4_rate_7 # fff91f
+    # 16775456: tariff_active_block_4_rate_8 # fff920
+    # 16775457: tariff_active_block_5_rate_1 # fff921
+    # 16775458: tariff_active_block_5_rate_2 # fff922
+    # 16775459: tariff_active_block_5_rate_3 # fff923
+    # 16775460: tariff_active_block_5_rate_4 # fff924
+    # 16775461: tariff_active_block_5_rate_5 # fff925
+    # 16775462: tariff_active_block_5_rate_6 # fff926
+    # 16775463: tariff_active_block_5_rate_7 # fff927
+    # 16775464: tariff_active_block_5_rate_8 # fff928
+    # 16775465: tariff_active_block_6_rate_1 # fff929
+    # 16775466: tariff_active_block_6_rate_2 # fff92a
+    # 16775467: tariff_active_block_6_rate_3 # fff92b
+    # 16775468: tariff_active_block_6_rate_4 # fff92c
+    # 16775469: tariff_active_block_6_rate_5 # fff92d
+    # 16775470: tariff_active_block_6_rate_6 # fff92e
+    # 16775471: tariff_active_block_6_rate_7 # fff92f
+    # 16775472: tariff_active_block_6_rate_8 # fff930
+    # 16775473: tariff_active_block_7_rate_1 # fff931
+    # 16775474: tariff_active_block_7_rate_2 # fff932
+    # 16775475: tariff_active_block_7_rate_3 # fff933
+    # 16775476: tariff_active_block_7_rate_4 # fff934
+    # 16775477: tariff_active_block_7_rate_5 # fff935
+    # 16775478: tariff_active_block_7_rate_6 # fff936
+    # 16775479: tariff_active_block_7_rate_7 # fff937
+    # 16775480: tariff_active_block_7_rate_8 # fff938
+    # 16775481: tariff_active_block_8_rate_1 # fff939
+    # 16775482: tariff_active_block_8_rate_2 # fff93a
+    # 16775483: tariff_active_block_8_rate_3 # fff93b
+    # 16775484: tariff_active_block_8_rate_4 # fff93c
+    # 16775485: tariff_active_block_8_rate_5 # fff93d
+    # 16775486: tariff_active_block_8_rate_6 # fff93e
+    # 16775487: tariff_active_block_8_rate_7 # fff93f
+    # 16775488: tariff_active_block_8_rate_8 # fff940
     16777039: tariff_future_tou_flag # ffff4f
     16776995: tariff_future_standing_charge # ffff23
     16776993: tariff_future_threshold_mask # ffff21
@@ -472,60 +498,59 @@ enums:
     16775174: tariff_future_block_1_rate_6 # fff806
     16775175: tariff_future_block_1_rate_7 # fff807
     16775176: tariff_future_block_1_rate_8 # fff808
-    16775177: tariff_future_block_2_rate_1 # fff809
-    16775178: tariff_future_block_2_rate_2 # fff80a
-    16775179: tariff_future_block_2_rate_3 # fff80b
-    16775180: tariff_future_block_2_rate_4 # fff80c
-    16775181: tariff_future_block_2_rate_5 # fff80d
-    16775182: tariff_future_block_2_rate_6 # fff80e
-    16775183: tariff_future_block_2_rate_7 # fff80f
-    16775184: tariff_future_block_2_rate_8 # fff810
-    16775185: tariff_future_block_3_rate_1 # fff811
-    16775186: tariff_future_block_3_rate_2 # fff812
-    16775187: tariff_future_block_3_rate_3 # fff813
-    16775188: tariff_future_block_3_rate_4 # fff814
-    16775189: tariff_future_block_3_rate_5 # fff815
-    16775190: tariff_future_block_3_rate_6 # fff816
-    16775191: tariff_future_block_3_rate_7 # fff817
-    16775192: tariff_future_block_3_rate_8 # fff818
-    16775193: tariff_future_block_4_rate_1 # fff819
-    16775194: tariff_future_block_4_rate_2 # fff81a
-    16775195: tariff_future_block_4_rate_3 # fff81b
-    16775196: tariff_future_block_4_rate_4 # fff81c
-    16775197: tariff_future_block_4_rate_5 # fff81d
-    16775198: tariff_future_block_4_rate_6 # fff81e
-    16775199: tariff_future_block_4_rate_7 # fff81f
-    16775200: tariff_future_block_4_rate_8 # fff820
-    16775201: tariff_future_block_5_rate_1 # fff821
-    16775202: tariff_future_block_5_rate_2 # fff822
-    16775203: tariff_future_block_5_rate_3 # fff823
-    16775204: tariff_future_block_5_rate_4 # fff824
-    16775205: tariff_future_block_5_rate_5 # fff825
-    16775206: tariff_future_block_5_rate_6 # fff826
-    16775207: tariff_future_block_5_rate_7 # fff827
-    16775208: tariff_future_block_5_rate_8 # fff828
-    16775209: tariff_future_block_6_rate_1 # fff829
-    16775210: tariff_future_block_6_rate_2 # fff82a
-    16775211: tariff_future_block_6_rate_3 # fff82b
-    16775212: tariff_future_block_6_rate_4 # fff82c
-    16775213: tariff_future_block_6_rate_5 # fff82d
-    16775214: tariff_future_block_6_rate_6 # fff82e
-    16775215: tariff_future_block_6_rate_7 # fff82f
-    16775216: tariff_future_block_6_rate_8 # fff830
-    16775217: tariff_future_block_7_rate_1 # fff831
-    16775218: tariff_future_block_7_rate_2 # fff832
-    16775219: tariff_future_block_7_rate_3 # fff833
-    16775220: tariff_future_block_7_rate_4 # fff834
-    16775221: tariff_future_block_7_rate_5 # fff835
-    16775222: tariff_future_block_7_rate_6 # fff836
-    16775223: tariff_future_block_7_rate_7 # fff837
-    16775224: tariff_future_block_7_rate_8 # fff838
-    16775225: tariff_future_block_8_rate_1 # fff839
-    16775226: tariff_future_block_8_rate_2 # fff83a
-    16775227: tariff_future_block_8_rate_3 # fff83b
-    16775228: tariff_future_block_8_rate_4 # fff83c
-    16775229: tariff_future_block_8_rate_5 # fff83d
-    16775230: tariff_future_block_8_rate_6 # fff83e
-    16775231: tariff_future_block_8_rate_7 # fff83f
-    16775232: tariff_future_block_8_rate_8 # fff840
-
+    # 16775177: tariff_future_block_2_rate_1 # fff809
+    # 16775178: tariff_future_block_2_rate_2 # fff80a
+    # 16775179: tariff_future_block_2_rate_3 # fff80b
+    # 16775180: tariff_future_block_2_rate_4 # fff80c
+    # 16775181: tariff_future_block_2_rate_5 # fff80d
+    # 16775182: tariff_future_block_2_rate_6 # fff80e
+    # 16775183: tariff_future_block_2_rate_7 # fff80f
+    # 16775184: tariff_future_block_2_rate_8 # fff810
+    # 16775185: tariff_future_block_3_rate_1 # fff811
+    # 16775186: tariff_future_block_3_rate_2 # fff812
+    # 16775187: tariff_future_block_3_rate_3 # fff813
+    # 16775188: tariff_future_block_3_rate_4 # fff814
+    # 16775189: tariff_future_block_3_rate_5 # fff815
+    # 16775190: tariff_future_block_3_rate_6 # fff816
+    # 16775191: tariff_future_block_3_rate_7 # fff817
+    # 16775192: tariff_future_block_3_rate_8 # fff818
+    # 16775193: tariff_future_block_4_rate_1 # fff819
+    # 16775194: tariff_future_block_4_rate_2 # fff81a
+    # 16775195: tariff_future_block_4_rate_3 # fff81b
+    # 16775196: tariff_future_block_4_rate_4 # fff81c
+    # 16775197: tariff_future_block_4_rate_5 # fff81d
+    # 16775198: tariff_future_block_4_rate_6 # fff81e
+    # 16775199: tariff_future_block_4_rate_7 # fff81f
+    # 16775200: tariff_future_block_4_rate_8 # fff820
+    # 16775201: tariff_future_block_5_rate_1 # fff821
+    # 16775202: tariff_future_block_5_rate_2 # fff822
+    # 16775203: tariff_future_block_5_rate_3 # fff823
+    # 16775204: tariff_future_block_5_rate_4 # fff824
+    # 16775205: tariff_future_block_5_rate_5 # fff825
+    # 16775206: tariff_future_block_5_rate_6 # fff826
+    # 16775207: tariff_future_block_5_rate_7 # fff827
+    # 16775208: tariff_future_block_5_rate_8 # fff828
+    # 16775209: tariff_future_block_6_rate_1 # fff829
+    # 16775210: tariff_future_block_6_rate_2 # fff82a
+    # 16775211: tariff_future_block_6_rate_3 # fff82b
+    # 16775212: tariff_future_block_6_rate_4 # fff82c
+    # 16775213: tariff_future_block_6_rate_5 # fff82d
+    # 16775214: tariff_future_block_6_rate_6 # fff82e
+    # 16775215: tariff_future_block_6_rate_7 # fff82f
+    # 16775216: tariff_future_block_6_rate_8 # fff830
+    # 16775217: tariff_future_block_7_rate_1 # fff831
+    # 16775218: tariff_future_block_7_rate_2 # fff832
+    # 16775219: tariff_future_block_7_rate_3 # fff833
+    # 16775220: tariff_future_block_7_rate_4 # fff834
+    # 16775221: tariff_future_block_7_rate_5 # fff835
+    # 16775222: tariff_future_block_7_rate_6 # fff836
+    # 16775223: tariff_future_block_7_rate_7 # fff837
+    # 16775224: tariff_future_block_7_rate_8 # fff838
+    # 16775225: tariff_future_block_8_rate_1 # fff839
+    # 16775226: tariff_future_block_8_rate_2 # fff83a
+    # 16775227: tariff_future_block_8_rate_3 # fff83b
+    # 16775228: tariff_future_block_8_rate_4 # fff83c
+    # 16775229: tariff_future_block_8_rate_5 # fff83d
+    # 16775230: tariff_future_block_8_rate_6 # fff83e
+    # 16775231: tariff_future_block_8_rate_7 # fff83f
+    # 16775232: tariff_future_block_8_rate_8 # fff840

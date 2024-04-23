@@ -8,6 +8,7 @@ from emlite_mediator.emlite.emlite_util import (
     emop_encode_object_id,
     emop_encode_timestamp_as_u4le_rec,
     emop_epoch_seconds_to_datetime,
+    emop_format_firmware_version,
     emop_scale_price_amount,
 )
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
@@ -54,3 +55,7 @@ class TestEmliteUtil(unittest.TestCase):
             emop_encode_amount_as_u4le_rec(Decimal("0.07650")).hex(),
             "e21d0000",
         )
+
+    def test_emop_format_firmware_version(self):
+        self.assertEqual(emop_format_firmware_version("3032"), "3_03_2")
+        self.assertEqual(emop_format_firmware_version("3028"), "3_02_8")

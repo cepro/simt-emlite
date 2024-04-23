@@ -1,4 +1,5 @@
 import datetime
+import sys
 from decimal import Decimal
 from typing import List, TypedDict
 
@@ -9,6 +10,7 @@ from emlite_mediator.emlite.emlite_util import (
     emop_encode_amount_as_u4le_rec,
     emop_encode_timestamp_as_u4le_rec,
     emop_epoch_seconds_to_datetime,
+    emop_format_firmware_version,
     emop_scale_price_amount,
 )
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
@@ -116,6 +118,12 @@ class EmliteMediatorClient(object):
         self.log.info("received hardware", hardware=hardware)
         return hardware
 
+    def firmware(self) -> str:
+        data = self._read_element(ObjectIdEnum.firmware_version)
+        version = emop_format_firmware_version(data.version)
+        self.log.info("received firmware version", firmware_version=version)
+        return version
+
     def clock_time(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)
         date_obj = datetime.datetime(
@@ -150,6 +158,13 @@ class EmliteMediatorClient(object):
     def prepay_send_token(self, token: str):
         token_bytes = token.encode("ascii")
         self._write_element(ObjectIdEnum.prepay_token_send, token_bytes)
+
+    def prepay_transaction_count(self) -> int:
+        data = self._read_element(ObjectIdEnum.monetary_info_transaction_count)
+        self.log.debug(
+            "received prepay transaction count", transaction_count=data.count
+        )
+        return data.count
 
     def three_phase_instantaneous_voltage(self) -> tuple[float, float, float]:
         vl1 = self._read_element(ObjectIdEnum.three_phase_instantaneous_voltage_l1)
@@ -281,22 +296,105 @@ class EmliteMediatorClient(object):
             "pricings": pricings,
         }
 
-    def tariffs_future_write(self, from_ts: datetime, standing_charge: Decimal):
+    def tariffs_future_write(
+        self, from_ts: datetime, standing_charge: Decimal, unit_rate: Decimal
+    ):
+        unit_rate_encoded = emop_encode_amount_as_u4le_rec(unit_rate)
+
+        # block threshold mask and values - set all to zeros to switch off
+        self.log.debug("zero out threshold mask")
         self._write_element(
-            ObjectIdEnum.tariff_future_activation_datetime,
-            emop_encode_timestamp_as_u4le_rec(from_ts),
+            ObjectIdEnum.tariff_future_threshold_mask,
+            bytes(1),
         )
+
+        self.log.debug("zero out all threshold values")
+        self._write_element(ObjectIdEnum.tariff_future_threshold_values, bytes(14))
+
+        # TOU and rates
+        # - turn flag off
+        # - set each B element rate to the single fixed rate
+        # - TODO: check behavior - will it charge at TOU Rate 1 always?
+        self.log.debug("switch off tou flag")
+        self._write_element(ObjectIdEnum.tariff_future_tou_flag, bytes(1))
+
+        self.log.debug(f"set element b tou rates to {unit_rate}")
+        self._write_element(
+            ObjectIdEnum.tariff_future_element_b_tou_rate_1, unit_rate_encoded
+        )
+        self._write_element(
+            ObjectIdEnum.tariff_future_element_b_tou_rate_2, unit_rate_encoded
+        )
+        self._write_element(
+            ObjectIdEnum.tariff_future_element_b_tou_rate_3, unit_rate_encoded
+        )
+        self._write_element(
+            ObjectIdEnum.tariff_future_element_b_tou_rate_4, unit_rate_encoded
+        )
+
+        # prepayment amounts
+        # TODO: decide what these should be - setting dummy values for now
+        self.log.debug("set prepayment amounts")
+        self._write_element(
+            ObjectIdEnum.tariff_future_prepayment_emergency_credit,
+            emop_encode_amount_as_u4le_rec(Decimal("8.88")),
+        )
+        self._write_element(
+            ObjectIdEnum.tariff_future_prepayment_ecredit_availability,
+            emop_encode_amount_as_u4le_rec(Decimal("7.77")),
+        )
+        self._write_element(
+            ObjectIdEnum.tariff_future_prepayment_debt_recovery_rate,
+            emop_encode_amount_as_u4le_rec(Decimal("6.66")),
+        )
+
+        # gas tariff - set to zero as it doesn't apply
+        self.log.debug("set gas rate to zero")
+        self._write_element(ObjectIdEnum.tariff_future_gas, bytes(4))
+
+        # block 1 / rate 1 - set to the single rate
+        self.log.debug(f"set block 1 rate 1 to {unit_rate}")
+        self._write_element(
+            ObjectIdEnum.tariff_future_block_1_rate_1, unit_rate_encoded
+        )
+
+        # set all the other block / units to zero
+        #
+        # TODO: likely this is unncessary as only block 1 / rate 1 is required
+        # however that hasn't been confirmed for sure yet. so for now let's
+        # make the table a clean slate of zero values
+        zero_rate_bytes = bytes(4)
+        for block in range(1, 9):
+            for rate in range(1, 9):
+                if block == 1 and rate == 1:
+                    continue
+                object_id_str = f"tariff_future_block_{block}_rate_{rate}"
+                self._write_element(ObjectIdEnum[object_id_str], zero_rate_bytes)
+                self.log.debug(f"{object_id_str} set to zero")
+
+        # standing charge (daily charge)
+        self.log.debug(f"set standing charge to {standing_charge}")
         self._write_element(
             ObjectIdEnum.tariff_future_standing_charge,
             emop_encode_amount_as_u4le_rec(standing_charge),
         )
 
+        # datetime to activate these tariffs
+        self.log.debug(f"set activation date to {from_ts}")
+        self._write_element(
+            ObjectIdEnum.tariff_future_activation_datetime,
+            emop_encode_timestamp_as_u4le_rec(from_ts),
+        )
+
     def tariffs_future_write_str_args(
-        self, from_ts_iso_str: str, standing_charge_str: str
+        self, from_ts_iso_str: str, standing_charge_str: str, unit_rate_str: str
     ):
+        self._check_amount_arg_is_string(standing_charge_str)
+        self._check_amount_arg_is_string(unit_rate_str)
         self.tariffs_future_write(
             datetime.datetime.fromisoformat(from_ts_iso_str),
             standing_charge=Decimal(standing_charge_str),
+            unit_rate=Decimal(unit_rate_str),
         )
 
     def tariffs_time_switches_element_a_or_single_read(self) -> bytes:
@@ -328,12 +426,8 @@ class EmliteMediatorClient(object):
         for block in range(1, 9):
             for rate in range(1, 9):
                 object_id_str = f"tariff_{'active' if is_active else 'future'}_block_{block}_rate_{rate}"
-
-                print(object_id_str)
-
                 price_rec = self._read_element(ObjectIdEnum[object_id_str])
-                self.log.debug(price_rec.value)
-
+                self.log.debug(f"{object_id_str}={price_rec.value}")
                 pricings[block - 1][rate - 1] = emop_scale_price_amount(price_rec.value)
 
         return pricings
@@ -365,6 +459,16 @@ class EmliteMediatorClient(object):
         except grpc.RpcError as e:
             raise MediatorClientException(e.code().name, e.details())
         return data
+
+    def _check_amount_arg_is_string(self, arg_value):
+        if isinstance(arg_value, str):
+            return
+        print(
+            "\nERROR: amount argument passed as floating point number. pass "
+            + "as string to avoid floating point rounding errors "
+            + "[eg. \"'0.234'\" or '\"0.234\"']"
+        )
+        sys.exit(10)
 
 
 if __name__ == "__main__":

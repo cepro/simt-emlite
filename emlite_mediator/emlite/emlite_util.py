@@ -51,3 +51,15 @@ def emop_encode_u4le_rec(value: int) -> bytes:
     rec._write(_io)
 
     return _io.to_byte_array()
+
+
+"""
+Convert firmware version as returned by the meter to the format used in the
+document Emlite-Firmware-History.txt.
+
+For example '3032' becomes '3_03_2'.
+"""
+
+
+def emop_format_firmware_version(v_raw: str) -> str:
+    return f"{v_raw[0]}_{v_raw[1]+v_raw[2]}_{v_raw[3]}"
