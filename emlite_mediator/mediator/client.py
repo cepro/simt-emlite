@@ -118,11 +118,17 @@ class EmliteMediatorClient(object):
         self.log.info("received hardware", hardware=hardware)
         return hardware
 
-    def firmware(self) -> str:
+    def firmware_version(self) -> str:
         data = self._read_element(ObjectIdEnum.firmware_version)
-        version = emop_format_firmware_version(data.version)
-        self.log.info("received firmware version", firmware_version=version)
-        return version
+        version_bytes = bytearray(data.version_bytes)
+        if len(version_bytes) == 4:
+            # single phase meter
+            version_str = emop_format_firmware_version(version_bytes.decode("ASCII"))
+        else:
+            # three phase meter
+            version_str = version_bytes.hex()
+        self.log.info("firmware version", firmware_version=version_str)
+        return version_str
 
     def clock_time(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)

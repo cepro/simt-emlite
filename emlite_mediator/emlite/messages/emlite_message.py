@@ -1765,21 +1765,36 @@ class EmliteMessage(ReadWriteKaitaiStruct):
             self._root = _root
 
         def _read(self):
-            self.version = (self._io.read_bytes_full()).decode("ASCII")
+            self.version_bytes = []
+            i = 0
+            while not self._io.is_eof():
+                self.version_bytes.append(self._io.read_u1())
+                i += 1
 
         def _fetch_instances(self):
             pass
+            for i in range(len(self.version_bytes)):
+                pass
 
         def _write__seq(self, io=None):
             super(EmliteMessage.FirmwareRec, self)._write__seq(io)
-            self._io.write_bytes((self.version).encode("ASCII"))
+            for i in range(len(self.version_bytes)):
+                pass
+                if self._io.is_eof():
+                    raise kaitaistruct.ConsistencyError(
+                        "version_bytes", self._io.size() - self._io.pos(), 0
+                    )
+                self._io.write_u1(self.version_bytes[i])
+
             if not self._io.is_eof():
                 raise kaitaistruct.ConsistencyError(
-                    "version", self._io.size() - self._io.pos(), 0
+                    "version_bytes", self._io.size() - self._io.pos(), 0
                 )
 
         def _check(self):
             pass
+            for i in range(len(self.version_bytes)):
+                pass
 
     class ThreePhaseInstantaneousVoltageL2Rec(ReadWriteKaitaiStruct):
         def __init__(self, _io=None, _parent=None, _root=None):
