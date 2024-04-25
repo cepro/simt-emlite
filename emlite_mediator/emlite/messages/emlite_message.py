@@ -3,7 +3,7 @@
 from enum import Enum
 
 import kaitaistruct
-from kaitaistruct import BytesIO, KaitaiStream, ReadWriteKaitaiStruct
+from kaitaistruct import KaitaiStream, ReadWriteKaitaiStruct
 
 if getattr(kaitaistruct, "API_VERSION", (0, 9)) < (0, 9):
     raise Exception(
