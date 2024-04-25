@@ -13,6 +13,7 @@ from emlite_mediator.emlite.emlite_util import (
     emop_format_firmware_version,
     emop_scale_price_amount,
 )
+from emlite_mediator.emlite.messages.emlite_message import EmliteMessage
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
@@ -44,8 +45,8 @@ class TariffsActive(TypedDict):
 
     price_current: Decimal
     price_index_current: int
-    tou_rate_current: int
-    block_rate_current: int
+    tou_rate: int
+    block_rate: int
 
     prepayment_emergency_credit: Decimal
     prepayment_ecredit_availability: Decimal
@@ -53,8 +54,8 @@ class TariffsActive(TypedDict):
 
     gas: Decimal
 
-    element_b_tou_rate_current: int
-    element_b_block_rate_current: int
+    element_b_tou_rate: int
+    element_b_block_rate: int
     element_b_price_index_current: int
 
     element_b_tou_rate_1: Decimal
@@ -204,21 +205,57 @@ class EmliteMediatorClient(object):
         )
         self.log.debug("standing charge", value=standing_charge_rec.value)
 
-        price_rec = self._read_element(ObjectIdEnum.tariff_active_price)
-        self.log.debug("price", value=price_rec.value)
-
-        price_index_rec = self._read_element(
-            ObjectIdEnum.tariff_active_price_index_current
+        threshold_mask_rec: EmliteMessage.TariffThresholdMaskRec = self._read_element(
+            ObjectIdEnum.tariff_active_threshold_mask
         )
-        self.log.debug("price index", value=price_index_rec.value)
-
-        tou_rate_rec = self._read_element(ObjectIdEnum.tariff_active_tou_rate_current)
-        self.log.debug("tou rate", value=tou_rate_rec.value)
-
-        block_rate_rec = self._read_element(
-            ObjectIdEnum.tariff_active_block_rate_current
+        threshold_values_rec = self._read_element(
+            ObjectIdEnum.tariff_active_threshold_values
         )
-        self.log.debug("block rate", value=block_rate_rec.value)
+        self._log_thresholds(threshold_mask_rec, threshold_values_rec)
+
+        block_8_rate_1_price_rec = self._read_element(
+            ObjectIdEnum.tariff_active_block_8_rate_1
+        )
+        self.log.debug(
+            "block 8 rate 1 (activated rate)",
+            value=emop_scale_price_amount(block_8_rate_1_price_rec.value),
+        )
+
+        active_price_rec = self._read_element(ObjectIdEnum.tariff_active_price)
+        self.log.debug("price", value=active_price_rec.value)
+
+        block_rate_rec = self._read_element(ObjectIdEnum.tariff_active_block_rate)
+        self.log.debug("block rate index (0-7)", value=block_rate_rec.value)
+
+        tou_rate_index_rec = self._read_element(ObjectIdEnum.tariff_active_tou_rate)
+        self.log.debug("tou rate index (0-7)", value=tou_rate_index_rec.value)
+
+        # price_index_rec = self._read_element(
+        #     ObjectIdEnum.tariff_active_price_index_current
+        # )
+        # self.log.debug("price index (0-63)", value=price_index_rec.value)
+
+        element_b_price_rec = self._read_element(
+            ObjectIdEnum.tariff_active_element_b_price
+        )
+        self.log.debug("element b price", value=element_b_price_rec.value)
+
+        element_b_tou_rate_rec = self._read_element(
+            ObjectIdEnum.tariff_active_element_b_tou_rate
+        )
+        self.log.debug(
+            "element b tou rate index (0-3)", value=element_b_tou_rate_rec.value
+        )
+
+        # element_b_tou_rate_1_rec = self._read_element(
+        #     ObjectIdEnum.tariff_active_element_b_tou_rate_1
+        # )
+        # self.log.debug("element b tou rate price 1", value=element_b_tou_rate_1_rec.value)
+
+        # element_b_price_index_rec = self._read_element(
+        #     ObjectIdEnum.tariff_active_element_b_price_index_current
+        # )
+        # self.log.debug("element b price index", value=element_b_price_index_rec.value)
 
         emergency_credit_rec = self._read_element(
             ObjectIdEnum.tariff_active_prepayment_emergency_credit
@@ -235,15 +272,20 @@ class EmliteMediatorClient(object):
         )
         self.log.debug("debt recovery rate", value=debt_recovery_rec.value)
 
-        pricings = self._tariffs_pricing_blocks_read(True)
-        self.log.debug("pricings", pricings=pricings)
+        # pricing_table = []
+        # self._tariffs_pricing_blocks_read(True)
+        # self.log.debug("pricing table", pricing_table=pricing_table)
 
         return {
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
-            "price_current": emop_scale_price_amount(price_rec.value),
-            "price_index_current": price_index_rec.value,
-            "tou_rate_current": tou_rate_rec.value,
-            "block_rate_current": block_rate_rec.value,
+            "threshold_mask": threshold_mask_rec,
+            "threshold_values": threshold_values_rec,
+            "price": emop_scale_price_amount(active_price_rec.value),
+            "block_rate_index": block_rate_rec.value,
+            "tou_rate_index": tou_rate_index_rec.value,
+            "element_b_price": emop_scale_price_amount(element_b_price_rec.value),
+            "element_b_tou_rate_index": element_b_tou_rate_rec.value,
+            # "element_b_price_index": element_b_price_index_rec.value,
             "prepayment_debt_recovery_rate": emop_scale_price_amount(
                 debt_recovery_rec.value
             ),
@@ -253,7 +295,7 @@ class EmliteMediatorClient(object):
             "prepayment_emergency_credit": emop_scale_price_amount(
                 emergency_credit_rec.value
             ),
-            "pricings": pricings,
+            # "pricing_table": pricing_table,
         }
 
     def tariffs_future_read(self) -> TariffsFuture:
@@ -266,6 +308,29 @@ class EmliteMediatorClient(object):
             ObjectIdEnum.tariff_future_activation_datetime
         )
         self.log.debug("activation timestamp", value=activation_timestamp_rec.value)
+
+        threshold_mask_rec = self._read_element(
+            ObjectIdEnum.tariff_future_threshold_mask
+        )
+        threshold_values_rec = self._read_element(
+            ObjectIdEnum.tariff_future_threshold_values
+        )
+        self._log_thresholds(threshold_mask_rec, threshold_values_rec)
+
+        block_8_rate_1_rec = self._read_element(
+            ObjectIdEnum.tariff_future_block_8_rate_1
+        )
+        self.log.debug(
+            "block 8 rate 1",
+            value=block_8_rate_1_rec.value,
+        )
+
+        element_b_tou_rate_1_rec = self._read_element(
+            ObjectIdEnum.tariff_future_element_b_tou_rate_1
+        )
+        self.log.debug(
+            "element b tou rate price 1", value=element_b_tou_rate_1_rec.value
+        )
 
         emergency_credit_rec = self._read_element(
             ObjectIdEnum.tariff_future_prepayment_emergency_credit
@@ -282,13 +347,19 @@ class EmliteMediatorClient(object):
         )
         self.log.debug("debt recovery rate", value=debt_recovery_rec.value)
 
-        pricings = self._tariffs_pricing_blocks_read(False)
-        self.log.debug("pricings", pricings=pricings)
+        # pricing_table = self._tariffs_pricing_blocks_read(False)
+        # self.log.debug("pricing_table", pricing_table=pricing_table)
 
         return {
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
+            ),
+            "threshold_mask": threshold_mask_rec,
+            "threshold_values": threshold_values_rec,
+            "block_8_rate_1": emop_scale_price_amount(block_8_rate_1_rec.value),
+            "element_b_tou_rate_1": emop_scale_price_amount(
+                element_b_tou_rate_1_rec.value
             ),
             "prepayment_debt_recovery_rate": emop_scale_price_amount(
                 debt_recovery_rec.value
@@ -299,44 +370,56 @@ class EmliteMediatorClient(object):
             "prepayment_emergency_credit": emop_scale_price_amount(
                 emergency_credit_rec.value
             ),
-            "pricings": pricings,
+            # "pricing_table": pricing_table,
         }
 
     def tariffs_future_write(
         self, from_ts: datetime, standing_charge: Decimal, unit_rate: Decimal
     ):
-        unit_rate_encoded = emop_encode_amount_as_u4le_rec(unit_rate)
-
-        # block threshold mask and values - set all to zeros to switch off
+        # block threshold mask and values - set values to zeros and rate 1 only in mask
+        threshold_mask_bytes = bytes(1)
         self.log.debug("zero out threshold mask")
         self._write_element(
-            ObjectIdEnum.tariff_future_threshold_mask,
-            bytes(1),
+            ObjectIdEnum.tariff_future_threshold_mask, threshold_mask_bytes
         )
 
-        self.log.debug("zero out all threshold values")
-        self._write_element(ObjectIdEnum.tariff_future_threshold_values, bytes(14))
+        threshold_values_bytes = bytes(14)
+        self.log.debug("zero out threshold values")
+        self._write_element(
+            ObjectIdEnum.tariff_future_threshold_values, threshold_values_bytes
+        )
 
         # TOU and rates
         # - turn flag off
-        # - set each B element rate to the single fixed rate
-        # - TODO: check behavior - will it charge at TOU Rate 1 always?
+        # - set A element block 8 / rate 1 - only this is needed
+        # - set B element rate 1 to the single fixed rate - only this is needed
         self.log.debug("switch off tou flag")
         self._write_element(ObjectIdEnum.tariff_future_tou_flag, bytes(1))
 
-        self.log.debug(f"set element b tou rates to {unit_rate}")
+        unit_rate_encoded = emop_encode_amount_as_u4le_rec(unit_rate)
+
+        self.log.debug(f"set block 8 rate 1 to {unit_rate}")
+        self._write_element(
+            ObjectIdEnum.tariff_future_block_8_rate_1, unit_rate_encoded
+        )
+
+        self.log.debug(f"set element b tou rate 1 to {unit_rate}")
         self._write_element(
             ObjectIdEnum.tariff_future_element_b_tou_rate_1, unit_rate_encoded
         )
-        self._write_element(
-            ObjectIdEnum.tariff_future_element_b_tou_rate_2, unit_rate_encoded
-        )
-        self._write_element(
-            ObjectIdEnum.tariff_future_element_b_tou_rate_3, unit_rate_encoded
-        )
-        self._write_element(
-            ObjectIdEnum.tariff_future_element_b_tou_rate_4, unit_rate_encoded
-        )
+
+        # NOTE: following unncessary as we just activate rate 1 but left in
+        # here for future in case we use it
+
+        # self._write_element(
+        #     ObjectIdEnum.tariff_future_element_b_tou_rate_2, unit_rate_encoded
+        # )
+        # self._write_element(
+        #     ObjectIdEnum.tariff_future_element_b_tou_rate_3, unit_rate_encoded
+        # )
+        # self._write_element(
+        #     ObjectIdEnum.tariff_future_element_b_tou_rate_4, unit_rate_encoded
+        # )
 
         # prepayment amounts
         # TODO: decide what these should be - setting dummy values for now
@@ -358,25 +441,18 @@ class EmliteMediatorClient(object):
         self.log.debug("set gas rate to zero")
         self._write_element(ObjectIdEnum.tariff_future_gas, bytes(4))
 
-        # block 1 / rate 1 - set to the single rate
-        self.log.debug(f"set block 1 rate 1 to {unit_rate}")
-        self._write_element(
-            ObjectIdEnum.tariff_future_block_1_rate_1, unit_rate_encoded
-        )
-
         # set all the other block / units to zero
-        #
-        # TODO: likely this is unncessary as only block 1 / rate 1 is required
-        # however that hasn't been confirmed for sure yet. so for now let's
-        # make the table a clean slate of zero values
-        zero_rate_bytes = bytes(4)
-        for block in range(1, 9):
-            for rate in range(1, 9):
-                if block == 1 and rate == 1:
-                    continue
-                object_id_str = f"tariff_future_block_{block}_rate_{rate}"
-                self._write_element(ObjectIdEnum[object_id_str], zero_rate_bytes)
-                self.log.debug(f"{object_id_str} set to zero")
+        # NOTE: typically unncessary as we only need to activate block 8 / rate 1
+        #       but left in here if it's required in future
+
+        # zero_rate_bytes = bytes(4)
+        # for block in range(1, 9):
+        #     for rate in range(1, 9):
+        #         if block == 8 and rate == 1:
+        #             continue
+        #         object_id_str = f"tariff_future_block_{block}_rate_{rate}"
+        #         self._write_element(ObjectIdEnum[object_id_str], zero_rate_bytes)
+        #         self.log.debug(f"{object_id_str} set to zero")
 
         # standing charge (daily charge)
         self.log.debug(f"set standing charge to {standing_charge}")
@@ -465,6 +541,18 @@ class EmliteMediatorClient(object):
         except grpc.RpcError as e:
             raise MediatorClientException(e.code().name, e.details())
         return data
+
+    def _log_thresholds(
+        self,
+        threshold_mask: EmliteMessage.TariffThresholdMaskRec,
+        threshold_values: EmliteMessage.TariffThresholdValuesRec,
+    ):
+        self.log.info(
+            f"threshold mask [1={threshold_mask.rate1} 2={threshold_mask.rate2} 3={threshold_mask.rate3} 4={threshold_mask.rate4} 5={threshold_mask.rate5} 6={threshold_mask.rate6} 7={threshold_mask.rate7} 8={threshold_mask.rate8}]"
+        )
+        self.log.info(
+            f"threshold values [1={threshold_values.th1} 2={threshold_values.th2} 3={threshold_values.th3} 4={threshold_values.th4} 5={threshold_values.th5} 6={threshold_values.th6} 7={threshold_values.th7}]"
+        )
 
     def _check_amount_arg_is_string(self, arg_value):
         if isinstance(arg_value, str):

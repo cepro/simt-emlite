@@ -91,6 +91,31 @@ class TestEmliteMessage(unittest.TestCase):
         )
         self.assertEqual(message.voltage, 2397)  # 239.7
 
+    def test_threshold_mask(self):
+        message = self._deserialize(
+            EmliteMessage.ObjectIdType.tariff_active_threshold_mask, "01"
+        )
+        self.assertEqual(message.rate1, 1)
+        self.assertEqual(message.rate2, 0)
+        self.assertEqual(message.rate3, 0)
+        self.assertEqual(message.rate4, 0)
+        self.assertEqual(message.rate5, 0)
+        self.assertEqual(message.rate6, 0)
+        self.assertEqual(message.rate7, 0)
+        self.assertEqual(message.rate8, 0)
+
+        message = self._deserialize(
+            EmliteMessage.ObjectIdType.tariff_active_threshold_mask, "21"
+        )
+        self.assertEqual(message.rate1, 1)
+        self.assertEqual(message.rate2, 0)
+        self.assertEqual(message.rate3, 0)
+        self.assertEqual(message.rate4, 0)
+        self.assertEqual(message.rate5, 0)
+        self.assertEqual(message.rate6, 1)
+        self.assertEqual(message.rate7, 0)
+        self.assertEqual(message.rate8, 0)
+
     def _deserialize(self, object_id, message_hex):
         rsp_bytes = bytearray.fromhex(message_hex)
         data = EmliteMessage(

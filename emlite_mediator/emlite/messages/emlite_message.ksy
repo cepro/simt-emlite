@@ -43,28 +43,44 @@ seq:
         "object_id_type::tariff_active_threshold_mask": tariff_threshold_mask_rec
         "object_id_type::tariff_active_threshold_values": tariff_threshold_values_rec
         "object_id_type::tariff_active_gas": u4le_value_rec
-        "object_id_type::tariff_active_tou_rate_current": u1_value_rec
-        "object_id_type::tariff_active_block_rate_current": u1_value_rec
+        "object_id_type::tariff_active_tou_rate": u1_value_rec
+        "object_id_type::tariff_active_block_rate": u1_value_rec
         "object_id_type::tariff_active_price_index_current": u1_value_rec
         "object_id_type::tariff_active_price": u4le_value_rec
         "object_id_type::tariff_active_prepayment_emergency_credit": u4le_value_rec
         "object_id_type::tariff_active_prepayment_ecredit_availability": u4le_value_rec
         "object_id_type::tariff_active_prepayment_debt_recovery_rate": u4le_value_rec
-        "object_id_type::tariff_active_element_b_tou_rate_current": u1_value_rec
+        "object_id_type::tariff_active_element_b_tou_rate": u1_value_rec
         "object_id_type::tariff_active_element_b_price_index_current": u1_value_rec
         "object_id_type::tariff_active_element_b_price": u4le_value_rec
         "object_id_type::tariff_active_element_b_tou_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_element_b_tou_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_element_b_tou_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_element_b_tou_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_1": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_2": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_3": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_4": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_5": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_6": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_7": u4le_value_rec
-        "object_id_type::tariff_active_block_1_rate_8": u4le_value_rec
+        "object_id_type::tariff_active_block_8_rate_1": u4le_value_rec
+        "object_id_type::tariff_future_tou_flag": u1_value_rec
+        "object_id_type::tariff_future_standing_charge": u4le_value_rec
+        "object_id_type::tariff_future_threshold_mask": tariff_threshold_mask_rec
+        "object_id_type::tariff_future_threshold_values": tariff_threshold_values_rec
+        "object_id_type::tariff_future_activation_datetime": u4le_value_rec
+        "object_id_type::tariff_future_gas": u4le_value_rec
+        "object_id_type::tariff_future_prepayment_emergency_credit": u4le_value_rec
+        "object_id_type::tariff_future_prepayment_ecredit_availability": u4le_value_rec
+        "object_id_type::tariff_future_prepayment_debt_recovery_rate": u4le_value_rec
+        "object_id_type::tariff_future_element_b_tou_rate_1": u4le_value_rec
+        "object_id_type::tariff_future_block_8_rate_1": u4le_value_rec
+
+        # NOTE: The following currently unused by our setup but left in here
+        # for potential future use:
+
+        # "object_id_type::tariff_active_element_b_tou_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_element_b_tou_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_element_b_tou_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_1": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_2": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_3": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_4": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_5": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_6": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_7": u4le_value_rec
+        # "object_id_type::tariff_active_block_1_rate_8": u4le_value_rec
         # "object_id_type::tariff_active_block_2_rate_1": u4le_value_rec
         # "object_id_type::tariff_active_block_2_rate_2": u4le_value_rec
         # "object_id_type::tariff_active_block_2_rate_3": u4le_value_rec
@@ -113,7 +129,6 @@ seq:
         # "object_id_type::tariff_active_block_7_rate_6": u4le_value_rec
         # "object_id_type::tariff_active_block_7_rate_7": u4le_value_rec
         # "object_id_type::tariff_active_block_7_rate_8": u4le_value_rec
-        # "object_id_type::tariff_active_block_8_rate_1": u4le_value_rec
         # "object_id_type::tariff_active_block_8_rate_2": u4le_value_rec
         # "object_id_type::tariff_active_block_8_rate_3": u4le_value_rec
         # "object_id_type::tariff_active_block_8_rate_4": u4le_value_rec
@@ -121,27 +136,17 @@ seq:
         # "object_id_type::tariff_active_block_8_rate_6": u4le_value_rec
         # "object_id_type::tariff_active_block_8_rate_7": u4le_value_rec
         # "object_id_type::tariff_active_block_8_rate_8": u4le_value_rec
-        "object_id_type::tariff_future_tou_flag": u1_value_rec
-        "object_id_type::tariff_future_standing_charge": u4le_value_rec
-        "object_id_type::tariff_future_threshold_mask": tariff_threshold_mask_rec
-        "object_id_type::tariff_future_threshold_values": tariff_threshold_values_rec
-        "object_id_type::tariff_future_activation_datetime": u4le_value_rec
-        "object_id_type::tariff_future_gas": u4le_value_rec
-        "object_id_type::tariff_future_prepayment_emergency_credit": u4le_value_rec
-        "object_id_type::tariff_future_prepayment_ecredit_availability": u4le_value_rec
-        "object_id_type::tariff_future_prepayment_debt_recovery_rate": u4le_value_rec
-        "object_id_type::tariff_future_element_b_tou_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_element_b_tou_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_element_b_tou_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_element_b_tou_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_1": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_2": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_3": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_4": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_5": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_6": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_7": u4le_value_rec
-        "object_id_type::tariff_future_block_1_rate_8": u4le_value_rec
+        # "object_id_type::tariff_future_element_b_tou_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_element_b_tou_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_element_b_tou_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_1": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_2": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_3": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_4": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_5": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_6": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_7": u4le_value_rec
+        # "object_id_type::tariff_future_block_1_rate_8": u4le_value_rec
         # "object_id_type::tariff_future_block_2_rate_1": u4le_value_rec
         # "object_id_type::tariff_future_block_2_rate_2": u4le_value_rec
         # "object_id_type::tariff_future_block_2_rate_3": u4le_value_rec
@@ -190,7 +195,6 @@ seq:
         # "object_id_type::tariff_future_block_7_rate_6": u4le_value_rec
         # "object_id_type::tariff_future_block_7_rate_7": u4le_value_rec
         # "object_id_type::tariff_future_block_7_rate_8": u4le_value_rec
-        # "object_id_type::tariff_future_block_8_rate_1": u4le_value_rec
         # "object_id_type::tariff_future_block_8_rate_2": u4le_value_rec
         # "object_id_type::tariff_future_block_8_rate_3": u4le_value_rec
         # "object_id_type::tariff_future_block_8_rate_4": u4le_value_rec
@@ -297,21 +301,21 @@ types:
         type: s4le
   tariff_threshold_mask_rec:
     seq:
-      - id: rate1
-        type: b1
-      - id: rate2
-        type: b1
-      - id: rate3
-        type: b1
-      - id: rate4
-        type: b1
-      - id: rate5
-        type: b1
-      - id: rate6
+      - id: rate8
         type: b1
       - id: rate7
         type: b1
-      - id: rate8
+      - id: rate6
+        type: b1
+      - id: rate5
+        type: b1
+      - id: rate4
+        type: b1
+      - id: rate3
+        type: b1
+      - id: rate2
+        type: b1
+      - id: rate1
         type: b1
   tariff_threshold_values_rec:
     seq:
@@ -402,28 +406,46 @@ enums:
     16776992: tariff_active_threshold_mask # ffff20
     16776990: tariff_active_threshold_values # ffff1e
     16763236: tariff_active_gas # ffc964
-    16777003: tariff_active_tou_rate_current # ffff2b
-    16777004: tariff_active_block_rate_current # ffff2c
+    16777003: tariff_active_tou_rate # ffff2b
+    16777004: tariff_active_block_rate # ffff2c
     16777005: tariff_active_price_index_current # ffff2d
     16777006: tariff_active_price # ffff2e
     16762885: tariff_active_prepayment_emergency_credit # ffc805
     16762886: tariff_active_prepayment_ecredit_availability # ffc806
     16762887: tariff_active_prepayment_debt_recovery_rate # ffc807
-    16777035: tariff_active_element_b_tou_rate_current # ffff4b
+    16775481: tariff_active_block_8_rate_1 # fff939
+    16777035: tariff_active_element_b_tou_rate # ffff4b
     16777036: tariff_active_element_b_price_index_current # ffff4c
     16777037: tariff_active_element_b_price # ffff4d
     16774913: tariff_active_element_b_tou_rate_1 # fff701
-    16774914: tariff_active_element_b_tou_rate_2 # fff702
-    16774915: tariff_active_element_b_tou_rate_3 # fff703
-    16774916: tariff_active_element_b_tou_rate_4 # fff704
-    16775425: tariff_active_block_1_rate_1 # fff901
-    16775426: tariff_active_block_1_rate_2 # fff902
-    16775427: tariff_active_block_1_rate_3 # fff903
-    16775428: tariff_active_block_1_rate_4 # fff904
-    16775429: tariff_active_block_1_rate_5 # fff905
-    16775430: tariff_active_block_1_rate_6 # fff906
-    16775431: tariff_active_block_1_rate_7 # fff907
-    16775432: tariff_active_block_1_rate_8 # fff908
+    16777039: tariff_future_tou_flag # ffff4f
+    16776995: tariff_future_standing_charge # ffff23
+    16776993: tariff_future_threshold_mask # ffff21
+    16776991: tariff_future_threshold_values # ffff1f
+    16776996: tariff_future_activation_datetime # ffff24
+    16763237: tariff_future_gas # ffc965
+    16762888: tariff_future_prepayment_emergency_credit # ffc808
+    16762889: tariff_future_prepayment_ecredit_availability # ffc809
+    16762890: tariff_future_prepayment_debt_recovery_rate # ffc80a
+    16775225: tariff_future_block_8_rate_1 # fff839
+    16774657: tariff_future_element_b_tou_rate_1 # fff601
+
+
+    # NOTE: The following currently unused by our setup but left in here
+    # for potential future use:
+
+    # 16774914: tariff_active_element_b_tou_rate_2 # fff702
+    # 16774915: tariff_active_element_b_tou_rate_3 # fff703
+    # 16774916: tariff_active_element_b_tou_rate_4 # fff704
+
+    # 16775425: tariff_active_block_1_rate_1 # fff901
+    # 16775426: tariff_active_block_1_rate_2 # fff902
+    # 16775427: tariff_active_block_1_rate_3 # fff903
+    # 16775428: tariff_active_block_1_rate_4 # fff904
+    # 16775429: tariff_active_block_1_rate_5 # fff905
+    # 16775430: tariff_active_block_1_rate_6 # fff906
+    # 16775431: tariff_active_block_1_rate_7 # fff907
+    # 16775432: tariff_active_block_1_rate_8 # fff908
     # 16775433: tariff_active_block_2_rate_1 # fff909
     # 16775434: tariff_active_block_2_rate_2 # fff90a
     # 16775435: tariff_active_block_2_rate_3 # fff90b
@@ -472,7 +494,7 @@ enums:
     # 16775478: tariff_active_block_7_rate_6 # fff936
     # 16775479: tariff_active_block_7_rate_7 # fff937
     # 16775480: tariff_active_block_7_rate_8 # fff938
-    # 16775481: tariff_active_block_8_rate_1 # fff939
+
     # 16775482: tariff_active_block_8_rate_2 # fff93a
     # 16775483: tariff_active_block_8_rate_3 # fff93b
     # 16775484: tariff_active_block_8_rate_4 # fff93c
@@ -480,27 +502,19 @@ enums:
     # 16775486: tariff_active_block_8_rate_6 # fff93e
     # 16775487: tariff_active_block_8_rate_7 # fff93f
     # 16775488: tariff_active_block_8_rate_8 # fff940
-    16777039: tariff_future_tou_flag # ffff4f
-    16776995: tariff_future_standing_charge # ffff23
-    16776993: tariff_future_threshold_mask # ffff21
-    16776991: tariff_future_threshold_values # ffff1f
-    16776996: tariff_future_activation_datetime # ffff24
-    16763237: tariff_future_gas # ffc965
-    16762888: tariff_future_prepayment_emergency_credit # ffc808
-    16762889: tariff_future_prepayment_ecredit_availability # ffc809
-    16762890: tariff_future_prepayment_debt_recovery_rate # ffc80a
-    16774657: tariff_future_element_b_tou_rate_1 # fff601
-    16774658: tariff_future_element_b_tou_rate_2 # fff602
-    16774659: tariff_future_element_b_tou_rate_3 # fff603
-    16774660: tariff_future_element_b_tou_rate_4 # fff604
-    16775169: tariff_future_block_1_rate_1 # fff801
-    16775170: tariff_future_block_1_rate_2 # fff802
-    16775171: tariff_future_block_1_rate_3 # fff803
-    16775172: tariff_future_block_1_rate_4 # fff804
-    16775173: tariff_future_block_1_rate_5 # fff805
-    16775174: tariff_future_block_1_rate_6 # fff806
-    16775175: tariff_future_block_1_rate_7 # fff807
-    16775176: tariff_future_block_1_rate_8 # fff808
+
+    # 16774658: tariff_future_element_b_tou_rate_2 # fff602
+    # 16774659: tariff_future_element_b_tou_rate_3 # fff603
+    # 16774660: tariff_future_element_b_tou_rate_4 # fff604
+
+    # 16775169: tariff_future_block_1_rate_1 # fff801
+    # 16775170: tariff_future_block_1_rate_2 # fff802
+    # 16775171: tariff_future_block_1_rate_3 # fff803
+    # 16775172: tariff_future_block_1_rate_4 # fff804
+    # 16775173: tariff_future_block_1_rate_5 # fff805
+    # 16775174: tariff_future_block_1_rate_6 # fff806
+    # 16775175: tariff_future_block_1_rate_7 # fff807
+    # 16775176: tariff_future_block_1_rate_8 # fff808
     # 16775177: tariff_future_block_2_rate_1 # fff809
     # 16775178: tariff_future_block_2_rate_2 # fff80a
     # 16775179: tariff_future_block_2_rate_3 # fff80b
@@ -549,7 +563,7 @@ enums:
     # 16775222: tariff_future_block_7_rate_6 # fff836
     # 16775223: tariff_future_block_7_rate_7 # fff837
     # 16775224: tariff_future_block_7_rate_8 # fff838
-    # 16775225: tariff_future_block_8_rate_1 # fff839
+
     # 16775226: tariff_future_block_8_rate_2 # fff83a
     # 16775227: tariff_future_block_8_rate_3 # fff83b
     # 16775228: tariff_future_block_8_rate_4 # fff83c
