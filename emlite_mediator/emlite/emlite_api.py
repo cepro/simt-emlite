@@ -7,7 +7,8 @@ from emlite_mediator.emlite.emlite_util import emop_encode_u3be
 from emlite_mediator.util.logging import get_logger
 
 from . import emlite_net
-from .messages import emlite_data, emlite_frame
+from .messages.emlite_data import EmliteData
+from .messages.emlite_frame import EmliteFrame
 from .messages.emlite_object_id_enum import ObjectIdEnum
 
 logger = get_logger(__name__, __file__)
@@ -35,23 +36,29 @@ class EmliteAPI:
         logger.bind(host=host)
 
     def send_message(self, req_data_field_bytes: bytes):
-        data_field = emlite_data.EmliteData(
+        data_field = EmliteData(
             len(req_data_field_bytes), KaitaiStream(BytesIO(req_data_field_bytes))
         )
         data_field._read()
         return self.send_message_with_data_instance(data_field)
 
-    def send_message_with_data_instance(self, req_data_field: emlite_data.EmliteData):
+    def send_message_with_data_instance(self, req_data_field: EmliteData):
         req_bytes: bytes = self._build_frame_bytes(req_data_field)
         rsp_bytes: bytes = self.net.send_message(req_bytes)
 
-        frame = emlite_frame.EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
+        frame = EmliteFrame(KaitaiStream(BytesIO(rsp_bytes)))
         frame._read()
         logger.info("response frame parsed", frame=str(frame))
 
         self.last_request_datetime = datetime.now()
 
-        return frame.data.payload
+        data_field = frame.data
+
+        if data_field.format == EmliteData.RecordFormat.default:
+            return frame.data.message.payload
+        else:
+            # assume profile log message - no others handled as yet
+            return frame.data.message.response_payload
 
     def read_element(self, object_id: bytearray):
         data_field = self._build_data_field(object_id)
@@ -61,7 +68,7 @@ class EmliteAPI:
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
         data_field = self._build_data_field(
             object_id,
-            read_write_flag=emlite_data.EmliteData.ReadWriteFlags.write,
+            read_write_flag=EmliteData.ReadWriteFlags.write,
             payload=payload,
         )
 
@@ -74,18 +81,24 @@ class EmliteAPI:
     def _build_data_field(
         self,
         object_id: bytearray,
-        read_write_flag=emlite_data.EmliteData.ReadWriteFlags.read,
+        read_write_flag=EmliteData.ReadWriteFlags.read,
         payload=bytes(),
-    ) -> emlite_data.EmliteData:
-        data_field = emlite_data.EmliteData(5 + len(payload))
-        data_field.format = b"\x01"
-        data_field.object_id = object_id
-        data_field.read_write = read_write_flag
-        data_field.payload = payload
+    ) -> EmliteData:
+        len_data = len(payload)
+
+        message_field = EmliteData.DefaultRec(len_data)
+        message_field.object_id = object_id
+        message_field.read_write = read_write_flag
+        message_field.payload = payload
+
+        data_field = EmliteData(5 + len(payload))
+        data_field.format = EmliteData.RecordFormat.default
+        data_field.message = message_field
+
         return data_field
 
     def _build_frame_bytes(self, data_field) -> bytes:
-        req_frame = emlite_frame.EmliteFrame()
+        req_frame = EmliteFrame()
 
         req_frame.frame_delimeter = b"\x7e"
         # TODO: use an incremented sequence number here (bits 0..2)
@@ -98,8 +111,24 @@ class EmliteAPI:
 
         req_frame.data = data_field
 
-        # 17 for all fields NOT including the optional data field payload:
-        req_frame.frame_length = 17 + len(data_field.payload)
+        # frame length is "The Length is the total length of the message in
+        # bytes excluding the Frame Delimiter."
+        #
+        # which is 12 bytes (length 1, control 1, destination 4, source 4, crc 2)
+        #   plus data field length which depends on format and payload
+        frame_length = 12
+        if data_field.format == EmliteData.RecordFormat.default:
+            # 5 (format 1, object id 3, rw flag 1) plus payload length
+            frame_length = frame_length + 5 + len(data_field.message.payload)
+        else:
+            # assume profile log message - no others handled as yet
+            # 5 (format 1, timestamp 4)
+            is_request = not hasattr(data_field.message, "response_payload")
+            frame_length += 5 + (
+                0 if is_request else len(data_field.message.response_payload)
+            )
+
+        req_frame.frame_length = frame_length
 
         # len of frame including delimeter
         frame_bytes_len = req_frame.frame_length + 1

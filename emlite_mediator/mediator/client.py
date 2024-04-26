@@ -5,14 +5,17 @@ from typing import List, TypedDict
 
 import fire
 import grpc
+from kaitaistruct import BytesIO, KaitaiStream
 
 from emlite_mediator.emlite.emlite_util import (
+    emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
     emop_encode_timestamp_as_u4le_rec,
     emop_epoch_seconds_to_datetime,
     emop_format_firmware_version,
     emop_scale_price_amount,
 )
+from emlite_mediator.emlite.messages.emlite_data import EmliteData
 from emlite_mediator.emlite.messages.emlite_message import EmliteMessage
 from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
 from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import (
@@ -198,6 +201,42 @@ class EmliteMediatorClient(object):
             None if vl2 is None else vl2.voltage / 10,
             None if vl3 is None else vl3.voltage / 10,
         )
+
+    def profile_log_1(self, ts: datetime):
+        return self._profile_log(ts, EmliteData.RecordFormat.profile_log_1)
+
+    def profile_log_1_str_args(self, ts_iso_str: str):
+        return self.profile_log_1(
+            datetime.datetime.fromisoformat(ts_iso_str),
+        )
+
+    def profile_log_2(self, ts: datetime):
+        return self._profile_log(ts, EmliteData.RecordFormat.profile_log_2)
+
+    def profile_log_2_str_args(self, ts_iso_str: str):
+        return self.profile_log_2(
+            datetime.datetime.fromisoformat(ts_iso_str),
+        )
+
+    def _profile_log(self, ts: datetime, format: EmliteData.RecordFormat):
+        message_len = 5  # profile log request - format (1) + timestamp (4)
+
+        message_field = EmliteData.ProfileLogRec(message_len)
+        message_field.timestamp = emop_datetime_to_epoch_seconds(ts)
+
+        data_field = EmliteData(None)
+        data_field.format = format
+        data_field.message = message_field
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        data_field._write(_io)
+        data_field_bytes = _io.to_byte_array()
+
+        self.log.info(f"profile log request [{data_field_bytes.hex()}]")
+        response_bytes = self._send_message(data_field_bytes)
+        self.log.debug(f"profile log response [{response_bytes.hex()}]")
+
+        return response_bytes
 
     def tariffs_active_read(self) -> TariffsActive:
         standing_charge_rec = self._read_element(

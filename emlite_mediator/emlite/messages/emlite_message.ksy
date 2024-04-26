@@ -224,13 +224,14 @@ types:
         encoding: ASCII
   firmware_rec:
     seq:
-      # single phase meters: return 4 bytes ascii string
-      # three phase meters: return 2 bytes with meaning not yet known
-      # therefore we just get variable length bytes here and let the client
-      # try decode it based on length
       - id: version_bytes
         type: u1
         repeat: eos
+        doc: |
+          single phase meters: return 4 bytes ascii string
+          three phase meters: return 2 bytes with meaning not yet known
+          therefore we just get variable length bytes here and let the client
+          try decode it based on length
   time_rec:
     seq:
       - id: year

@@ -2,6 +2,7 @@ import os
 import signal
 import sys
 import time
+import traceback
 from concurrent import futures
 from datetime import datetime, timedelta
 
@@ -77,6 +78,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self.log.info("sendRawMessage response", payload=rsp_payload.hex())
             return SendRawMessageReply(response=rsp_payload)
         except Exception as e:
+            traceback.print_exc()
             self._handle_failure(e, "sendRawMessage", context)
             return SendRawMessageReply()
 
@@ -114,7 +116,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "writeElement", context)
             return WriteElementReply()
 
-    def _handle_failure(self, exception, call_name, context):
+    def _handle_failure(self, exception: Exception, call_name: str, context):
         if exception.__class__.__name__.startswith("RetryError"):
             self.log.warn(
                 "Failed to connect to meter after a number of retries",
