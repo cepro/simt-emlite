@@ -1,2 +1,2 @@
 #!/bin/sh
-python -m emlite_mediator.emlite.cli.dump_frame $@
+python -m emop_frame_protocol.bin.dump_frame $@
