@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "emlite-mediator"
-version = "0.8.2"
+version = "0.8.3"
 description = "Mediator providing access to the Emlite meters"
 authors = ["Chris Hatch <chris@cepro.energy>"]
 readme = "README.md"
@@ -17,6 +17,7 @@ emop-frame-protocol = {version = "0.1.3", source = "testpypi"}
 structlog = "^24.1.0"
 fire = "^0.6.0"
 docker = "^7.0.0"
+protobuf = "^5.26.1"
 
 [tool.poetry.scripts]
 test = "emlite_mediator:run_tests"

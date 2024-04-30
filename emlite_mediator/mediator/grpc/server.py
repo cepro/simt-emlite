@@ -28,7 +28,7 @@ logger = get_logger(__name__, __file__)
     Wait this amount of time between requests to avoid the emlite meter
     returning "connection refused" errors. 
 """
-minimum_time_between_emlite_requests_seconds = 1
+minimum_time_between_emlite_requests_seconds = 2
 
 """
     Allow one request to the meter at a time only. 
@@ -73,7 +73,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
     def sendRawMessage(self, request, context):
         self.log.info("sendRawMessage", message=request.dataField.hex())
-        # self._space_out_requests()
+        self._space_out_requests()
         try:
             rsp_payload = self.api.send_message(request.dataField)
             self.log.info("sendRawMessage response", payload=rsp_payload.hex())
@@ -86,7 +86,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     def readElement(self, request, context):
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info("readElement request", object_id=object_id_bytes.hex())
-        # self._space_out_requests()
+        self._space_out_requests()
         try:
             rsp_payload = self.api.read_element(object_id_bytes)
             self.log.info(
