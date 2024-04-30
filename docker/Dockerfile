@@ -9,4 +9,4 @@ RUN pip install poetry && poetry install --only main --no-root
 COPY emlite_mediator emlite_mediator
 RUN poetry install --only main
 
-ENTRYPOINT ["python", "-m"]
+ENTRYPOINT ["poetry", "run", "python", "-m"]
