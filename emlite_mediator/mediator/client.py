@@ -5,9 +5,10 @@ from typing import List, TypedDict
 
 import fire
 import grpc
-from kaitaistruct import BytesIO, KaitaiStream
-
-from emlite_mediator.emlite.emlite_util import (
+from emop_frame_protocol.emop_data import EmopData
+from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
+from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
     emop_encode_timestamp_as_u4le_rec,
@@ -15,9 +16,8 @@ from emlite_mediator.emlite.emlite_util import (
     emop_format_firmware_version,
     emop_scale_price_amount,
 )
-from emlite_mediator.emlite.messages.emlite_data import EmliteData
-from emlite_mediator.emlite.messages.emlite_message import EmliteMessage
-from emlite_mediator.emlite.messages.emlite_object_id_enum import ObjectIdEnum
+from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
+
 from emlite_mediator.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
@@ -203,7 +203,7 @@ class EmliteMediatorClient(object):
         )
 
     def profile_log_1(self, ts: datetime):
-        return self._profile_log(ts, EmliteData.RecordFormat.profile_log_1)
+        return self._profile_log(ts, EmopData.RecordFormat.profile_log_1)
 
     def profile_log_1_str_args(self, ts_iso_str: str):
         return self.profile_log_1(
@@ -211,20 +211,20 @@ class EmliteMediatorClient(object):
         )
 
     def profile_log_2(self, ts: datetime):
-        return self._profile_log(ts, EmliteData.RecordFormat.profile_log_2)
+        return self._profile_log(ts, EmopData.RecordFormat.profile_log_2)
 
     def profile_log_2_str_args(self, ts_iso_str: str):
         return self.profile_log_2(
             datetime.datetime.fromisoformat(ts_iso_str),
         )
 
-    def _profile_log(self, ts: datetime, format: EmliteData.RecordFormat):
+    def _profile_log(self, ts: datetime, format: EmopData.RecordFormat):
         message_len = 5  # profile log request - format (1) + timestamp (4)
 
-        message_field = EmliteData.ProfileLogRec(message_len)
+        message_field = EmopData.ProfileLogRec(message_len)
         message_field.timestamp = emop_datetime_to_epoch_seconds(ts)
 
-        data_field = EmliteData(None)
+        data_field = EmopData(None)
         data_field.format = format
         data_field.message = message_field
 
@@ -244,7 +244,7 @@ class EmliteMediatorClient(object):
         )
         self.log.debug("standing charge", value=standing_charge_rec.value)
 
-        threshold_mask_rec: EmliteMessage.TariffThresholdMaskRec = self._read_element(
+        threshold_mask_rec: EmopMessage.TariffThresholdMaskRec = self._read_element(
             ObjectIdEnum.tariff_active_threshold_mask
         )
         threshold_values_rec = self._read_element(
@@ -583,8 +583,8 @@ class EmliteMediatorClient(object):
 
     def _log_thresholds(
         self,
-        threshold_mask: EmliteMessage.TariffThresholdMaskRec,
-        threshold_values: EmliteMessage.TariffThresholdValuesRec,
+        threshold_mask: EmopMessage.TariffThresholdMaskRec,
+        threshold_values: EmopMessage.TariffThresholdValuesRec,
     ):
         self.log.info(
             f"threshold mask [1={threshold_mask.rate1} 2={threshold_mask.rate2} 3={threshold_mask.rate3} 4={threshold_mask.rate4} 5={threshold_mask.rate5} 6={threshold_mask.rate6} 7={threshold_mask.rate7} 8={threshold_mask.rate8}]"

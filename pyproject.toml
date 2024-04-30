@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "emlite-mediator"
+version = "0.8.0"
+description = "Mediator providing access to the Emlite meters"
+authors = ["Chris Hatch <chris@cepro.energy>"]
+readme = "README.md"
+packages = [{include = "emlite_mediator"}]
+exclude = ["tests"]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+grpcio = "^1.63.0"
+tenacity = "^8.2.3"
+supabase = "^2.4.3"
+crcmod = "^1.7"
+emop-frame-protocol = {version = "^0.1.2", source = "testpypi"}
+structlog = "^24.1.0"
+fire = "^0.6.0"
+
+[tool.poetry.scripts]
+test = "emlite_mediator:run_tests"
+lint = "emlite_mediator:run_linter"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.2"
+grpcio-tools = "^1.63.0"
+
+
+[[tool.poetry.source]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

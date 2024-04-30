@@ -6,9 +6,10 @@ import traceback
 from concurrent import futures
 from datetime import datetime, timedelta
 
+from emop_frame_protocol.util import emop_encode_u3be
+
 import grpc
 from emlite_mediator.emlite.emlite_api import EmliteAPI
-from emlite_mediator.emlite.emlite_util import emop_encode_u3be
 from emlite_mediator.util.logging import get_logger
 
 from .generated.mediator_pb2 import (

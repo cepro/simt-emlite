@@ -54,7 +54,7 @@ message WriteElementRequest {
   // server side for new object ids.
   int32 objectId = 1;
 
-  // Payload to write into the EMOP request - EmliteData.payload field
+  // Payload to write into the EMOP request - EmopData.payload field
   bytes payload = 2;
 }
 
