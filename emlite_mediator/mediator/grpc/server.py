@@ -106,6 +106,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             object_id=object_id_bytes.hex(),
             payload=request.payload,
         )
+        self._space_out_requests()
         try:
             self.api.write_element(object_id_bytes, request.payload)
             self.log.info(

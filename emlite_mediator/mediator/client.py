@@ -1,4 +1,5 @@
 import datetime
+import json
 import sys
 from decimal import Decimal
 from typing import List, TypedDict
@@ -315,7 +316,7 @@ class EmliteMediatorClient(object):
         # self._tariffs_pricing_blocks_read(True)
         # self.log.debug("pricing table", pricing_table=pricing_table)
 
-        return {
+        result = {
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
             "threshold_mask": threshold_mask_rec,
             "threshold_values": threshold_values_rec,
@@ -336,6 +337,8 @@ class EmliteMediatorClient(object):
             ),
             # "pricing_table": pricing_table,
         }
+        print(json.dumps(result, indent=4, sort_keys=True, default=str))
+        return result
 
     def tariffs_future_read(self) -> TariffsFuture:
         standing_charge_rec = self._read_element(
@@ -389,7 +392,7 @@ class EmliteMediatorClient(object):
         # pricing_table = self._tariffs_pricing_blocks_read(False)
         # self.log.debug("pricing_table", pricing_table=pricing_table)
 
-        return {
+        result =  {
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
@@ -411,6 +414,8 @@ class EmliteMediatorClient(object):
             ),
             # "pricing_table": pricing_table,
         }
+        print(json.dumps(result, indent=4, sort_keys=True, default=str))
+        return result
 
     def tariffs_future_write(
         self, from_ts: datetime, standing_charge: Decimal, unit_rate: Decimal
