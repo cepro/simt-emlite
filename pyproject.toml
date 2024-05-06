@@ -22,6 +22,7 @@ protobuf = "^5.26.1"
 [tool.poetry.scripts]
 test = "emlite_mediator:run_tests"
 lint = "emlite_mediator:run_linter"
+emop = "emlite_mediator.cli.main:main"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.2"

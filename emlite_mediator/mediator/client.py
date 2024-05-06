@@ -1,10 +1,8 @@
 import datetime
 import json
-import sys
 from decimal import Decimal
 from typing import List, TypedDict
 
-import fire
 import grpc
 from emop_frame_protocol.emop_data import EmopData
 from emop_frame_protocol.emop_message import EmopMessage
@@ -206,18 +204,8 @@ class EmliteMediatorClient(object):
     def profile_log_1(self, ts: datetime):
         return self._profile_log(ts, EmopData.RecordFormat.profile_log_1)
 
-    def profile_log_1_str_args(self, ts_iso_str: str):
-        return self.profile_log_1(
-            datetime.datetime.fromisoformat(ts_iso_str),
-        )
-
     def profile_log_2(self, ts: datetime):
         return self._profile_log(ts, EmopData.RecordFormat.profile_log_2)
-
-    def profile_log_2_str_args(self, ts_iso_str: str):
-        return self.profile_log_2(
-            datetime.datetime.fromisoformat(ts_iso_str),
-        )
 
     def _profile_log(self, ts: datetime, format: EmopData.RecordFormat):
         message_len = 5  # profile log request - format (1) + timestamp (4)
@@ -512,17 +500,6 @@ class EmliteMediatorClient(object):
             emop_encode_timestamp_as_u4le_rec(from_ts),
         )
 
-    def tariffs_future_write_str_args(
-        self, from_ts_iso_str: str, standing_charge_str: str, unit_rate_str: str
-    ):
-        self._check_amount_arg_is_string(standing_charge_str)
-        self._check_amount_arg_is_string(unit_rate_str)
-        self.tariffs_future_write(
-            datetime.datetime.fromisoformat(from_ts_iso_str),
-            standing_charge=Decimal(standing_charge_str),
-            unit_rate=Decimal(unit_rate_str),
-        )
-
     def tariffs_time_switches_element_a_or_single_read(self) -> bytes:
         data = self._read_element(ObjectIdEnum.tariff_time_switch_element_a_or_single)
         self.log.debug("element A switch settings", value=data.switch_settings)
@@ -597,17 +574,3 @@ class EmliteMediatorClient(object):
         self.log.info(
             f"threshold values [1={threshold_values.th1} 2={threshold_values.th2} 3={threshold_values.th3} 4={threshold_values.th4} 5={threshold_values.th5} 6={threshold_values.th6} 7={threshold_values.th7}]"
         )
-
-    def _check_amount_arg_is_string(self, arg_value):
-        if isinstance(arg_value, str):
-            return
-        print(
-            "\nERROR: amount argument passed as floating point number. pass "
-            + "as string to avoid floating point rounding errors "
-            + "[eg. \"'0.234'\" or '\"0.234\"']"
-        )
-        sys.exit(10)
-
-
-if __name__ == "__main__":
-    fire.Fire(EmliteMediatorClient)
