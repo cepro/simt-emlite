@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: emlite-mediator
+  IMAGE_NAME: cepro/emlite-mediator
 
 jobs:
   build-and-push:
