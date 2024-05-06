@@ -1,7 +1,7 @@
 # Simtricity Emlite Python APIs, CLI and mediator server
 
-[![Python test](https://github.com/cepro/emlite-mediator/actions/workflows/python-test.yml/badge.svg)](https://github.com/cepro/emlite-mediator/actions/workflows/python-test.yml)
-[![Build and Push Docker Images](https://github.com/cepro/emlite-mediator/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cepro/emlite-mediator/actions/workflows/docker-image.yml)
+[![Python test](https://github.com/cepro/simt-emlite/actions/workflows/python-test.yml/badge.svg)](https://github.com/cepro/simt-emlite/actions/workflows/python-test.yml)
+[![Build and Push Docker Images](https://github.com/cepro/simt-emlite/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cepro/simt-emlite/actions/workflows/docker-image.yml)
 
 # Setup
 
