@@ -3,6 +3,15 @@
 [![Python test](https://github.com/cepro/simt-emlite/actions/workflows/python-test.yml/badge.svg)](https://github.com/cepro/simt-emlite/actions/workflows/python-test.yml)
 [![Build and Push Docker Images](https://github.com/cepro/simt-emlite/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cepro/simt-emlite/actions/workflows/docker-image.yml)
 
+# Overview
+
+This repository contains:
+
+- API to connect to and send EMOP messages to Emlite meters
+- a "mediator" server that talks to the Emlite meters relaying remote requests
+  over gRPC
+- a CLI for sending messages to the meters (via the mediator servers)
+
 # Setup
 
 ## Local
@@ -34,6 +43,35 @@ Set mediator docker image.
 
 ```
 poetry run test
+```
+
+# Publish
+
+Use account `damonrand` and publishing to test-pypi for now.
+
+```
+poetry publish --build -r test-pypi
+```
+
+# CLI
+
+## Install
+
+Because we are currently publishing to test pyp we need to run this in 2 steps
+to get the main package from test pypi but all other packages from the main
+pypi:
+
+```
+pip install -i https://test.pypi.org/simple/ --no-dependencies simt-emlite
+pip install --index-url https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ simt-emlite
+```
+
+## Use
+
+TODO: expand this
+
+```
+poetry run emop
 ```
 
 # Mediator Servers
