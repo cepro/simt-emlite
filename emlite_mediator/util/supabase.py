@@ -4,10 +4,13 @@ from supabase.lib.client_options import ClientOptions
 SCHEMA_NAME = 'flows'
 
 
-def supa_client(supabase_url: str, supabase_key: str, role_key: str) -> Client:
+def supa_client(supabase_url: str, supabase_key: str, role_key: str = None) -> Client:
     options = ClientOptions()
     options.schema = SCHEMA_NAME
-    options.headers = {'Authorization': f'Bearer {role_key}'}
+    options.auto_refresh_token = False
+
+    if (role_key is not None):
+        options.headers = {'Authorization': f'Bearer {role_key}'}
 
     client = create_client(
         supabase_url,

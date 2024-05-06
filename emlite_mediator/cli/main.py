@@ -3,11 +3,26 @@ import sys
 from decimal import Decimal
 
 from emlite_mediator.mediator.client import EmliteMediatorClient
+from emlite_mediator.util.supabase import supa_client
 import fire
 
 from emlite_mediator.util.logging import get_logger
+from dotenv import load_dotenv, dotenv_values
+import os
 
 logger = get_logger(__name__, __file__)
+
+CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".simt")
+EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emop.env")
+
+if os.path.isfile(EMOP_CONFIG_FILE) is False:
+    print("ERROR: ~/.simt/emop.env does not exist. See tool help for how to set this up.")
+    sys.exit(5)
+
+load_dotenv(EMOP_CONFIG_FILE)
+supabase_url = os.environ.get("SUPABASE_URL")
+supabase_anon_key = os.environ.get("SUPABASE_KEY")
+access_token = os.environ.get("JWT_ACCESS_TOKEN")
 
 
 """
@@ -16,7 +31,13 @@ logger = get_logger(__name__, __file__)
 """
 
 
-class EmliteMediatorCLI(EmliteMediatorClient):
+class EMOPCLI(EmliteMediatorClient):
+    def __init__(self):
+        super().__init__()
+    
+    # =================================
+    #   EMOP Commands Wrappers 
+    # =================================
 
     def profile_log_1_str_args(self, ts_iso_str: str):
         return self.profile_log_1(
@@ -39,6 +60,19 @@ class EmliteMediatorCLI(EmliteMediatorClient):
             unit_rate=Decimal(unit_rate_str),
         )
 
+    # =================================
+    #   Supabase Commands 
+    # =================================
+
+    def serial_to_ip(self, serial: str):
+        supabase = supa_client(supabase_url, supabase_anon_key, access_token) 
+        result = (supabase.table('meter_registry')
+                       .select('ip_address')
+                       .eq('serial', serial)
+                       .execute())
+        print(result)
+
+
     def _check_amount_arg_is_string(self, arg_value):
         if isinstance(arg_value, str):
             return
@@ -50,8 +84,40 @@ class EmliteMediatorCLI(EmliteMediatorClient):
         sys.exit(10)
 
 
+    # =================================
+    #   Shelved for now  
+    # =================================
+
+    # NOTE: initially implemented the below to support login by user/password
+    #  with Supabase. However this mechanism requires auth.users user and RLS
+    #  based authorization. As we want to access flows tables which are FDWs
+    #  this doesn't work.  So for now at least we generate a postgres role and
+    #  a JWT for it and set up the auth rules using postgres roles and grants.
+    #  JWT is checked by supabase (postgrest) but does not use auth.users
+    #  or the authenticated role.
+     
+    # def login(self, email: str, password: str):
+    #     supabase = supa_client(supabase_url, supabase_anon_key) 
+    #     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
+    #     self._save_tokens(result.session.access_token, result.session.refresh_token)
+
+    # def logout(self, email: str, password: str):
+    #     supabase = supa_client(supabase_url, supabase_anon_key) 
+    #     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
+    #     print(result)
+
+    # def _save_tokens(self, access_token: str, refresh_token: str):
+    #     with open(SUPABASE_TOKEN_FILE, "w") as env_file:
+    #         env_file.write(f"# Supabase logged in user JWT tokens\n")
+    #         env_file.write(f"access_token={access_token}\n")
+    #         env_file.write(f"refresh_token={refresh_token}\n")
+
+    # def _read_tokens(self):
+    #     return dotenv_values(SUPABASE_TOKEN_FILE)
+
+
 def main():
-    fire.Fire(EmliteMediatorCLI)
+    fire.Fire(EMOPCLI)
 
 if __name__ == "__main__":
     main()
