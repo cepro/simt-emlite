@@ -8,11 +8,13 @@
 ## Local
 
 ```
-conda create -y -n mediator python=3.11
-conda activate mediator
+> python3 -m venv .venv
+> source .venv/bin/activate
 
-# install dependencies with pip as a number of packages are not in conda-forge
-pip install -r requirements.txt
+(.venv)> pip install -U pip setuptools
+(.venv)> pip install poetry
+
+(.venv)> poetry install
 ```
 
 ## Remote
@@ -31,7 +33,7 @@ Set mediator docker image.
 # Tests
 
 ```
-python -m unittest discover
+poetry run test
 ```
 
 # Mediator Servers
@@ -39,13 +41,13 @@ python -m unittest discover
 ## One mediator from Python
 
 ```
-EMLITE_HOST=100.79.244.89 python -m emlite_mediator.mediator.grpc.server
+EMLITE_HOST=100.79.244.89 python -m simt_emlite.mediator.grpc.server
 ```
 
 ## One mediator from Docker
 
 ```
-docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 ghcr.io/cepro/emlite-mediator:0.1.20 emlite_mediator.mediator.grpc.server
+docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 ghcr.io/cepro/emlite-mediator:0.1.20 simt_emlite.mediator.grpc.server
 ```
 
 ## Start / stop / remove all mediator docker containers
@@ -69,7 +71,7 @@ bin/run_meter_prepay_syncs
 Pass the port number of the mediator:
 
 ```
-python -m emlite_mediator.mediator.grpc.client 11002
+python -m simt_emlite.mediator.grpc.client 11002
 ```
 
 # gRPC
@@ -81,6 +83,6 @@ The gRPC server uses the emlite-api to make calls to the meter.
 ## Code generation
 
 ```
-cd emlite_mediator/mediator/grpc
+cd simt_emlite/mediator/grpc
 python grpc_codegen.py
 ```

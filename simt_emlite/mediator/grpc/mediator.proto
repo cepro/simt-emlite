@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package simt_emlite.mediator.grpc;
+
+service EmliteMediatorService {
+  rpc sendRawMessage (SendRawMessageRequest) returns (SendRawMessageReply) {}
+  rpc readElement (ReadElementRequest) returns (ReadElementReply) {}
+  rpc writeElement (WriteElementRequest) returns (WriteElementReply) {}
+}
+
+message SendRawMessageRequest {
+  // The data field part of an EMOP message as defined in section 1.2.6 of the
+  // "EMOP EM-Lite Object Protocol" version 1.7:
+  //   - format - 1 byte
+  //   - object id - 3 bytes
+  //   - rw - 1 byte
+  //   - payload - variable length bytes
+  bytes dataField = 1;
+}
+
+message SendRawMessageReply {
+  bytes response = 1;
+}
+
+message ReadElementRequest {
+  // Request the data for a given 3 byte Object Id.
+  // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
+  //
+  // An enum of names to object ids can be imported from
+  // emlite_object_id_enum.py and underlying kaitai enum is defined in
+  // emlite_message.ksy.
+  // 
+  // We don't use the enum on the server side and instead just pass through
+  // the corresponding integer value so no upgrade would be required on the
+  // server side for new object ids.
+  int32 objectId = 1;
+}
+
+message ReadElementReply {
+  // variable format response depending on which objectId was sent in the request
+  bytes response = 1;
+}
+
+message WriteElementRequest {
+  // Request the data for a given 3 byte Object Id.
+  // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
+  //
+  // An enum of names to object ids can be imported from
+  // emlite_object_id_enum.py and underlying kaitai enum is defined in
+  // emlite_message.ksy.
+  // 
+  // We don't use the enum on the server side and instead just pass through
+  // the corresponding integer value so no upgrade would be required on the
+  // server side for new object ids.
+  int32 objectId = 1;
+
+  // Payload to write into the EMOP request - EmopData.payload field
+  bytes payload = 2;
+}
+
+message WriteElementReply {
+  // no response data for writes
+}

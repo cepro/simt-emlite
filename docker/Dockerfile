@@ -6,7 +6,7 @@ WORKDIR /mediator
 COPY pyproject.toml poetry.lock README.md .
 RUN pip install poetry && poetry install --only main --no-root
 
-COPY emlite_mediator emlite_mediator
+COPY simt_emlite simt_emlite
 RUN poetry install --only main
 
 ENTRYPOINT ["poetry", "run", "python", "-m"]
