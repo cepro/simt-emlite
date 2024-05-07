@@ -32,8 +32,26 @@ access_token = os.environ.get("JWT_ACCESS_TOKEN")
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, serial=None, host=None, port=None):
+        if (serial is not None):
+            supabase = supa_client(supabase_url, supabase_anon_key, access_token) 
+            result = (supabase.table('meter_registry')
+                           .select('ip_address,id')
+                           .eq('serial', serial)
+                           .execute())
+            
+            if (len(result.data) == 0):
+                logger.error("meter not found for given serial")
+                sys.exit(10)
+
+            # TODO: connection by serial will involve connecting to a proxy
+            #       at a fixed remote address and port that will proxy to the
+            #       appropriate mediator
+            logger.error("connection remotely by serial not yet supported")
+            sys.exit(10)
+
+        if (port is not None):
+            super().__init__(port=port)
     
     # =================================
     #   EMOP Commands Wrappers 
@@ -64,14 +82,17 @@ class EMOPCLI(EmliteMediatorClient):
     #   Supabase Commands 
     # =================================
 
-    def serial_to_ip(self, serial: str):
+    def serial_to_name(self, serial: str):
         supabase = supa_client(supabase_url, supabase_anon_key, access_token) 
         result = (supabase.table('meter_registry')
-                       .select('ip_address')
+                       .select('name')
                        .eq('serial', serial)
                        .execute())
-        print(result)
+        if (len(result.data) == 0):
+            logger.info("meter not found for given serial")
+            sys.exit()
 
+        print(result.data[0]['name'])
 
     def _check_amount_arg_is_string(self, arg_value):
         if isinstance(arg_value, str):

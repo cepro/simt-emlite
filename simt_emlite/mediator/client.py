@@ -102,7 +102,7 @@ class TariffsFuture(TypedDict):
 
 
 class EmliteMediatorClient(object):
-    def __init__(self, port, meter_id=None, host="0.0.0.0"):
+    def __init__(self, host="0.0.0.0", port=55555, meter_id=None):
         self.grpc_client = EmliteMediatorGrpcClient(host, port, meter_id)
         global logger
         self.log = logger.bind(meter_id=meter_id, mediator_port=port)
