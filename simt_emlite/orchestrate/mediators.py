@@ -22,6 +22,14 @@ supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
 
+socks_host: str = os.environ.get("SOCKS_HOST")
+socks_port: int = os.environ.get("SOCKS_PORT")
+socks_username: str = os.environ.get("SOCKS_USERNAME")
+socks_password: str = os.environ.get("SOCKS_PASSWORD")
+
+use_socks = all(v is not None for v in [
+    socks_host, socks_port, socks_username, socks_password
+])
 
 class Mediators():
     def __init__(self):
@@ -47,14 +55,26 @@ class Mediators():
                     ip_address=ip_address,
                     meter_id=meter_id)
 
+        envvar_dict = {
+            "EMLITE_HOST": ip_address,
+            "LISTEN_PORT": mediator_port
+        }
+
+        if use_socks is True:
+            socks_dict = {
+                "SOCKS_HOST": socks_host,
+                "SOCKS_PORT": socks_port,
+                "SOCKS_USERNAME": socks_username,
+                "SOCKS_PASSWORD": socks_password,
+            }
+            logger.info("configuring socks proxy ", socks_host=socks_host)
+            envvar_dict.update(socks_dict)
+
         self.docker_client.containers.run(
             mediator_image,
             name=container_name,
             command="simt_emlite.mediator.grpc.server",
-            environment={
-                "EMLITE_HOST": ip_address,
-                "LISTEN_PORT": mediator_port
-            },
+            environment=envvar_dict,
             network_mode="host",
             restart_policy={"Name": "always"},
             labels={
