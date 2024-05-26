@@ -31,6 +31,14 @@ jobs:
       - name: Extract Git Tag
         id: extract_tag
         run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+        with:
+          version: 0.2.55
+      - name: Auth Pushes to Fly.io docker registry
+        run: "flyctl auth docker"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
 
       - name: Build and push server Docker image
         uses: docker/build-push-action@v5
@@ -38,4 +46,6 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.extract_tag.outputs.tag }}
+          tags: |
+            ghcr.io/cepro/emlite-mediator:${{ steps.extract_tag.outputs.tag }}
+            registry.fly.io/emlite-mediator:${{ steps.extract_tag.outputs.tag }}
