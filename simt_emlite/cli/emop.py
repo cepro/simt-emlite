@@ -1,28 +1,18 @@
 import datetime
+import fire
 import sys
+
 from decimal import Decimal
 
 from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
-import fire
-
 from simt_emlite.util.logging import get_logger
-from dotenv import load_dotenv
-import os
 
 logger = get_logger(__name__, __file__)
 
-CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".simt")
-EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emop.env")
-
-if os.path.isfile(EMOP_CONFIG_FILE) is False:
-    print("ERROR: ~/.simt/emop.env does not exist. See tool help for how to set this up.")
-    sys.exit(5)
-
-load_dotenv(EMOP_CONFIG_FILE)
-supabase_url = os.environ.get("SUPABASE_URL")
-supabase_anon_key = os.environ.get("SUPABASE_KEY")
-access_token = os.environ.get("JWT_ACCESS_TOKEN")
+config = load_config()
+supabase_url, supabase_anon_key, access_token = config.values()
 
 
 """

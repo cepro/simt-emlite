@@ -43,7 +43,7 @@ class RunJobForAllMeters():
         self.log = logger.bind(job_name=job_name)
 
     def get_mediator_port(self, meter_id):
-        mediator_container = self.mediators.container_by_meter_id(meter_id)
+        mediator_container = self.mediators.container_id_by_meter_id(meter_id)
         if (mediator_container is None):
             self.log.error(
                 "NO MEDIATOR CONTAINER EXISTS FOR meter", meter_id=meter_id)

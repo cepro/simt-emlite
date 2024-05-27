@@ -10,7 +10,8 @@ exclude = ["tests", "*.env"]
 [tool.poetry.scripts]
 test = "simt_emlite:run_tests"
 lint = "simt_emlite:run_linter"
-emop = "simt_emlite.cli.main:main"
+emop = "simt_emlite.cli.emop:main"
+mediators = "simt_emlite.cli.mediators:main"
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -19,9 +20,10 @@ tenacity = "^8.2.3"
 supabase = "^2.4.3"
 crcmod = "^1.7"
 emop-frame-protocol = {version = "0.1.4", source = "testpypi"}
+simt-fly-machines = {version = "0.1.2", source = "testpypi"}
 structlog = "^24.1.0"
 fire = "^0.6.0"
-docker = "^7.0.0"
+docker = "^7.1.0"
 protobuf = "^5.26.1"
 python-dotenv = "^1.0.1"
 

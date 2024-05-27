@@ -1,9 +1,6 @@
-from simt_emlite.util.logging import get_logger
-
 import argparse
 import random
 import socket
-import docker
 import os
 import sys
 import postgrest
@@ -11,6 +8,10 @@ import postgrest
 from httpx import ConnectError
 from typing import Dict, List
 
+from simt_emlite.orchestrate.adapter.base_adapter import ContainerState
+from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
+from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
+from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
 
@@ -24,18 +25,22 @@ site_code: str = os.environ.get("SITE")
 
 
 class Mediators():
-    def __init__(self):
+    def __init__(self, use_fly: bool):
         self.supabase = supa_client(
             supabase_url, supabase_key, flows_role_key)
-        self.docker_client = docker.from_env()
+        
+        # TODO: look at config and the presense of the fly api key
+        if use_fly:
+            self.containers = FlyAdapter(mediator_image)
+        else:
+            self.containers = DockerAdapter(mediator_image)
 
     def start_one(self, meter_id: str) -> int:
-        container = self.container_by_meter_id(meter_id)
-        if (container is not None):
+        container_id = self.container_id_by_meter_id(meter_id)
+        if (container_id is not None):
             logger.info('start existing container',
-                        meter_id=meter_id, container_name=container.name)
-            container.start()
-            return container.labels['listen_port']
+                        meter_id=meter_id, container_id=container_id)
+            self.containers.start(container_id)
 
         ip_address = self._get_meter_ip(meter_id)
         mediator_port = self._allocate_mediator_listen_port()
@@ -46,23 +51,13 @@ class Mediators():
                     mediator_port=mediator_port,
                     ip_address=ip_address,
                     meter_id=meter_id)
-
-        self.docker_client.containers.run(
-            mediator_image,
-            name=container_name,
-            command="simt_emlite.mediator.grpc.server",
-            environment={
-                "EMLITE_HOST": ip_address,
-                "LISTEN_PORT": mediator_port
-            },
-            network_mode="host",
-            restart_policy={"Name": "always"},
-            labels={
-                "meter_id": meter_id,
-                "emlite_host": ip_address,
-                "listen_port": str(mediator_port)
-            },
-            detach=True
+        
+        self.containers.create(
+            "simt_emlite.mediator.grpc.server",
+            container_name,
+            meter_id, 
+            ip_address,
+            mediator_port
         )
 
         return mediator_port
@@ -97,50 +92,44 @@ class Mediators():
         return self.start_many(ids)
 
     def stop_all(self):
-        mediator_containers = self._all_running_mediators()
-        for mediator in mediator_containers:
-            logger.info("stopping container", container_name=mediator.name)
-            mediator.stop()
+        ids = self._all_started_mediator_ids()
+        for id in ids:
+            logger.info("stopping container", container_id=id)
+            self.containers.stop(id)
 
-    def remove_all(self):
-        containers = self._all_mediators(status="exited")
-        logger.info("found %s exited containers", len(containers))
-        for mediator in containers:
-            logger.info("removing container", container_name=mediator.name)
-            mediator.remove(force=True)
+    def destroy_all(self):
+        ids = self._all_mediator_ids(status=ContainerState.STOPPED)
+        logger.info("found %s exited containers", len(ids))
+        for id in ids:
+            logger.info("removing container", container_id=id)
+            self.containers.destroy(id)
 
     def stop_one(self, meter_id: str):
-        container = self.container_by_meter_id(meter_id)
-        if (container is None):
+        id = self.container_id_by_meter_id(meter_id)
+        if (id is None):
             logger.info(
                 "stop_one: skip - container for meter already stopped", meter_id=meter_id)
             return
 
         logger.info(
-            "stop_one stopping container", container_name=container.name, meter_id=meter_id)
-        container.stop(timeout=3)
+            "stop_one stopping container", container_id=id, meter_id=meter_id)
+        self.containers.stop(id)
 
-    def container_by_meter_id(self, meter_id: str):
-        containers = self.docker_client.containers.list(all=True,
-                                                        filters={"label": f"meter_id={meter_id}"})
+    def container_id_by_meter_id(self, meter_id: str):
+        containers = self.containers.list(("meter_id", meter_id))
         if (len(containers) == 0):
             return None
-        return containers[0]
+        return containers[0].id
 
-    # mediator containers with either status 'running' and 'restarting
-    def _all_running_mediators(self):
-        running_containers = self._all_mediators(status="running")
-        logger.info("found %s running containers", len(running_containers))
-        restarting_containers = self._all_mediators(status="restarting")
-        logger.info("found %s restarting containers",
-                    len(restarting_containers))
-        return running_containers + restarting_containers
-
-    def _all_mediators(self, status=None):
-        filters = {"status": status} if status else {}
-        containers = self.docker_client.containers.list(all=True,
-                                                        filters=filters)
-        return list(filter(lambda c: c.name.startswith('mediator-'), containers))
+    def _all_started_mediator_ids(self) -> List[str]:
+        started_containers = self._all_mediator_ids(status=ContainerState.STARTED)
+        logger.info("found %s started containers", len(started_containers))
+        return list(map(lambda c: c.id, started_containers))
+    
+    def _all_mediator_ids(self, status: ContainerState = None) -> List[str]:
+        containers = self.containers.list(status_filter=status)
+        return list(map(lambda c: c.id, 
+                list(filter(lambda c: c.name.startswith('mediator-'), containers))))
 
     def _get_meter_ip(self, meter_id: str):
         meter_registry_record = None
@@ -185,7 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('--start-one', metavar='<meter_id>')
     parser.add_argument('--start-all', action='store_true', help='Start all')
     parser.add_argument('--stop-all', action='store_true', help='Stop all')
-    parser.add_argument('--remove-all', action='store_true', help='Remove all')
+    parser.add_argument('--destroy-all', action='store_true', help='Remove all')
     args = parser.parse_args()
 
     try:
@@ -197,8 +186,8 @@ if __name__ == '__main__':
             mediators.start_all()
         elif args.stop_all:
             mediators.stop_all()
-        elif args.remove_all:
-            mediators.remove_all()
+        elif args.destroy_all:
+            mediators.destroy_all()
         else:
             parser.print_usage()
 

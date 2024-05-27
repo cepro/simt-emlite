@@ -57,7 +57,7 @@ poetry publish --build -r test-pypi
 
 ## Install
 
-Because we are currently publishing to test pyp we need to run this in 2 steps
+Because we are currently publishing to test pypi we need to run this in 2 steps
 to get the main package from test pypi but all other packages from the main
 pypi:
 
