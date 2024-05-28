@@ -14,7 +14,9 @@ This repository contains:
 
 # Setup
 
-## Local
+## Local Development
+
+see also emlite.env below
 
 ```
 > python3 -m venv .venv
@@ -26,18 +28,16 @@ This repository contains:
 (.venv)> poetry install
 ```
 
-## Remote
+## Remote mediator server
+
+see also emlite.env below
 
 see Notion for docs on setting up the mediator server:
 https://www.notion.so/Setting-up-Emlite-meter-mediator-server-0cf0c8f97ee44843977334bc6efa86ba#658ff25657a54fbfa6388b2b42d70f66
 
-## Both
+## emlite.env
 
-### Edit mediator.env
-
-Set supabase url and key.
-
-Set mediator docker image.
+Copy emlite.env.example to ~/.simt/emlite.env and set secrets and variables as needed.
 
 # Tests
 
@@ -53,7 +53,7 @@ Use account `damonrand` and publishing to test-pypi for now.
 poetry publish --build -r test-pypi
 ```
 
-# CLI
+# CLIs
 
 ## Install
 
@@ -68,10 +68,12 @@ pip install --index-url https://pypi.org/simple/ --extra-index-url https://test.
 
 ## Use
 
-TODO: expand this
-
 ```
-poetry run emop
+# send emop messages to Emlite meters: 
+> emop ...
+
+# manage mediators:
+> mediators ...
 ```
 
 # Mediator Servers
@@ -85,7 +87,7 @@ EMLITE_HOST=100.79.244.89 python -m simt_emlite.mediator.grpc.server
 ## One mediator from Docker
 
 ```
-docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 ghcr.io/cepro/emlite-mediator:0.1.20 simt_emlite.mediator.grpc.server
+docker run --rm -it -p 50051:50051 -e EMLITE_HOST=100.79.244.89 ghcr.io/cepro/simt-emlite:0.9.3 simt_emlite.mediator.grpc.server
 ```
 
 ## Start / stop / remove all mediator docker containers

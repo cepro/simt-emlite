@@ -24,7 +24,7 @@ class DockerAdapter(BaseAdapter):
         metadata_filter: tuple[str, str] = None,
         status_filter: ContainerState = None,
     ) -> List[str]:
-        filters = {"ancestor": "emlite-mediator"}
+        filters = {"ancestor": "simt-emlite"}
 
         if metadata_filter is not None:
             filters["label"] = f"{metadata_filter[0]}={metadata_filter[1]}"

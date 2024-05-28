@@ -2,7 +2,7 @@ import unittest
 
 from simt_emlite.util.logging import logger_module_name, path_to_package_and_module
 
-file_path = "/mediator/emlite-mediator/simt_emlite/mediator/grpc/server.py"
+file_path = "/mediator/simt-emlite/simt_emlite/mediator/grpc/server.py"
 expected_package = "simt_emlite.mediator.grpc.server"
 
 
