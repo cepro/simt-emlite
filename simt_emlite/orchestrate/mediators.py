@@ -17,15 +17,16 @@ from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
-mediator_image: str = os.environ.get("MEDIATOR_IMAGE")
+mediator_image: str = os.environ.get("SIMT_EMLITE_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
 
+use_fly: bool = os.environ.get("FLY_API_TOKEN") is not None
 
 class Mediators():
-    def __init__(self, use_fly: bool):
+    def __init__(self):
         self.supabase = supa_client(
             supabase_url, supabase_key, flows_role_key)
         
@@ -160,7 +161,7 @@ class Mediators():
 
 if __name__ == '__main__':
     if not mediator_image:
-        logger.error("MEDIATOR_IMAGE not set to a docker image.")
+        logger.error("SIMT_EMLITE_IMAGE not set to a docker image.")
         exit(1)
     if not supabase_url or not supabase_key:
         logger.error(

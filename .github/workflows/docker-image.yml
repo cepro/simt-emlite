@@ -43,5 +43,5 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            ghcr.io/cepro/emlite-mediator:${{ steps.extract_tag.outputs.tag }}
-            registry.fly.io/emlite-mediator:${{ steps.extract_tag.outputs.tag }}
+            ghcr.io/cepro/simt-emlite:${{ steps.extract_tag.outputs.tag }}
+            registry.fly.io/simt-emlite:${{ steps.extract_tag.outputs.tag }}

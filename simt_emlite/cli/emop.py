@@ -12,7 +12,6 @@ from simt_emlite.util.logging import get_logger
 logger = get_logger(__name__, __file__)
 
 config = load_config()
-supabase_url, supabase_anon_key, access_token = config.values()
 
 
 """
@@ -22,10 +21,15 @@ supabase_url, supabase_anon_key, access_token = config.values()
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self, serial=None, host=None, port=None):
+    def __init__(self, port=None, serial=None):
+        self.supabase = supa_client(
+            config["supabase_url"],
+            config["supabase_anon_key"],
+            config["access_token"]
+        )
+        
         if (serial is not None):
-            supabase = supa_client(supabase_url, supabase_anon_key, access_token) 
-            result = (supabase.table('meter_registry')
+            result = (self.supabase.table('meter_registry')
                            .select('ip_address,id')
                            .eq('serial', serial)
                            .execute())
@@ -73,8 +77,7 @@ class EMOPCLI(EmliteMediatorClient):
     # =================================
 
     def serial_to_name(self, serial: str):
-        supabase = supa_client(supabase_url, supabase_anon_key, access_token) 
-        result = (supabase.table('meter_registry')
+        result = (self.supabase.table('meter_registry')
                        .select('name')
                        .eq('serial', serial)
                        .execute())
