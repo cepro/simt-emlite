@@ -13,18 +13,13 @@ class BaseAdapter(ABC):
     def list(
         self,
         metadata_filter: tuple[str, str] = None,
-        status_filter: ContainerState = None
+        status_filter: ContainerState = None,
     ) -> List[str]:
         pass
 
     @abstractmethod
     def create(
-        self,
-        cmd: str,
-        name: str,
-        meter_id: str,
-        ip_address: str,
-        mediator_port: int
+        self, cmd: str, name: str, meter_id: str, ip_address: str, mediator_port: int
     ) -> str:
         pass
 

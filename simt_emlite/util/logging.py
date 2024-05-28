@@ -1,9 +1,9 @@
-import os
 import logging
-import structlog
+import os
 import sys
-
 from pathlib import Path
+
+import structlog
 
 shared_processors = [
     structlog.contextvars.merge_contextvars,
@@ -15,9 +15,7 @@ shared_processors = [
 ]
 
 if sys.stderr.isatty():
-    processors = [
-        structlog.dev.ConsoleRenderer()
-    ]
+    processors = [structlog.dev.ConsoleRenderer()]
 else:
     processors = [
         structlog.processors.JSONRenderer(),
@@ -28,21 +26,19 @@ structlog.configure(processors=shared_processors + processors)
 
 def path_to_package_and_module(path: str):
     path_parts = Path(path).parts
-    package_parts = path_parts[path_parts.index('simt_emlite'):]
+    package_parts = path_parts[path_parts.index("simt_emlite") :]
     # [:-3] chops off file extension '.py'
-    return os.path.join(*package_parts).replace(os.sep, '.')[:-3]
+    return os.path.join(*package_parts).replace(os.sep, ".")[:-3]
 
 
 def logger_module_name(name, file=None):
-    if name != '__main__' or file is None:
+    if name != "__main__" or file is None:
         return name
     return path_to_package_and_module(file)
 
 
 def get_logger(name: str, python_file: str):
-    return structlog.get_logger(
-        module=logger_module_name(name, python_file)
-    )
+    return structlog.get_logger(module=logger_module_name(name, python_file))
 
 
 #

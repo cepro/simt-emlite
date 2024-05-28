@@ -1,19 +1,18 @@
 import argparse
+import os
 import random
 import socket
-import os
 import sys
-import postgrest
-
-from httpx import ConnectError
 from typing import Dict, List
+
+import postgrest
+from httpx import ConnectError
 
 from simt_emlite.orchestrate.adapter.base_adapter import ContainerState
 from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
 from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
-
 
 logger = get_logger(__name__, __file__)
 
@@ -25,11 +24,11 @@ site_code: str = os.environ.get("SITE")
 
 use_fly: bool = os.environ.get("FLY_API_TOKEN") is not None
 
-class Mediators():
+
+class Mediators:
     def __init__(self):
-        self.supabase = supa_client(
-            supabase_url, supabase_key, flows_role_key)
-        
+        self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
+
         # TODO: look at config and the presense of the fly api key
         if use_fly:
             self.containers = FlyAdapter(mediator_image)
@@ -38,58 +37,65 @@ class Mediators():
 
     def start_one(self, meter_id: str) -> int:
         container_id = self.container_id_by_meter_id(meter_id)
-        if (container_id is not None):
-            logger.info('start existing container',
-                        meter_id=meter_id, container_id=container_id)
+        if container_id is not None:
+            logger.info(
+                "start existing container", meter_id=meter_id, container_id=container_id
+            )
             self.containers.start(container_id)
 
         ip_address = self._get_meter_ip(meter_id)
         mediator_port = self._allocate_mediator_listen_port()
         container_name = f"mediator-{ip_address}"
 
-        logger.info("create and start new container",
-                    container_name=container_name,
-                    mediator_port=mediator_port,
-                    ip_address=ip_address,
-                    meter_id=meter_id)
-        
+        logger.info(
+            "create and start new container",
+            container_name=container_name,
+            mediator_port=mediator_port,
+            ip_address=ip_address,
+            meter_id=meter_id,
+        )
+
         self.containers.create(
             "simt_emlite.mediator.grpc.server",
             container_name,
-            meter_id, 
+            meter_id,
             ip_address,
-            mediator_port
+            mediator_port,
         )
 
         return mediator_port
 
     def start_many(self, meter_ids: List[str]) -> Dict[str, int]:
-        logger.info('start_many invoked', meter_ids=meter_ids)
+        logger.info("start_many invoked", meter_ids=meter_ids)
         ports = {}
         for meter_id in meter_ids:
-            ports['meter_id'] = self.start_one(meter_id)
+            ports["meter_id"] = self.start_one(meter_id)
         return ports
 
     def start_all(self) -> Dict[str, int]:
         try:
-            sites = self.supabase.table('sites').select(
-                'id').ilike('code', site_code).execute()
-            site_id = list(sites.data)[0]['id']
-            rows = (self.supabase.table('meter_registry')
-                    .select('id')
-                    .eq('site', site_id)
-
-                    # only start mediators for active meters.
-                    # a meter is active in a max of 1 env at a time.
-                    # so in this way we ensure there is only ever 1 mediator
-                    #   per physical meter
-                    .eq('mode', 'active')
-
-                    .execute())
+            sites = (
+                self.supabase.table("sites")
+                .select("id")
+                .ilike("code", site_code)
+                .execute()
+            )
+            site_id = list(sites.data)[0]["id"]
+            rows = (
+                self.supabase.table("meter_registry")
+                .select("id")
+                .eq("site", site_id)
+                # only start mediators for active meters.
+                # a meter is active in a max of 1 env at a time.
+                # so in this way we ensure there is only ever 1 mediator
+                #   per physical meter
+                .eq("mode", "active")
+                .execute()
+            )
         except ConnectError as e:
             logger.error("Supabase connection failure", error=e)
             sys.exit(10)
-        ids = list(map(lambda row: row['id'], rows.data))
+        ids = list(map(lambda row: row["id"], rows.data))
         return self.start_many(ids)
 
     def stop_all(self):
@@ -107,18 +113,19 @@ class Mediators():
 
     def stop_one(self, meter_id: str):
         id = self.container_id_by_meter_id(meter_id)
-        if (id is None):
+        if id is None:
             logger.info(
-                "stop_one: skip - container for meter already stopped", meter_id=meter_id)
+                "stop_one: skip - container for meter already stopped",
+                meter_id=meter_id,
+            )
             return
 
-        logger.info(
-            "stop_one stopping container", container_id=id, meter_id=meter_id)
+        logger.info("stop_one stopping container", container_id=id, meter_id=meter_id)
         self.containers.stop(id)
 
     def container_id_by_meter_id(self, meter_id: str):
         containers = self.containers.list(("meter_id", meter_id))
-        if (len(containers) == 0):
+        if len(containers) == 0:
             return None
         return containers[0].id
 
@@ -126,28 +133,36 @@ class Mediators():
         started_containers = self._all_mediator_ids(status=ContainerState.STARTED)
         logger.info("found %s started containers", len(started_containers))
         return list(map(lambda c: c.id, started_containers))
-    
+
     def _all_mediator_ids(self, status: ContainerState = None) -> List[str]:
         containers = self.containers.list(status_filter=status)
-        return list(map(lambda c: c.id, 
-                list(filter(lambda c: c.name.startswith('mediator-'), containers))))
+        return list(
+            map(
+                lambda c: c.id,
+                list(filter(lambda c: c.name.startswith("mediator-"), containers)),
+            )
+        )
 
     def _get_meter_ip(self, meter_id: str):
         meter_registry_record = None
 
         try:
-            meter_registry_record = self.supabase.table('meter_registry').select(
-                'ip_address').eq("id", meter_id).execute()
+            meter_registry_record = (
+                self.supabase.table("meter_registry")
+                .select("ip_address")
+                .eq("id", meter_id)
+                .execute()
+            )
         except ConnectError as e:
             logger.error("Supabase connection failure", error=e)
             sys.exit(12)
 
-        return meter_registry_record.data[0]['ip_address']
+        return meter_registry_record.data[0]["ip_address"]
 
     def _allocate_mediator_listen_port(self) -> int:
         while True:
             port = random.randint(51000, 52000)
-            if (not self._is_port_in_use(port)):
+            if not self._is_port_in_use(port):
                 return port
 
     def _is_port_in_use(self, port: int) -> bool:
@@ -159,23 +174,22 @@ class Mediators():
                 return True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if not mediator_image:
         logger.error("SIMT_EMLITE_IMAGE not set to a docker image.")
         exit(1)
     if not supabase_url or not supabase_key:
-        logger.error(
-            "Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
+        logger.error("Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
         exit(2)
     if not site_code:
         logger.error("SITE is not set")
         exit(3)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--start-one', metavar='<meter_id>')
-    parser.add_argument('--start-all', action='store_true', help='Start all')
-    parser.add_argument('--stop-all', action='store_true', help='Stop all')
-    parser.add_argument('--destroy-all', action='store_true', help='Remove all')
+    parser.add_argument("--start-one", metavar="<meter_id>")
+    parser.add_argument("--start-all", action="store_true", help="Start all")
+    parser.add_argument("--stop-all", action="store_true", help="Stop all")
+    parser.add_argument("--destroy-all", action="store_true", help="Remove all")
     args = parser.parse_args()
 
     try:

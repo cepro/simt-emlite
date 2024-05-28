@@ -7,4 +7,4 @@ class SyncerCsq(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
         csq = self.emlite_client.csq()
-        return UpdatesTuple({'csq': csq}, None)
+        return UpdatesTuple({"csq": csq}, None)

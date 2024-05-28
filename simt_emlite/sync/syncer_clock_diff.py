@@ -1,9 +1,9 @@
-from simt_emlite.util.logging import get_logger
-
 from datetime import datetime
+
 from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
+from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
@@ -15,7 +15,9 @@ class SyncerClockDiff(SyncerBase):
 
         now = datetime.utcnow()
         clock_time_diff_seconds = abs(now - clock_time).seconds
-        logger.info("clock_time_diff_seconds calculated",
-                    clock_time_diff_seconds=clock_time_diff_seconds)
+        logger.info(
+            "clock_time_diff_seconds calculated",
+            clock_time_diff_seconds=clock_time_diff_seconds,
+        )
 
-        return UpdatesTuple({'clock_time_diff_seconds': clock_time_diff_seconds}, None)
+        return UpdatesTuple({"clock_time_diff_seconds": clock_time_diff_seconds}, None)

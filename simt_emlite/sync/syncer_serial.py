@@ -7,4 +7,4 @@ class SyncerSerial(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
         serial = self.emlite_client.serial()
-        return UpdatesTuple(None, {'serial': serial})
+        return UpdatesTuple(None, {"serial": serial})

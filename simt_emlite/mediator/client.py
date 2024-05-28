@@ -380,7 +380,7 @@ class EmliteMediatorClient(object):
         # pricing_table = self._tariffs_pricing_blocks_read(False)
         # self.log.debug("pricing_table", pricing_table=pricing_table)
 
-        result =  {
+        result = {
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value

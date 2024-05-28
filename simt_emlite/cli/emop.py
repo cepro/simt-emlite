@@ -1,13 +1,13 @@
 import datetime
-import fire
 import sys
-
 from decimal import Decimal
+
+import fire
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.config import load_config
-from simt_emlite.util.supabase import supa_client
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -23,18 +23,18 @@ config = load_config()
 class EMOPCLI(EmliteMediatorClient):
     def __init__(self, port=None, serial=None):
         self.supabase = supa_client(
-            config["supabase_url"],
-            config["supabase_anon_key"],
-            config["access_token"]
+            config["supabase_url"], config["supabase_anon_key"], config["access_token"]
         )
-        
-        if (serial is not None):
-            result = (self.supabase.table('meter_registry')
-                           .select('ip_address,id')
-                           .eq('serial', serial)
-                           .execute())
-            
-            if (len(result.data) == 0):
+
+        if serial is not None:
+            result = (
+                self.supabase.table("meter_registry")
+                .select("ip_address,id")
+                .eq("serial", serial)
+                .execute()
+            )
+
+            if len(result.data) == 0:
                 logger.error("meter not found for given serial")
                 sys.exit(10)
 
@@ -44,11 +44,11 @@ class EMOPCLI(EmliteMediatorClient):
             logger.error("connection remotely by serial not yet supported")
             sys.exit(10)
 
-        if (port is not None):
+        if port is not None:
             super().__init__(port=port)
-    
+
     # =================================
-    #   EMOP Commands Wrappers 
+    #   EMOP Commands Wrappers
     # =================================
 
     def profile_log_1_str_args(self, ts_iso_str: str):
@@ -73,19 +73,21 @@ class EMOPCLI(EmliteMediatorClient):
         )
 
     # =================================
-    #   Supabase Commands 
+    #   Supabase Commands
     # =================================
 
     def serial_to_name(self, serial: str):
-        result = (self.supabase.table('meter_registry')
-                       .select('name')
-                       .eq('serial', serial)
-                       .execute())
-        if (len(result.data) == 0):
+        result = (
+            self.supabase.table("meter_registry")
+            .select("name")
+            .eq("serial", serial)
+            .execute()
+        )
+        if len(result.data) == 0:
             logger.info("meter not found for given serial")
             sys.exit()
 
-        print(result.data[0]['name'])
+        print(result.data[0]["name"])
 
     def _check_amount_arg_is_string(self, arg_value):
         if isinstance(arg_value, str):
@@ -97,9 +99,8 @@ class EMOPCLI(EmliteMediatorClient):
         )
         sys.exit(10)
 
-
     # =================================
-    #   Shelved for now  
+    #   Shelved for now
     # =================================
 
     # NOTE: initially implemented the below to support login by user/password
@@ -109,14 +110,14 @@ class EMOPCLI(EmliteMediatorClient):
     #  a JWT for it and set up the auth rules using postgres roles and grants.
     #  JWT is checked by supabase (postgrest) but does not use auth.users
     #  or the authenticated role.
-     
+
     # def login(self, email: str, password: str):
-    #     supabase = supa_client(supabase_url, supabase_anon_key) 
+    #     supabase = supa_client(supabase_url, supabase_anon_key)
     #     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
     #     self._save_tokens(result.session.access_token, result.session.refresh_token)
 
     # def logout(self, email: str, password: str):
-    #     supabase = supa_client(supabase_url, supabase_anon_key) 
+    #     supabase = supa_client(supabase_url, supabase_anon_key)
     #     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
     #     print(result)
 
@@ -132,6 +133,7 @@ class EMOPCLI(EmliteMediatorClient):
 
 def main():
     fire.Fire(EMOPCLI)
+
 
 if __name__ == "__main__":
     main()

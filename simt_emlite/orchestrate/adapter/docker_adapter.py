@@ -1,17 +1,18 @@
-import docker
-import fire
-
 from typing import List
 
+import fire
+
+import docker
 from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter, ContainerState
 from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
 docker_status = {
-    ContainerState.STARTED: 'running',
-    ContainerState.STOPPED: 'exited',
+    ContainerState.STARTED: "running",
+    ContainerState.STOPPED: "exited",
 }
+
 
 class DockerAdapter(BaseAdapter):
     def __init__(self, image: str):
@@ -21,7 +22,7 @@ class DockerAdapter(BaseAdapter):
     def list(
         self,
         metadata_filter: tuple[str, str] = None,
-        status_filter: ContainerState = None
+        status_filter: ContainerState = None,
     ) -> List[str]:
         filters = {"ancestor": "emlite-mediator"}
 
@@ -40,29 +41,21 @@ class DockerAdapter(BaseAdapter):
         return container_ids
 
     def create(
-        self,
-        cmd: str,
-        name: str,
-        meter_id: str,
-        ip_address: str,
-        mediator_port: int
+        self, cmd: str, name: str, meter_id: str, ip_address: str, mediator_port: int
     ) -> str:
         container = self.docker_client.containers.run(
             self.image,
             name=name,
             command=cmd,
-            environment={
-                "EMLITE_HOST": ip_address,
-                "LISTEN_PORT": mediator_port
-            },
+            environment={"EMLITE_HOST": ip_address, "LISTEN_PORT": mediator_port},
             network_mode="host",
             restart_policy={"Name": "always"},
             labels={
                 "meter_id": meter_id,
                 "emlite_host": ip_address,
-                "listen_port": str(mediator_port)
+                "listen_port": str(mediator_port),
             },
-            detach=True
+            detach=True,
         )
         return container.id
 
@@ -82,6 +75,7 @@ class DockerAdapter(BaseAdapter):
 
 def main():
     fire.Fire(DockerAdapter)
+
 
 if __name__ == "__main__":
     main()

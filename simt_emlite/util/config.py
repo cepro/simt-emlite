@@ -6,9 +6,12 @@ from dotenv import load_dotenv
 CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".simt")
 EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emlite.env")
 
+
 def load_config():
     if os.path.isfile(EMOP_CONFIG_FILE) is False:
-        print("ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up.")
+        print(
+            "ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up."
+        )
         sys.exit(5)
 
     load_dotenv(EMOP_CONFIG_FILE)
@@ -22,5 +25,5 @@ def load_config():
         "supabase_url": supabase_url,
         "supabase_anon_key": supabase_anon_key,
         "access_token": access_token,
-        "fly_app": fly_app
-    } 
+        "fly_app": fly_app,
+    }

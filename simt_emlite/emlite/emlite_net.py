@@ -61,17 +61,17 @@ class EmliteNET:
             sock = None
             raise e
         except socket.error as e:
-            if (e.__class__.__name__ == 'ConnectionRefusedError'):
+            if e.__class__.__name__ == "ConnectionRefusedError":
                 # The meter is likely not ready to accept the second of 2 requests
                 # we can observe a lot of these if there is no wait time between
                 # requests. we currently wait 2 seconds between them which avoids
                 # a lot of these but sometimes they still occur.
-                # 
-                # NOTE: Care is taken here not to log the string 'error' so it 
+                #
+                # NOTE: Care is taken here not to log the string 'error' so it
                 # doesn't appear in papertrail filters for errors. We tolerate these
                 # and usual a retry succeeds.
                 logger.warn("ConnectionRefused connecting to socket", host=self.host)
-            else: 
+            else:
                 logger.warn("Error connecting to socket", host=self.host, error=e)
             sock.close()
             sock = None
