@@ -104,11 +104,9 @@ class EmliteNET:
             sock.close()
             sock = None
             raise e
-        # except Exception as e:
-        except:
-            self.log.error("a message and e")
-            # self.log.error(e)
-            # raise e
+        except Exception as e:
+            self.log.error("catch all exception in _open_socket", e)
+            raise e
 
         return sock
 
