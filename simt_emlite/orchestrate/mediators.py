@@ -21,8 +21,8 @@ supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
-
 use_fly: bool = os.environ.get("FLY_API_TOKEN") is not None
+fly_app: str = os.environ.get("FLY_APP")
 
 
 class Mediators:
@@ -31,7 +31,7 @@ class Mediators:
 
         # TODO: look at config and the presense of the fly api key
         if use_fly:
-            self.containers = FlyAdapter(mediator_image)
+            self.containers = FlyAdapter(fly_app, mediator_image)
         else:
             self.containers = DockerAdapter(mediator_image)
 

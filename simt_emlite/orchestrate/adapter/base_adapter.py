@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List
@@ -9,6 +10,24 @@ class ContainerState(Enum):
 
 
 class BaseAdapter(ABC):
+    def __init__(self):
+        self.socks_dict = {
+            "SOCKS_HOST": os.environ.get("SOCKS_HOST"),
+            "SOCKS_PORT": os.environ.get("SOCKS_PORT"),
+            "SOCKS_USERNAME": os.environ.get("SOCKS_USERNAME"),
+            "SOCKS_PASSWORD": os.environ.get("SOCKS_PASSWORD"),
+        }
+
+        self.use_socks = all(
+            self.socks_dict[f"SOCKS_{v}"] is not None
+            for v in [
+                "HOST",
+                "PORT",
+                "USERNAME",
+                "PASSWORD",
+            ]
+        )
+
     @abstractmethod
     def list(
         self,

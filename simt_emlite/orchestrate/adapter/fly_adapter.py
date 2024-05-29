@@ -24,6 +24,8 @@ def metadata_filter_fn(key, value):
 
 class FlyAdapter(BaseAdapter):
     def __init__(self, fly_app: str, image: str):
+        super().__init__()
+
         self.api = API()
         self.fly_app = fly_app
         self.image = image
@@ -52,12 +54,19 @@ class FlyAdapter(BaseAdapter):
         return machine_ids
 
     def create(self, cmd: str, name: str, meter_id: str, ip_address: str) -> str:
+        envvar_dict = {"EMLITE_HOST": ip_address}
+        if self.use_socks is True:
+            logger.info(
+                "configuring socks proxy ", socks_host=self.socks_dict["SOCKS_HOST"]
+            )
+            envvar_dict.update(self.socks_dict)
+
         machine = self.api.create(
             self.fly_app,
             self.image,
             [cmd],
             name=name,
-            env_vars={"EMLITE_HOST": ip_address},
+            env_vars=envvar_dict,
             metadata={"meter_id": meter_id, "emlite_host": ip_address},
         )
         logger.info(

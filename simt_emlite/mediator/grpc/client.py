@@ -29,7 +29,7 @@ TIMEOUT_SECONDS = 50
 class EmliteMediatorGrpcClient:
     def __init__(self, host="0.0.0.0", port=50051, meter_id=None):
         self.address = f"{host}:{port}"
-        self.meter_id = meter_id
+        self.meter_id = meter_id if meter_id is not None else "unknown"
         global logger
         self.log = logger.bind(port=port, meter_id=meter_id)
 
@@ -54,12 +54,12 @@ class EmliteMediatorGrpcClient:
                             object_id=object_id.name,
                         )
                         raise EmliteEOFError(
-                            "object_id=" + object_id.name + ", meter=" + self.meter_id
+                            f"object_id={object_id.name}, meter={self.meter_id}"
                         )
                     elif "failed to connect after retries" in e.details():
                         self.log.warn(e.details())
                         raise EmliteConnectionFailure(
-                            "object_id=" + object_id.name + ", meter=" + self.meter_id
+                            f"object_id={object_id.name}, meter={self.meter_id}"
                         )
                     else:
                         raise e

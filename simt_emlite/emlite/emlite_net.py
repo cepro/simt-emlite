@@ -1,6 +1,7 @@
 import os
 import socket
 
+from python_socks.sync import Proxy
 from tenacity import retry, stop_after_attempt
 
 from simt_emlite.util.logging import get_logger
@@ -8,6 +9,16 @@ from simt_emlite.util.logging import get_logger
 logger = get_logger(__name__, __file__)
 
 socket_timeout: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
+
+
+socks_host: str = os.environ.get("SOCKS_HOST")
+socks_port: int = os.environ.get("SOCKS_PORT")
+socks_username: str = os.environ.get("SOCKS_USERNAME")
+socks_password: str = os.environ.get("SOCKS_PASSWORD")
+
+use_socks = all(
+    v is not None for v in [socks_host, socks_port, socks_username, socks_password]
+)
 
 """
     Class responsible for talking to meters via TCP/IP.
@@ -50,11 +61,28 @@ class EmliteNET:
     @retry(stop=stop_after_attempt(3))
     def _open_socket(self):
         logger.info("connecting", host=self.host)
-        sock = socket.socket()
-        sock.settimeout(socket_timeout)  # seconds
+
         try:
+            if use_socks is True:
+                logger.info("connect to socks proxy", socks_host=socks_host)
+                proxy = Proxy.from_url(
+                    f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
+                )
+                logger.info("after_from_url")
+                sock = proxy.connect(dest_host=self.host, dest_port=self.port)
+                logger.info("after proxy connect")
+                # sock = ssl.create_default_context().wrap_socket(
+                #     sock=sock,
+                #     server_hostname=self.host
+                # )
+            else:
+                sock = socket.socket()
+
+            sock.settimeout(socket_timeout)  # seconds
+            logger.info("before sock.connect")
             sock.connect((self.host, self.port))
             logger.info("connected", host=self.host)
+
         except socket.timeout as e:
             logger.info("Timeout connecting to socket", host=self.host, error=e)
             sock.close()
@@ -76,6 +104,12 @@ class EmliteNET:
             sock.close()
             sock = None
             raise e
+        # except Exception as e:
+        except:
+            self.log.error("a message and e")
+            # self.log.error(e)
+            # raise e
+
         return sock
 
     def _write_bytes(self, sock, data):

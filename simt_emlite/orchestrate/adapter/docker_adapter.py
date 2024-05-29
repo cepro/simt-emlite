@@ -16,6 +16,8 @@ docker_status = {
 
 class DockerAdapter(BaseAdapter):
     def __init__(self, image: str):
+        super().__init__()
+
         self.docker_client = docker.from_env()
         self.image = image
 
@@ -43,11 +45,18 @@ class DockerAdapter(BaseAdapter):
     def create(
         self, cmd: str, name: str, meter_id: str, ip_address: str, mediator_port: int
     ) -> str:
+        envvar_dict = {"EMLITE_HOST": ip_address, "LISTEN_PORT": mediator_port}
+        if self.use_socks is True:
+            logger.info(
+                "configuring socks proxy ", socks_host=self.socks_dict["SOCKS_HOST"]
+            )
+            envvar_dict.update(self.socks_dict)
+
         container = self.docker_client.containers.run(
             self.image,
             name=name,
             command=cmd,
-            environment={"EMLITE_HOST": ip_address, "LISTEN_PORT": mediator_port},
+            environment=envvar_dict,
             network_mode="host",
             restart_policy={"Name": "always"},
             labels={

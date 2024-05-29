@@ -607,6 +607,23 @@ files = [
 cli = ["click (>=5.0)"]
 
 [[package]]
+name = "python-socks"
+version = "2.4.4"
+description = "Core proxy (SOCKS4, SOCKS5, HTTP tunneling) functionality for Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "python-socks-2.4.4.tar.gz", hash = "sha256:e5a8e4f78203612c813946feacd87b98943965a04389fe221fa1e9ab263ad22e"},
+    {file = "python_socks-2.4.4-py3-none-any.whl", hash = "sha256:fda465d3ef229119ee614eb85f2b7c0ad28be6dd40e0ef8dd317c49e8725e514"},
+]
+
+[package.extras]
+anyio = ["anyio (>=3.3.4,<5.0.0)"]
+asyncio = ["async-timeout (>=3.0.1)"]
+curio = ["curio (>=1.4)"]
+trio = ["trio (>=0.16.0)"]
+
+[[package]]
 name = "pywin32"
 version = "306"
 description = "Python for Window Extensions"
@@ -972,4 +989,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "8d0bfaae471fa842768b1671570cf73237d5a3c1b046299ae15f55139ead506e"
+content-hash = "5cbdfb6201ca11f4a54a8a32fcd47e4ea348e47340f910169d5443c6c7709843"
