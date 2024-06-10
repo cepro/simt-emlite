@@ -8,7 +8,7 @@ from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-socket_timeout: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
+socket_timeout_seconds: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
 
 
 socks_host: str = os.environ.get("SOCKS_HOST")
@@ -65,10 +65,13 @@ class EmliteNET:
         try:
             if use_socks is True:
                 logger.info("connect to socks proxy", socks_host=socks_host)
+                print(
+                    f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
+                )
                 proxy = Proxy.from_url(
                     f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
                 )
-                logger.info("after_from_url")
+                logger.info(f"after_from_url host {self.host} port {self.port}")
                 sock = proxy.connect(dest_host=self.host, dest_port=self.port)
                 logger.info("after proxy connect")
                 # sock = ssl.create_default_context().wrap_socket(
@@ -77,10 +80,10 @@ class EmliteNET:
                 # )
             else:
                 sock = socket.socket()
+                logger.info("before sock.connect")
+                sock.connect((self.host, self.port))
 
-            sock.settimeout(socket_timeout)  # seconds
-            logger.info("before sock.connect")
-            sock.connect((self.host, self.port))
+            sock.settimeout(socket_timeout_seconds)
             logger.info("connected", host=self.host)
 
         except socket.timeout as e:
@@ -105,7 +108,8 @@ class EmliteNET:
             sock = None
             raise e
         except Exception as e:
-            self.log.error("catch all exception in _open_socket", e)
+            logger.error("catch all exception in _open_socket:")
+            logger.error(e)
             raise e
 
         return sock
