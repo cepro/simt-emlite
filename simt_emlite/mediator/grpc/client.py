@@ -1,3 +1,5 @@
+import os
+
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
@@ -18,6 +20,11 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
 logger = get_logger(__name__, __file__)
 
+CERT_PATH = os.environ.get("ROOT_CERTIFICATE_PATH")
+with open(CERT_PATH, "rb") as cert_file:
+    NGINX_ROOT_CERT = cert_file.read()
+
+
 # timeout considerations:
 # 1) a successful call should take less than 5 seconds
 # 2) emlite_net retries 3 times in case of timeouts, timeout is 10 seconds with
@@ -27,19 +34,31 @@ TIMEOUT_SECONDS = 50
 
 
 class EmliteMediatorGrpcClient:
-    def __init__(self, host="0.0.0.0", port=50051, meter_id=None):
+    def __init__(self, host="0.0.0.0", port=50051, access_token=None, meter_id=None):
         self.address = f"{host}:{port}"
+        self.access_token = access_token
         self.meter_id = meter_id if meter_id is not None else "unknown"
         global logger
         self.log = logger.bind(port=port, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
-        with grpc.insecure_channel(self.address) as channel:
+        # conditional secure channel?  if access token then secure otherwise insecure
+        # useful for local or not? just start a docker -compose stack that includes the gateway?
+        channel_credential = grpc.ssl_channel_credentials(NGINX_ROOT_CERT)
+        call_credentials = grpc.access_token_call_credentials(self.access_token)
+
+        composite_credentials = grpc.composite_channel_credentials(
+            channel_credential,
+            call_credentials,
+        )
+
+        with grpc.secure_channel(self.address, composite_credentials) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
                     ReadElementRequest(objectId=object_id.value),
                     timeout=TIMEOUT_SECONDS,
+                    metadata=(("abc", "xyz"),),
                 )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:

@@ -64,20 +64,18 @@ class EmliteNET:
 
         try:
             if use_socks is True:
-                logger.info("connect to socks proxy", socks_host=socks_host)
-                print(
-                    f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
+                logger.info(
+                    "connect to socks proxy",
+                    socks_host=socks_host,
+                    socks_port=socks_port,
+                    socks_username=socks_username,
                 )
                 proxy = Proxy.from_url(
                     f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
                 )
-                logger.info(f"after_from_url host {self.host} port {self.port}")
+                logger.info(f"connect to proxy ...")
                 sock = proxy.connect(dest_host=self.host, dest_port=self.port)
                 logger.info("after proxy connect")
-                # sock = ssl.create_default_context().wrap_socket(
-                #     sock=sock,
-                #     server_hostname=self.host
-                # )
             else:
                 sock = socket.socket()
                 logger.info("before sock.connect")

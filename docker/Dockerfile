@@ -9,4 +9,6 @@ RUN pip install poetry && poetry install --only main --no-root
 COPY simt_emlite simt_emlite
 RUN poetry install --only main
 
+COPY infra/certificates /certificates
+
 ENTRYPOINT ["poetry", "run", "python", "-m"]

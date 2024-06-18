@@ -31,8 +31,10 @@ class Mediators:
 
         # TODO: look at config and the presense of the fly api key
         if use_fly:
+            logger.info("container adapter: FlyAdapter")
             self.containers = FlyAdapter(fly_app, mediator_image)
         else:
+            logger.info("container adapter: DockerAdapter")
             self.containers = DockerAdapter(mediator_image)
 
     def start_one(self, meter_id: str) -> int:
