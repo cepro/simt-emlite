@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 from decimal import Decimal
 from typing import List, TypedDict
 
@@ -26,6 +27,8 @@ from simt_emlite.util.logging import get_logger
 from .grpc.client import EmliteMediatorGrpcClient
 
 logger = get_logger(__name__, __file__)
+
+ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
 
 
 class MediatorClientException(Exception):
@@ -102,8 +105,8 @@ class TariffsFuture(TypedDict):
 
 
 class EmliteMediatorClient(object):
-    def __init__(self, host="0.0.0.0", port=55555, meter_id=None):
-        self.grpc_client = EmliteMediatorGrpcClient(host, port, meter_id)
+    def __init__(self, host="0.0.0.0", port=50051, meter_id=None):
+        self.grpc_client = EmliteMediatorGrpcClient(host, port, ACCESS_TOKEN, meter_id)
         global logger
         self.log = logger.bind(meter_id=meter_id, mediator_port=port)
         self.log.info("port", port=port)

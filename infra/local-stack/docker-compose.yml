@@ -1,0 +1,59 @@
+services:
+  emnify-gateway:
+    image: simt-emnify-gateway
+    ports:
+      - "1080:1080"
+    env_file:
+      - socks_proxy.env
+    environment:
+      - SOCKS_BINDHOST=0.0.0.0
+    devices:
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./openvpn_conf:/openvpn_conf
+
+  mediator-gateway:
+    image: simt-mediator-gateway
+    ports:
+      - "1143:1143"
+    environment:
+      # binhex formatted supabase jwt secret (super-secret-jwt-token-with-at-least-32-characters-long) 
+      - SUPABASE_JWT_SECRET=73757065722d7365637265742d6a77742d746f6b656e2d776974682d61742d6c656173742d33322d636861726163746572732d6c6f6e67
+    volumes:
+      - ../certificates:/ssl
+
+  # TODO: consider starting these with the mediators cli once stack testing is stable ...  
+  mediator-cpro.lab-qa1.c:
+    image: simt-emlite
+    depends_on:
+      - emnify-gateway  
+    ports:
+      - "50051:50051"
+    env_file:
+      - socks_proxy.env
+    environment:
+      - EMLITE_HOST=100.79.244.203
+    command: simt_emlite.mediator.grpc.server
+    labels:
+      - "meter_id=02bf733d-15ca-4d82-8943-68424024cd96"
+      - "emlite_host=100.79.244.203"
+
+  mediator-cpro.plot-11.c:
+    image: simt-emlite
+    depends_on:
+      - emnify-gateway  
+    ports:
+      - "50051:50051"
+    env_file:
+      - socks_proxy.env
+    environment:
+      - EMLITE_HOST=100.79.244.215
+    command: simt_emlite.mediator.grpc.server
+    labels:
+      - "meter_id=91bb8372-4ca4-4465-a9da-2a995493e09b"
+      - "emlite_host=100.79.244.215"
+
+networks:
+  mediators-local:
