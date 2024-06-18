@@ -21,8 +21,9 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 logger = get_logger(__name__, __file__)
 
 CERT_PATH = os.environ.get("ROOT_CERTIFICATE_PATH")
-with open(CERT_PATH, "rb") as cert_file:
-    NGINX_ROOT_CERT = cert_file.read()
+if CERT_PATH is not None:
+    with open(CERT_PATH, "rb") as cert_file:
+        NGINX_ROOT_CERT = cert_file.read()
 
 
 # timeout considerations:
