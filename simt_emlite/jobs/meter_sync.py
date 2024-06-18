@@ -51,7 +51,9 @@ class MeterSyncJob:
         self.run_frequency = run_frequency
 
         self.emlite_client = EmliteMediatorClient(
-            port=self.mediator_port, host=self.mediator_host, meter_id=self.meter_id
+            port=self.mediator_port,
+            mediator_host=self.mediator_host,
+            meter_id=self.meter_id,
         )
         self.supabase = supa_client(
             self.supabase_url, self.supabase_key, self.flows_role_key

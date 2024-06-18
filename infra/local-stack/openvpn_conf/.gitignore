@@ -1,0 +1,4 @@
+# all credentials ignored
+*
+# but keep .gitignore
+!.gitignore

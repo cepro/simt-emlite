@@ -14,5 +14,6 @@
         "editor.codeActionsOnSave": {
             "source.organizeImports": "always",
         }
-    }
+    },
+    "python.REPL.enableREPLSmartSend": false
 }

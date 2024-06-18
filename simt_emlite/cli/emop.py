@@ -11,7 +11,16 @@ from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
+
 config = load_config()
+
+ACCESS_TOKEN = config["ACCESS_TOKEN"]
+SUPABASE_ANON_KEY = config["SUPABASE_ANON_KEY"]
+SUPABASE_URL = config["SUPABASE_URL"]
+
+PROXY_HOST = config["MEDIATOR_PROXY_HOST"]
+with open(config["PROXY_CERT_PATH"], "rb") as cert_file:
+    PROXY_CERT = cert_file.read()
 
 
 """
@@ -21,31 +30,43 @@ config = load_config()
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self, port=None, serial=None):
-        self.supabase = supa_client(
-            config["supabase_url"], config["supabase_anon_key"], config["access_token"]
+    def __init__(self, serial, emnify_id=None):
+        # TODO: necessary for meters that have not yet had a serial read
+        #       they will be in the registry but with a NULL serial
+        if emnify_id is not None:
+            err_msg = "emnify_id lookup is not yet supported."
+            logger.warn(err_msg)
+            raise Exception(err_msg)
+
+        # serial mandatory until emnify_id supported above
+        if serial is None:
+            err_msg = "serial property required at this stage"
+            logger.warn(err_msg)
+            raise Exception(err_msg)
+
+        self.supabase = supa_client(SUPABASE_URL, SUPABASE_ANON_KEY, ACCESS_TOKEN)
+
+        result = (
+            self.supabase.table("meter_registry")
+            .select("id")
+            .eq("serial", serial)
+            .execute()
         )
 
-        if serial is not None:
-            result = (
-                self.supabase.table("meter_registry")
-                .select("ip_address,id")
-                .eq("serial", serial)
-                .execute()
-            )
-
-            if len(result.data) == 0:
-                logger.error("meter not found for given serial")
-                sys.exit(10)
-
-            # TODO: connection by serial will involve connecting to a proxy
-            #       at a fixed remote address and port that will proxy to the
-            #       appropriate mediator
-            logger.error("connection remotely by serial not yet supported")
+        if len(result.data) == 0:
+            logger.error("meter not found for given serial")
             sys.exit(10)
 
-        if port is not None:
-            super().__init__(port=port)
+        meter_id = result.data["id"]
+        mediator_host = f"mediator-{serial}"
+
+        super().__init__(
+            mediator_host=mediator_host,
+            access_token=ACCESS_TOKEN,
+            meter_id=meter_id,
+            proxy_host_override=PROXY_HOST,
+            proxy_cert_override=PROXY_CERT,
+        )
 
     # =================================
     #   EMOP Commands Wrappers

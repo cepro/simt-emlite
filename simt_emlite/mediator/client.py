@@ -102,12 +102,24 @@ class TariffsFuture(TypedDict):
 
 
 class EmliteMediatorClient(object):
-    def __init__(self, host="0.0.0.0", port=55555, meter_id=None):
-        self.grpc_client = EmliteMediatorGrpcClient(host, port, meter_id)
+    def __init__(
+        self,
+        mediator_host="0.0.0.0",
+        access_token=None,
+        meter_id=None,
+        proxy_host_override=None,
+        proxy_cert_override=None,
+    ):
+        self.grpc_client = EmliteMediatorGrpcClient(
+            mediator_host,
+            access_token,
+            meter_id,
+            proxy_host_override,
+            proxy_cert_override,
+        )
         global logger
-        self.log = logger.bind(meter_id=meter_id, mediator_port=port)
-        self.log.info("port", port=port)
-        # self.log.debug('EmliteMediatorClient init')
+        self.log = logger.bind(host=mediator_host, meter_id=meter_id)
+        self.log.debug("EmliteMediatorClient init")
 
     def serial(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)

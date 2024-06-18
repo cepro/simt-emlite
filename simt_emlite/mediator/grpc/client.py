@@ -1,3 +1,5 @@
+import os
+
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
@@ -18,6 +20,14 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
 logger = get_logger(__name__, __file__)
 
+PROXY_HOST = os.environ.get("MEDIATOR_PROXY_HOST")
+PROXY_CERT_PATH = os.environ.get("MEDIATOR_PROXY_CERTIFICATE_PATH")
+
+if PROXY_CERT_PATH is not None:
+    with open(PROXY_CERT_PATH, "rb") as cert_file:
+        PROXY_CERT = cert_file.read()
+
+
 # timeout considerations:
 # 1) a successful call should take less than 5 seconds
 # 2) emlite_net retries 3 times in case of timeouts, timeout is 10 seconds with
@@ -27,19 +37,36 @@ TIMEOUT_SECONDS = 50
 
 
 class EmliteMediatorGrpcClient:
-    def __init__(self, host="0.0.0.0", port=50051, meter_id=None):
-        self.address = f"{host}:{port}"
+    def __init__(
+        self,
+        mediator_host="0.0.0.0",
+        access_token=None,
+        meter_id=None,
+        proxy_host_override=None,
+        proxy_cert_override=None,
+    ):
+        self.mediator_host = mediator_host
+        self.access_token = access_token
         self.meter_id = meter_id if meter_id is not None else "unknown"
+
+        self.proxy_host = (
+            proxy_host_override if proxy_host_override is not None else PROXY_HOST
+        )
+        self.proxy_cert = (
+            proxy_cert_override if proxy_cert_override is not None else PROXY_CERT
+        )
+
         global logger
-        self.log = logger.bind(port=port, meter_id=meter_id)
+        self.log = logger.bind(mediator_host=mediator_host, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
-        with grpc.insecure_channel(self.address) as channel:
+        with grpc.secure_channel(PROXY_HOST, self._channel_credentials()) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
                     ReadElementRequest(objectId=object_id.value),
                     timeout=TIMEOUT_SECONDS,
+                    metadata=self._call_metadata(),
                 )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
@@ -82,12 +109,13 @@ class EmliteMediatorGrpcClient:
         return emlite_rsp.message
 
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
-        with grpc.insecure_channel(self.address) as channel:
+        with grpc.secure_channel(PROXY_HOST, self._channel_credentials()) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 stub.writeElement(
                     WriteElementRequest(objectId=object_id.value, payload=payload),
                     timeout=TIMEOUT_SECONDS,
+                    metadata=self._call_metadata(),
                 )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
@@ -121,11 +149,13 @@ class EmliteMediatorGrpcClient:
                 raise e
 
     def send_message(self, message: bytes):
-        with grpc.insecure_channel(self.address) as channel:
+        with grpc.secure_channel(PROXY_HOST, self._channel_credentials()) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.sendRawMessage(
-                    SendRawMessageRequest(dataField=message), timeout=TIMEOUT_SECONDS
+                    SendRawMessageRequest(dataField=message),
+                    timeout=TIMEOUT_SECONDS,
+                    metadata=self._call_metadata(),
                 )
             except grpc.RpcError as e:
                 self.log.error("sendRawMessage", details=e.details(), code=e.code())
@@ -135,8 +165,14 @@ class EmliteMediatorGrpcClient:
         self.log.info("response received", response_payload=payload_bytes.hex())
         return payload_bytes
 
+    def _channel_credentials(self):
+        channel_credential = grpc.ssl_channel_credentials(PROXY_CERT)
+        call_credentials = grpc.access_token_call_credentials(self.access_token)
+        composite_credentials = grpc.composite_channel_credentials(
+            channel_credential,
+            call_credentials,
+        )
+        return composite_credentials
 
-if __name__ == "__main__":
-    client = EmliteMediatorGrpcClient()
-    client.read_element(ObjectIdEnum.instantaneous_voltage)
-    # client.send_message(bytes.fromhex('0160010000'))
+    def _call_metadata(self):
+        return (("http-mediator-host", self.mediator_host),)
