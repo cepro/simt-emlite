@@ -1,8 +1,7 @@
+name: simt-mediator-local
 services:
   emnify-gateway:
     image: simt-emnify-gateway
-    ports:
-      - "1080:1080"
     env_file:
       - socks_proxy.env
     environment:
@@ -16,21 +15,17 @@ services:
 
   mediator-gateway:
     image: simt-mediator-gateway
-    ports:
-      - "1143:1143"
     environment:
       # binhex formatted supabase jwt secret (super-secret-jwt-token-with-at-least-32-characters-long) 
       - SUPABASE_JWT_SECRET=73757065722d7365637265742d6a77742d746f6b656e2d776974682d61742d6c656173742d33322d636861726163746572732d6c6f6e67
     volumes:
-      - ../certificates:/ssl
+      - ./certificates:/ssl
 
   # TODO: consider starting these with the mediators cli once stack testing is stable ...  
   mediator-cpro.lab-qa1.c:
     image: simt-emlite
     depends_on:
       - emnify-gateway  
-    ports:
-      - "50051:50051"
     env_file:
       - socks_proxy.env
     environment:
@@ -44,8 +39,6 @@ services:
     image: simt-emlite
     depends_on:
       - emnify-gateway  
-    ports:
-      - "50051:50051"
     env_file:
       - socks_proxy.env
     environment:
@@ -56,4 +49,6 @@ services:
       - "emlite_host=100.79.244.215"
 
 networks:
-  mediators-local:
+  default:
+    name: simt-mediator-local
+    external: true
