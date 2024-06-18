@@ -20,6 +20,8 @@ services:
       - SUPABASE_JWT_SECRET=73757065722d7365637265742d6a77742d746f6b656e2d776974682d61742d6c656173742d33322d636861726163746572732d6c6f6e67
     volumes:
       - ./certificates:/ssl
+    ports:
+      - 1443:1443
 
   # TODO: consider starting these with the mediators cli once stack testing is stable ...  
   mediator-cpro.lab-qa1.c:

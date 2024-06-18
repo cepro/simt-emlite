@@ -11,6 +11,7 @@ from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
+
 config = load_config()
 
 
@@ -21,7 +22,7 @@ config = load_config()
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self, port=None, serial=None):
+    def __init__(self, host=None, port=None, serial=None):
         self.supabase = supa_client(
             config["supabase_url"], config["supabase_anon_key"], config["access_token"]
         )
@@ -45,7 +46,7 @@ class EMOPCLI(EmliteMediatorClient):
             sys.exit(10)
 
         if port is not None:
-            super().__init__(port=port)
+            super().__init__(host=host, port=port, access_token=config["access_token"])
 
     # =================================
     #   EMOP Commands Wrappers

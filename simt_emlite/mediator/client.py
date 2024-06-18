@@ -28,8 +28,6 @@ from .grpc.client import EmliteMediatorGrpcClient
 
 logger = get_logger(__name__, __file__)
 
-ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN")
-
 
 class MediatorClientException(Exception):
     def __init__(self, code_str, message):
@@ -105,12 +103,11 @@ class TariffsFuture(TypedDict):
 
 
 class EmliteMediatorClient(object):
-    def __init__(self, host="0.0.0.0", port=50051, meter_id=None):
-        self.grpc_client = EmliteMediatorGrpcClient(host, port, ACCESS_TOKEN, meter_id)
+    def __init__(self, host="0.0.0.0", port=50051, access_token=None, meter_id=None):
+        self.grpc_client = EmliteMediatorGrpcClient(host, port, access_token, meter_id)
         global logger
         self.log = logger.bind(meter_id=meter_id, mediator_port=port)
-        self.log.info("port", port=port)
-        # self.log.debug('EmliteMediatorClient init')
+        self.log.debug("EmliteMediatorClient init")
 
     def serial(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
