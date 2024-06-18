@@ -73,7 +73,7 @@ class EmliteNET:
                 proxy = Proxy.from_url(
                     f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
                 )
-                logger.info(f"connect to proxy ...")
+                logger.info("connect to proxy ...")
                 sock = proxy.connect(dest_host=self.host, dest_port=self.port)
                 logger.info("after proxy connect")
             else:
