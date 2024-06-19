@@ -18,7 +18,7 @@ from simt_emlite.util.supabase import supa_client
 logger = get_logger(__name__, __file__)
 
 supabase_url_extra: str = os.environ.get("SUPABASE_URL_EXTRA")
-supabase_key_extra: str = os.environ.get("SUPABASE_KEY_EXTRA")
+supabase_key_extra: str = os.environ.get("SUPABASE_ANON_KEY_EXTRA")
 flows_role_key_extra: str = os.environ.get("FLOWS_ROLE_KEY_EXTRA")
 
 sync_extra: bool = all([supabase_url_extra, supabase_key_extra, flows_role_key_extra])

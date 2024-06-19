@@ -53,7 +53,9 @@ def check_environment_vars(
     logger, supabase_url, supabase_key, flows_role_key, meter_id
 ):
     if not supabase_url or not supabase_key:
-        logger.error("Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
+        logger.error(
+            "Environment variables SUPABASE_URL and SUPABASE_ANON_KEY not set."
+        )
         sys.exit(1)
 
     if not flows_role_key:

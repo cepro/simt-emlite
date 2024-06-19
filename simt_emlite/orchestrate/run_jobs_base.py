@@ -13,7 +13,7 @@ from simt_emlite.util.supabase import supa_client
 logger = get_logger(__name__, __file__)
 
 supabase_url: str = os.environ.get("SUPABASE_URL")
-supabase_key: str = os.environ.get("SUPABASE_KEY")
+supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 15)
@@ -115,7 +115,7 @@ class RunJobForAllMeters:
     def _check_environment(self):
         if not supabase_url or not supabase_key:
             self.log.error(
-                "Environment variables SUPABASE_URL and SUPABASE_KEY not set."
+                "Environment variables SUPABASE_URL and SUPABASE_ANON_KEY not set."
             )
             sys.exit(2)
 

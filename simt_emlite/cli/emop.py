@@ -14,7 +14,7 @@ logger = get_logger(__name__, __file__)
 
 config = load_config()
 
-ACCESS_TOKEN = config["ACCESS_TOKEN"]
+SUPABASE_ACCESS_TOKEN = config["SUPABASE_ACCESS_TOKEN"]
 SUPABASE_ANON_KEY = config["SUPABASE_ANON_KEY"]
 SUPABASE_URL = config["SUPABASE_URL"]
 
@@ -44,7 +44,9 @@ class EMOPCLI(EmliteMediatorClient):
             logger.warn(err_msg)
             raise Exception(err_msg)
 
-        self.supabase = supa_client(SUPABASE_URL, SUPABASE_ANON_KEY, ACCESS_TOKEN)
+        self.supabase = supa_client(
+            SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
+        )
 
         result = (
             self.supabase.table("meter_registry")
@@ -62,7 +64,7 @@ class EMOPCLI(EmliteMediatorClient):
 
         super().__init__(
             mediator_host=mediator_host,
-            access_token=ACCESS_TOKEN,
+            access_token=SUPABASE_ACCESS_TOKEN,
             meter_id=meter_id,
             proxy_host_override=PROXY_HOST,
             proxy_cert_override=PROXY_CERT,

@@ -87,7 +87,7 @@ if __name__ == "__main__":
     mediator_port: str = os.environ.get("MEDIATOR_PORT") or "50051"
 
     supabase_url: str = os.environ.get("SUPABASE_URL")
-    supabase_key: str = os.environ.get("SUPABASE_KEY")
+    supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 
     flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 

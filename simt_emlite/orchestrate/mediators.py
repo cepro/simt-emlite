@@ -18,7 +18,7 @@ logger = get_logger(__name__, __file__)
 
 mediator_image: str = os.environ.get("SIMT_EMLITE_IMAGE")
 supabase_url: str = os.environ.get("SUPABASE_URL")
-supabase_key: str = os.environ.get("SUPABASE_KEY")
+supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
 use_fly: bool = os.environ.get("FLY_API_TOKEN") is not None
@@ -181,7 +181,9 @@ if __name__ == "__main__":
         logger.error("SIMT_EMLITE_IMAGE not set to a docker image.")
         exit(1)
     if not supabase_url or not supabase_key:
-        logger.error("Environment variables SUPABASE_URL and SUPABASE_KEY not set.")
+        logger.error(
+            "Environment variables SUPABASE_URL and SUPABASE_ANON_KEY not set."
+        )
         exit(2)
     if not site_code:
         logger.error("SITE is not set")

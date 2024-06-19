@@ -16,14 +16,21 @@ def load_config():
 
     load_dotenv(EMOP_CONFIG_FILE)
 
-    supabase_url = os.environ.get("SUPABASE_URL")
-    supabase_anon_key = os.environ.get("SUPABASE_KEY")
-    access_token = os.environ.get("JWT_ACCESS_TOKEN")
-    fly_app = os.environ.get("FLY_APP")
-
     return {
-        "supabase_url": supabase_url,
-        "supabase_anon_key": supabase_anon_key,
-        "access_token": access_token,
-        "fly_app": fly_app,
+        # supabase
+        "supabase_url": os.environ.get("SUPABASE_URL"),
+        "supabase_anon_key": os.environ.get("SUPABASE_ANON_KEY"),
+        "supabase_access_token": os.environ.get("SUPABASE_ACCESS_TOKEN"),
+        # fly
+        "fly_token": os.environ.get("FLY_API_TOKEN"),
+        "fly_app": os.environ.get("FLY_APP"),
+        # emnify gateway socks proxy
+        "socks_host": os.environ.get("SOCKS_HOST"),
+        "socks_port": os.environ.get("SOCKS_PORT"),
+        "socks_username": os.environ.get("SOCKS_USERNAME"),
+        "socks_password": os.environ.get("SOCKS_PASSWORD"),
+        # simt_emlite docker image
+        "simt_emlite_image": os.environ.get("SIMT_EMLITE_IMAGE"),
+        # site (optional)
+        "site": os.environ.get("SITE"),
     }
