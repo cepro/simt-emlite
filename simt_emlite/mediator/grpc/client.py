@@ -23,6 +23,7 @@ logger = get_logger(__name__, __file__)
 PROXY_HOST = os.environ.get("MEDIATOR_PROXY_HOST")
 PROXY_CERT_PATH = os.environ.get("MEDIATOR_PROXY_CERTIFICATE_PATH")
 
+PROXY_CERT = None
 if PROXY_CERT_PATH is not None:
     with open(PROXY_CERT_PATH, "rb") as cert_file:
         PROXY_CERT = cert_file.read()
@@ -56,11 +57,15 @@ class EmliteMediatorGrpcClient:
             proxy_cert_override if proxy_cert_override is not None else PROXY_CERT
         )
 
+        self.proxy_address = f"{self.proxy_host}:1443"
+
         global logger
         self.log = logger.bind(mediator_host=mediator_host, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
-        with grpc.secure_channel(PROXY_HOST, self._channel_credentials()) as channel:
+        with grpc.secure_channel(
+            self.proxy_address, self._channel_credentials()
+        ) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
@@ -109,7 +114,9 @@ class EmliteMediatorGrpcClient:
         return emlite_rsp.message
 
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
-        with grpc.secure_channel(PROXY_HOST, self._channel_credentials()) as channel:
+        with grpc.secure_channel(
+            self.proxy_address, self._channel_credentials()
+        ) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 stub.writeElement(
@@ -149,7 +156,9 @@ class EmliteMediatorGrpcClient:
                 raise e
 
     def send_message(self, message: bytes):
-        with grpc.secure_channel(PROXY_HOST, self._channel_credentials()) as channel:
+        with grpc.secure_channel(
+            self.proxy_address, self._channel_credentials()
+        ) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.sendRawMessage(
@@ -166,7 +175,7 @@ class EmliteMediatorGrpcClient:
         return payload_bytes
 
     def _channel_credentials(self):
-        channel_credential = grpc.ssl_channel_credentials(PROXY_CERT)
+        channel_credential = grpc.ssl_channel_credentials(self.proxy_cert)
         call_credentials = grpc.access_token_call_credentials(self.access_token)
         composite_credentials = grpc.composite_channel_credentials(
             channel_credential,

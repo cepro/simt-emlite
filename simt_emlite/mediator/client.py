@@ -111,11 +111,11 @@ class EmliteMediatorClient(object):
         proxy_cert_override=None,
     ):
         self.grpc_client = EmliteMediatorGrpcClient(
-            mediator_host,
-            access_token,
-            meter_id,
-            proxy_host_override,
-            proxy_cert_override,
+            mediator_host=mediator_host,
+            access_token=access_token,
+            meter_id=meter_id,
+            proxy_host_override=proxy_host_override,
+            proxy_cert_override=proxy_cert_override,
         )
         global logger
         self.log = logger.bind(host=mediator_host, meter_id=meter_id)

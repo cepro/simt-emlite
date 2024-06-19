@@ -29,6 +29,11 @@ def load_config():
         "socks_port": os.environ.get("SOCKS_PORT"),
         "socks_username": os.environ.get("SOCKS_USERNAME"),
         "socks_password": os.environ.get("SOCKS_PASSWORD"),
+        # mediator gateway
+        "mediator_proxy_host": os.environ.get("MEDIATOR_PROXY_HOST"),
+        "mediator_proxy_certificate_path": os.environ.get(
+            "MEDIATOR_PROXY_CERTIFICATE_PATH"
+        ),
         # simt_emlite docker image
         "simt_emlite_image": os.environ.get("SIMT_EMLITE_IMAGE"),
         # site (optional)

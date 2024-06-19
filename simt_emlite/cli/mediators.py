@@ -1,3 +1,4 @@
+import json
 import sys
 from typing import Dict, List
 
@@ -36,16 +37,14 @@ class MediatorsCLI:
         self.supabase = supa_client(
             SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
         )
-        logger.info(config)
-
         self.machines = API(FLY_API_TOKEN)
 
-    def list(self):
-        self.machines.list(FLY_APP)
+    def list(self, metadata_filter: tuple[str, str] = None):
+        return self.machines.list(FLY_APP, metadata_filter=metadata_filter)
 
-    def start_one(self, serial: str):
+    def create(self, serial: str):
         meter = self._meter_by_serial(serial)
-        self.machines.create(
+        result = self.machines.create(
             FLY_APP,
             SIMT_EMLITE_IMAGE,
             ["simt_emlite.mediator.grpc.server"],
@@ -53,6 +52,13 @@ class MediatorsCLI:
             env_vars={"EMLITE_HOST": meter["ip_address"]},
             metadata={"meter_id": meter["id"]},
         )
+        logger.info(json.dumps(result, indent=2, sort_keys=True))
+        return result
+
+    def start_one(self, serial: str):
+        machine_id = self._machine_id_by_serial(serial)
+        self.machines.start(FLY_APP, machine_id)
+        return machine_id
 
     def start_many(self, meter_ids: List[str]) -> Dict[str, int]:
         pass
@@ -63,13 +69,34 @@ class MediatorsCLI:
     def stop_all(self):
         pass
 
-    def remove_all(self):
+    def destroy_all(self):
         pass
 
-    def stop_one(self, meter_id: str):
-        pass
+    def wait_one(self, machine_id: str):
+        self.machines.wait(FLY_APP, machine_id, "started")
 
-    def _meter_by_serial(self, serial):
+    def destroy_one(self, serial: str):
+        machine_id, instance_id = self.stop_one(serial)
+        self.machines.wait(FLY_APP, machine_id, instance_id, "stopped")
+        self.machines.destroy(FLY_APP, machine_id)
+
+    def stop_one(self, serial: str) -> str:
+        machine = self._machine_by_serial(serial)
+        self.machines.stop(FLY_APP, machine["id"])
+        return machine["id"], machine["instance_id"]
+
+    def _machine_by_serial(self, serial):
+        meter = self._meter_by_serial(serial)
+        machines = self.list(("meter_id", meter["id"]))
+        if len(machines) == 0:
+            raise Exception(f"meter {serial} not found")
+        return machines[0]
+
+    def _machine_id_by_serial(self, serial):
+        machine = self._machine_by_serial(serial)
+        return machine["id"]
+
+    def _meter_by_serial(self, serial) -> str:
         result = (
             self.supabase.table("meter_registry")
             .select("id,ip_address")
@@ -77,10 +104,10 @@ class MediatorsCLI:
             .execute()
         )
         if len(result.data) == 0:
-            logger.error("meter not found for given serial")
+            logger.error(f"meter {serial} not found")
             sys.exit(10)
 
-        return result.data
+        return result.data[0]
 
 
 def main():

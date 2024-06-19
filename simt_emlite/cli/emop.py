@@ -14,12 +14,13 @@ logger = get_logger(__name__, __file__)
 
 config = load_config()
 
-SUPABASE_ACCESS_TOKEN = config["SUPABASE_ACCESS_TOKEN"]
-SUPABASE_ANON_KEY = config["SUPABASE_ANON_KEY"]
-SUPABASE_URL = config["SUPABASE_URL"]
+SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
+SUPABASE_ANON_KEY = config["supabase_anon_key"]
+SUPABASE_URL = config["supabase_url"]
 
-PROXY_HOST = config["MEDIATOR_PROXY_HOST"]
-with open(config["PROXY_CERT_PATH"], "rb") as cert_file:
+PROXY_HOST = config["mediator_proxy_host"]
+PROXY_CERT = None
+with open(config["mediator_proxy_certificate_path"], "rb") as cert_file:
     PROXY_CERT = cert_file.read()
 
 
@@ -56,11 +57,11 @@ class EMOPCLI(EmliteMediatorClient):
         )
 
         if len(result.data) == 0:
-            logger.error("meter not found for given serial")
+            logger.error(f"meter {serial} not found")
             sys.exit(10)
 
-        meter_id = result.data["id"]
-        mediator_host = f"mediator-{serial}"
+        meter_id = result.data[0]["id"]
+        mediator_host = f"mediator-{serial}.internal"
 
         super().__init__(
             mediator_host=mediator_host,
@@ -107,7 +108,7 @@ class EMOPCLI(EmliteMediatorClient):
             .execute()
         )
         if len(result.data) == 0:
-            logger.info("meter not found for given serial")
+            logger.info(f"meter {serial} not found")
             sys.exit()
 
         print(result.data[0]["name"])
