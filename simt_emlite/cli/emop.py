@@ -5,6 +5,7 @@ from decimal import Decimal
 import fire
 from simt_fly_machines.api import API
 
+from simt_emlite.certificates import get_cert
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
@@ -20,9 +21,7 @@ SUPABASE_ANON_KEY = config["supabase_anon_key"]
 SUPABASE_URL = config["supabase_url"]
 
 PROXY_HOST = config["mediator_proxy_host"]
-PROXY_CERT = None
-with open(config["mediator_proxy_certificate_path"], "rb") as cert_file:
-    PROXY_CERT = cert_file.read()
+PROXY_CERT = get_cert()
 
 FLY_API_TOKEN = config["fly_token"]
 FLY_APP = config["fly_app"]

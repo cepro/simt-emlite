@@ -1,4 +1,3 @@
-import importlib.resources
 import os
 
 from emop_frame_protocol.emop_message import EmopMessage
@@ -6,6 +5,7 @@ from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
 
 import grpc
+from simt_emlite.certificates import get_cert
 from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
@@ -22,12 +22,7 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 logger = get_logger(__name__, __file__)
 
 PROXY_HOST = os.environ.get("MEDIATOR_PROXY_HOST")
-PROXY_CERT_PATH = os.environ.get("MEDIATOR_PROXY_CERTIFICATE_PATH")
-
-PROXY_CERT = None
-if PROXY_CERT_PATH is not None:
-    with importlib.resources.open_text(__name__, PROXY_CERT_PATH) as cert_file:
-        PROXY_CERT = cert_file.read()
+PROXY_CERT = get_cert()
 
 
 # timeout considerations:

@@ -17,6 +17,7 @@ def load_config():
     load_dotenv(EMOP_CONFIG_FILE)
 
     return {
+        "env": os.environ.get("ENV"),
         # supabase
         "supabase_url": os.environ.get("SUPABASE_URL"),
         "supabase_anon_key": os.environ.get("SUPABASE_ANON_KEY"),
@@ -31,9 +32,6 @@ def load_config():
         "socks_password": os.environ.get("SOCKS_PASSWORD"),
         # mediator gateway
         "mediator_proxy_host": os.environ.get("MEDIATOR_PROXY_HOST"),
-        "mediator_proxy_certificate_path": os.environ.get(
-            "MEDIATOR_PROXY_CERTIFICATE_PATH"
-        ),
         # simt_emlite docker image
         "simt_emlite_image": os.environ.get("SIMT_EMLITE_IMAGE"),
         # site (optional)
