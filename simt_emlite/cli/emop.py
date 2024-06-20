@@ -3,6 +3,7 @@ import sys
 from decimal import Decimal
 
 import fire
+from simt_fly_machines.api import API
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.config import load_config
@@ -22,6 +23,20 @@ PROXY_HOST = config["mediator_proxy_host"]
 PROXY_CERT = None
 with open(config["mediator_proxy_certificate_path"], "rb") as cert_file:
     PROXY_CERT = cert_file.read()
+
+FLY_API_TOKEN = config["fly_token"]
+FLY_APP = config["fly_app"]
+
+# =================================
+#   Fly lookup utils
+# =================================
+
+
+def _machine_id_by_meter_serial(machines_api, meter_id, serial):
+    machines = machines_api.list(FLY_APP, metadata_filter=("meter_id", meter_id))
+    if len(machines) == 0:
+        raise Exception(f"machine for meter {serial} not found")
+    return machines[0]["id"]
 
 
 """
@@ -61,7 +76,16 @@ class EMOPCLI(EmliteMediatorClient):
             sys.exit(10)
 
         meter_id = result.data[0]["id"]
-        mediator_host = f"mediator-{serial}.internal"
+
+        is_local = PROXY_HOST == "localhost"
+        if is_local:
+            mediator_host = f"mediator-{serial}"
+        else:
+            # build fly machine DNS names as <machine_id>.vm.<app_id>.internal
+            # see details at https://fly.io/docs/networking/private-networking/#fly-io-internal-dns
+            machines = API(FLY_API_TOKEN)
+            machine_id = _machine_id_by_meter_serial(machines, meter_id, serial)
+            mediator_host = f"{machine_id}.vm.{FLY_APP}.internal"
 
         super().__init__(
             mediator_host=mediator_host,

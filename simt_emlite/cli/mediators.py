@@ -49,7 +49,13 @@ class MediatorsCLI:
             SIMT_EMLITE_IMAGE,
             ["simt_emlite.mediator.grpc.server"],
             name=f"mediator-{serial}",
-            env_vars={"EMLITE_HOST": meter["ip_address"]},
+            env_vars={
+                "EMLITE_HOST": meter["ip_address"],
+                "SOCKS_HOST": SOCKS_HOST,
+                "SOCKS_PORT": SOCKS_PORT,
+                "SOCKS_USERNAME": SOCKS_USERNAME,
+                "SOCKS_PASSWORD": SOCKS_PASSWORD,
+            },
             metadata={"meter_id": meter["id"]},
         )
         logger.info(json.dumps(result, indent=2, sort_keys=True))
@@ -89,7 +95,7 @@ class MediatorsCLI:
         meter = self._meter_by_serial(serial)
         machines = self.list(("meter_id", meter["id"]))
         if len(machines) == 0:
-            raise Exception(f"meter {serial} not found")
+            raise Exception(f"machine for meter {serial} not found")
         return machines[0]
 
     def _machine_id_by_serial(self, serial):

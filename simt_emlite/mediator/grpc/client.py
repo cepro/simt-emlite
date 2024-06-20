@@ -184,4 +184,4 @@ class EmliteMediatorGrpcClient:
         return composite_credentials
 
     def _call_metadata(self):
-        return (("http-mediator-host", self.mediator_host),)
+        return (("mediator-host", self.mediator_host),)
