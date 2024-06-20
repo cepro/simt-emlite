@@ -1,3 +1,4 @@
+import importlib.resources
 import os
 
 from emop_frame_protocol.emop_message import EmopMessage
@@ -25,7 +26,7 @@ PROXY_CERT_PATH = os.environ.get("MEDIATOR_PROXY_CERTIFICATE_PATH")
 
 PROXY_CERT = None
 if PROXY_CERT_PATH is not None:
-    with open(PROXY_CERT_PATH, "rb") as cert_file:
+    with importlib.resources.open_text(__name__, PROXY_CERT_PATH) as cert_file:
         PROXY_CERT = cert_file.read()
 
 
