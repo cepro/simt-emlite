@@ -1,4 +1,6 @@
 import datetime
+import os
+import subprocess
 import sys
 from decimal import Decimal
 
@@ -8,11 +10,7 @@ from simt_fly_machines.api import API
 from simt_emlite.certificates import get_cert
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.config import load_config
-from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
-
-logger = get_logger(__name__, __file__)
-
 
 config = load_config()
 
@@ -50,13 +48,13 @@ class EMOPCLI(EmliteMediatorClient):
         #       they will be in the registry but with a NULL serial
         if emnify_id is not None:
             err_msg = "emnify_id lookup is not yet supported."
-            logger.warn(err_msg)
+            print(err_msg)
             raise Exception(err_msg)
 
         # serial mandatory until emnify_id supported above
         if serial is None:
             err_msg = "serial property required at this stage"
-            logger.warn(err_msg)
+            print(err_msg)
             raise Exception(err_msg)
 
         self.supabase = supa_client(
@@ -71,7 +69,7 @@ class EMOPCLI(EmliteMediatorClient):
         )
 
         if len(result.data) == 0:
-            logger.error(f"meter {serial} not found")
+            print(f"meter {serial} not found")
             sys.exit(10)
 
         meter_id = result.data[0]["id"]
@@ -131,7 +129,7 @@ class EMOPCLI(EmliteMediatorClient):
             .execute()
         )
         if len(result.data) == 0:
-            logger.info(f"meter {serial} not found")
+            print(f"meter {serial} not found")
             sys.exit()
 
         print(result.data[0]["name"])
@@ -145,6 +143,30 @@ class EMOPCLI(EmliteMediatorClient):
             + "[eg. \"'0.234'\" or '\"0.234\"']"
         )
         sys.exit(10)
+
+    # =================================
+    #   Utils
+    # =================================
+
+    def env_show():
+        print(config["env"])
+
+    def env_set(env: str):
+        allowed_env = ["prod", "qa", "local"]
+        if env not in allowed_env:
+            print(f"ERROR: env must be one of {allowed_env}")
+            sys.exit(1)
+
+        env_file = os.path.join(os.path.expanduser("~"), ".simt", "emlite.env")
+        rt = subprocess.run(
+            ["ln", "-s", "--force", f"{env_file}.{env}", env_file],
+            check=True,
+        )
+
+        if rt.returncode == 0:
+            print(f"env set to {env}")
+        else:
+            print("failed to set env")
 
     # =================================
     #   Shelved for now

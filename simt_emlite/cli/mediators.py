@@ -6,10 +6,7 @@ import fire
 from simt_fly_machines.api import API
 
 from simt_emlite.util.config import load_config
-from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
-
-logger = get_logger(__name__, __file__)
 
 config = load_config()
 
@@ -39,8 +36,22 @@ class MediatorsCLI:
         )
         self.machines = API(FLY_API_TOKEN)
 
-    def list(self, metadata_filter: tuple[str, str] = None):
-        return self.machines.list(FLY_APP, metadata_filter=metadata_filter)
+    def list(self, metadata_filter: tuple[str, str] = None, full=False) -> List:
+        machines = self.machines.list(FLY_APP, metadata_filter=metadata_filter)
+        if full:
+            return json.dumps(machines, indent=2, sort_keys=True)
+        return list(
+            map(
+                lambda m: {
+                    "id": m["id"],
+                    "name": m["name"],
+                    "state": m["state"],
+                    "image": m["config"]["image"],
+                    "metadata": m["config"]["metadata"],
+                },
+                machines,
+            ),
+        )
 
     def create(self, serial: str):
         meter = self._meter_by_serial(serial)
@@ -58,7 +69,6 @@ class MediatorsCLI:
             },
             metadata={"meter_id": meter["id"]},
         )
-        logger.info(json.dumps(result, indent=2, sort_keys=True))
         return result
 
     def start_one(self, serial: str):
@@ -110,7 +120,7 @@ class MediatorsCLI:
             .execute()
         )
         if len(result.data) == 0:
-            logger.error(f"meter {serial} not found")
+            print(f"meter {serial} not found")
             sys.exit(10)
 
         return result.data[0]
