@@ -157,10 +157,17 @@ class EMOPCLI(EmliteMediatorClient):
             print(f"ERROR: env must be one of {allowed_env}")
             sys.exit(1)
 
-        env_file = os.path.join(os.path.expanduser("~"), ".simt", "emlite.env")
+        config_path = os.path.join(os.path.expanduser("~"), ".simt")
         rt = subprocess.run(
-            ["ln", "-s", "--force", f"{env_file}.{env}", env_file],
+            [
+                "ln",
+                "-s",
+                "--force",
+                os.path.join(config_path, f"emlite.{env}.env"),
+                os.path.join(config_path, "emlite.env"),
+            ],
             check=True,
+            cwd=config_path,
         )
 
         if rt.returncode == 0:

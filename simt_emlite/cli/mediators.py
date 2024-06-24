@@ -1,12 +1,18 @@
 import json
 import sys
-from typing import Dict, List
+from datetime import datetime
+from typing import Dict, List, Literal, Union
 
 import fire
 from simt_fly_machines.api import API
 
 from simt_emlite.util.config import load_config
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import Client, supa_client
+
+# merge this with ContainerState when merging with orchestrate.mediators module
+MACHINE_STATE_TYPE = Union[
+    Literal["started"], Literal["stopped"], Literal["suspended"], Literal["destroyed"]
+]
 
 config = load_config()
 
@@ -28,30 +34,96 @@ SIMT_EMLITE_IMAGE = config["simt_emlite_image"]
     This is a CLI for managing Emlite mediator processes.
 """
 
+LOG_TIMES = False
+
+
+def log(msg):
+    if LOG_TIMES:
+        print(f"{datetime.now().strftime('%S.%f')} {msg}")
+
 
 class MediatorsCLI:
     def __init__(self):
-        self.supabase = supa_client(
+        log("top __init__")
+        self.supabase: Client = supa_client(
             SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
         )
         self.machines = API(FLY_API_TOKEN)
+        log("bottom __init__")
 
-    def list(self, metadata_filter: tuple[str, str] = None, full=False) -> List:
-        machines = self.machines.list(FLY_APP, metadata_filter=metadata_filter)
-        if full:
-            return json.dumps(machines, indent=2, sort_keys=True)
-        return list(
-            map(
-                lambda m: {
-                    "id": m["id"],
-                    "name": m["name"],
-                    "state": m["state"],
-                    "image": m["config"]["image"],
-                    "metadata": m["config"]["metadata"],
-                },
-                machines,
-            ),
+    def list(
+        self,
+        site: str = None,
+        machine_state: Union[MACHINE_STATE_TYPE] = None,
+        show_all=False,
+    ) -> List:
+        """
+        List meters and corresponding machines
+
+        Args:
+            site: site code [eg. 'hmce' for Hazelmead]
+            machine_state: one of [started, stopped, suspended, destroyed]
+            show_all: show all meters [True | False]
+        """
+        log("top list - get sites:")
+        sites_result = self.supabase.table("sites").select("id,code").execute()
+        log("got sites - get meters")
+        site_id_to_code = {s["id"]: s["code"] for s in sites_result.data}
+        site_code_to_id = {s["code"]: s["id"] for s in sites_result.data}
+
+        meters_query = self.supabase.table("meter_registry").select(
+            "id,ip_address,serial,site"
         )
+        if site is not None:
+            site_lc = site.lower()
+            if site_lc not in site_code_to_id:
+                print(f"unknown site [{site_lc}]")
+                sys.exit(1)
+            meters_query.eq("site", site_code_to_id[site_lc])
+
+        meters_result = meters_query.execute()
+        log("got meters")
+
+        # meter result with site id replaced with site code
+        meters = [{**m, "site": site_id_to_code[m["site"]]} for m in meters_result.data]
+
+        log("before get machines")
+
+        # add machine data
+        machines = self.machines.list(
+            FLY_APP,
+            #  metadata_filter=metadata_filter
+        )
+
+        for meter in meters:
+            machine_matches = list(
+                filter(
+                    lambda m: m["config"]["metadata"]["meter_id"] == meter["id"],
+                    machines,
+                )
+            )
+            machine = machine_matches[0] if len(machine_matches) != 0 else None
+
+            machine_dict = None
+            if machine is not None:
+                machine_dict = {}
+                machine_dict["id"] = machine["id"]
+                machine_dict["name"] = machine["name"]
+                machine_dict["state"] = machine["state"]
+                machine_dict["image"] = machine["config"]["image"]
+            meter["machine"] = machine_dict
+
+        if machine_state is not None:
+            meters = list(
+                filter(
+                    lambda m: m["machine"] is not None
+                    and m["machine"]["state"] == machine_state,
+                    meters,
+                )
+            )
+
+        log("bottom list")
+        return json.dumps(meters, indent=2, sort_keys=True)
 
     def create(self, serial: str):
         meter = self._meter_by_serial(serial)

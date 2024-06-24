@@ -21,16 +21,15 @@ to get the main package from test pypi but all other packages from the main
 pypi:
 
 ```
-pip install -i https://test.pypi.org/simple/ --no-dependencies simt-emlite
-pip install --index-url https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/ simt-emlite
+pip install --extra-index-url https://test.pypi.org/simple/ simt-emlite
 ```
 
 ## Configure
 
-- create file ~/.simt/emlite.env.prod from Lastpass secret 'emop-cli-env-file (prod)'
-- create file ~/.simt/emlite.env.qa from Lastpass secret 'emop-cli-env-file (qa)'
-- run `emop set_env <qa|prod>`
-    - this will create a symlink ~/.simt/emlite.env to one of the above
+- create file ~/.simt/emlite.prod.env from Lastpass secret 'emop-cli-env-file (prod)'
+- create file ~/.simt/emlite.qa.env from Lastpass secret 'emop-cli-env-file (qa)'
+- ln -s ~/.simt/emlite.<qa|prod>.env ~/.simt/emlite.env
+    - see `emop env_set` command for changing this after initial setup
 - edit ~/.simt/emlite.env
     - set SITE=wlce|hmce|...
     - set SUPABASE_ACCESS_TOKEN
@@ -39,8 +38,8 @@ pip install --index-url https://pypi.org/simple/ --extra-index-url https://test.
 
 ### emop
 ```sh 
-emop show_env
-emop set_env prod
+emop env_show
+emop env_set prod
 
 emop --serial EML2137580826 --help
 
