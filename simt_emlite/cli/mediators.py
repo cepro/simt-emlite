@@ -127,11 +127,25 @@ class MediatorsCLI:
 
     def create(self, serial: str):
         meter = self._meter_by_serial(serial)
+
+        machine_name = f"mediator-{serial}"
+        machine_metadata = {"meter_id": meter["id"]}
+
+        answer = input(f"""
+Fly App:    {FLY_APP}
+Image:      {SIMT_EMLITE_IMAGE}
+Name:       {machine_name}
+Metadata:   {machine_metadata}
+
+Create machine with these details (Y/n): """)
+        if answer != "Y":
+            sys.exit(1)
+
         result = self.machines.create(
             FLY_APP,
             SIMT_EMLITE_IMAGE,
             ["simt_emlite.mediator.grpc.server"],
-            name=f"mediator-{serial}",
+            name=machine_name,
             env_vars={
                 "EMLITE_HOST": meter["ip_address"],
                 "SOCKS_HOST": SOCKS_HOST,
@@ -139,7 +153,7 @@ class MediatorsCLI:
                 "SOCKS_USERNAME": SOCKS_USERNAME,
                 "SOCKS_PASSWORD": SOCKS_PASSWORD,
             },
-            metadata={"meter_id": meter["id"]},
+            metadata=machine_metadata,
         )
         return result
 
