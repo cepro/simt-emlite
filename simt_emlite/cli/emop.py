@@ -34,7 +34,7 @@ FLY_APP = config["fly_app"]
 def _machine_by_meter_serial(machines_api, meter_id, serial):
     machines = machines_api.list(FLY_APP, metadata_filter=("meter_id", meter_id))
     if len(machines) == 0:
-        raise Exception(f"machine for meter {serial} not found")
+        return None
     return machines[0]
 
 
@@ -85,6 +85,10 @@ class EMOPCLI(EmliteMediatorClient):
             # see details at https://fly.io/docs/networking/private-networking/#fly-io-internal-dns
             machines = API(FLY_API_TOKEN)
             machine = _machine_by_meter_serial(machines, meter_id, serial)
+            if machine is None:
+                print(f"machine does not yet exist for meter {serial}")
+                sys.exit(1)
+
             # TODO: lookup private IP by app name
             mediator_host = "[fdaa:5:3015:0:1::2]"
             mediator_port = machine["config"]["services"][0]["ports"][0]["port"]

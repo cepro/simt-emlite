@@ -1,4 +1,6 @@
 import json
+import os
+import subprocess
 import sys
 from datetime import datetime
 from typing import Dict, List, Literal, Union
@@ -55,6 +57,8 @@ class MediatorsCLI:
         self,
         site: str = None,
         machine_state: Union[MACHINE_STATE_TYPE] = None,
+        machine: bool = None,
+        no_machine: bool = None,
         show_all=False,
     ) -> List:
         """
@@ -63,26 +67,38 @@ class MediatorsCLI:
         Args:
             site: site code [eg. 'hmce' for Hazelmead]
             machine_state: one of [started, stopped, suspended, destroyed]
+            machine: show only with machines
+            no_machine: show meters without machines
             show_all: show all meters [True | False]
         """
-        meters = self._list(site, machine_state, show_all)
+        meters = self._list(
+            site=site,
+            machine_state=machine_state,
+            machine=machine,
+            no_machine=no_machine,
+            show_all=show_all,
+        )
         return json.dumps(meters, indent=2, sort_keys=True)
 
     def _list(
         self,
         site: str = None,
         machine_state: Union[MACHINE_STATE_TYPE] = None,
+        machine: bool = None,
+        no_machine: bool = None,
         show_all=False,
     ) -> List:
-        log("top list - get sites:")
         sites_result = self.supabase.table("sites").select("id,code").execute()
-        log("got sites - get meters")
+
         site_id_to_code = {s["id"]: s["code"] for s in sites_result.data}
         site_code_to_id = {s["code"]: s["id"] for s in sites_result.data}
 
-        meters_query = self.supabase.table("meter_registry").select(
-            "id,ip_address,serial,site"
+        meters_query = (
+            self.supabase.table("meter_registry")
+            .select("id,ip_address,serial,site")
+            .eq("mode", "active")
         )
+
         if site is not None:
             site_lc = site.lower()
             if site_lc not in site_code_to_id:
@@ -91,12 +107,9 @@ class MediatorsCLI:
             meters_query.eq("site", site_code_to_id[site_lc])
 
         meters_result = meters_query.execute()
-        log("got meters")
 
         # meter result with site id replaced with site code
         meters = [{**m, "site": site_id_to_code[m["site"]]} for m in meters_result.data]
-
-        log("before get machines")
 
         # add machine data
         machines = self.machines.list(
@@ -111,18 +124,33 @@ class MediatorsCLI:
                     machines,
                 )
             )
-            machine = machine_matches[0] if len(machine_matches) != 0 else None
+            mach = machine_matches[0] if len(machine_matches) != 0 else None
 
             machine_dict = None
-            if machine is not None:
-                print(f"machine {machine}")
+            if mach is not None:
                 machine_dict = {}
-                machine_dict["id"] = machine["id"]
-                machine_dict["name"] = machine["name"]
-                machine_dict["instance_id"] = machine["instance_id"]
-                machine_dict["state"] = machine["state"]
-                machine_dict["image"] = machine["config"]["image"]
+                machine_dict["id"] = mach["id"]
+                machine_dict["name"] = mach["name"]
+                machine_dict["instance_id"] = mach["instance_id"]
+                machine_dict["state"] = mach["state"]
+                machine_dict["image"] = mach["config"]["image"]
             meter["machine"] = machine_dict
+
+        if machine is True:
+            meters = list(
+                filter(
+                    lambda m: m["machine"] is not None,
+                    meters,
+                )
+            )
+
+        if no_machine is True:
+            meters = list(
+                filter(
+                    lambda m: m["machine"] is None,
+                    meters,
+                )
+            )
 
         if machine_state is not None:
             meters = list(
@@ -198,6 +226,39 @@ Create machine with these details (y/n): """)
         print(f"machine {machine}")
         self.machines.stop(FLY_APP, machine["id"])
         return machine["id"], machine["instance_id"]
+
+    # =================================
+    #   Utils
+    # =================================
+
+    # TODO: these are duplicated in emop - put them in one tool or at least consolidate the duplicated code
+
+    def env_show(self):
+        print(config["env"])
+
+    def env_set(self, env: str):
+        allowed_env = ["prod", "qa", "local"]
+        if env not in allowed_env:
+            print(f"ERROR: env must be one of {allowed_env}")
+            sys.exit(1)
+
+        config_path = os.path.join(os.path.expanduser("~"), ".simt")
+        rt = subprocess.run(
+            [
+                "ln",
+                "-s",
+                "--force",
+                os.path.join(config_path, f"emlite.{env}.env"),
+                os.path.join(config_path, "emlite.env"),
+            ],
+            check=True,
+            cwd=config_path,
+        )
+
+        if rt.returncode == 0:
+            print(f"env set to {env}")
+        else:
+            print("failed to set env")
 
     def _machine_by_serial(self, serial):
         meter = self._meter_by_serial(serial)
