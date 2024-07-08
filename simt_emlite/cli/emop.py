@@ -7,7 +7,7 @@ from decimal import Decimal
 import fire
 from simt_fly_machines.api import API
 
-from simt_emlite.certificates import get_cert
+# from simt_emlite.certificates import get_cert
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
@@ -18,8 +18,10 @@ SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
 SUPABASE_ANON_KEY = config["supabase_anon_key"]
 SUPABASE_URL = config["supabase_url"]
 
-PROXY_HOST = config["mediator_proxy_host"]
-PROXY_CERT = get_cert()
+# Not using proxy currently:
+
+# PROXY_HOST = config["mediator_proxy_host"]
+# PROXY_CERT = get_cert()
 
 FLY_API_TOKEN = config["fly_token"]
 FLY_APP = config["fly_app"]
@@ -29,11 +31,11 @@ FLY_APP = config["fly_app"]
 # =================================
 
 
-def _machine_id_by_meter_serial(machines_api, meter_id, serial):
+def _machine_by_meter_serial(machines_api, meter_id, serial):
     machines = machines_api.list(FLY_APP, metadata_filter=("meter_id", meter_id))
     if len(machines) == 0:
         raise Exception(f"machine for meter {serial} not found")
-    return machines[0]["id"]
+    return machines[0]
 
 
 """
@@ -74,22 +76,26 @@ class EMOPCLI(EmliteMediatorClient):
 
         meter_id = result.data[0]["id"]
 
-        is_local = PROXY_HOST == "localhost"
+        is_local = FLY_API_TOKEN is None
         if is_local:
             mediator_host = f"mediator-{serial}"
+            mediator_port = 50051
         else:
-            # build fly machine DNS names as <machine_id>.vm.<app_id>.internal
+            # build fly address by querying mediator machine details
             # see details at https://fly.io/docs/networking/private-networking/#fly-io-internal-dns
             machines = API(FLY_API_TOKEN)
-            machine_id = _machine_id_by_meter_serial(machines, meter_id, serial)
-            mediator_host = f"{machine_id}.vm.{FLY_APP}.internal"
+            machine = _machine_by_meter_serial(machines, meter_id, serial)
+            # TODO: lookup private IP by app name
+            mediator_host = "[fdaa:5:3015:0:1::2]"
+            mediator_port = machine["config"]["services"][0]["ports"][0]["port"]
 
         super().__init__(
             mediator_host=mediator_host,
-            access_token=SUPABASE_ACCESS_TOKEN,
+            mediator_port=mediator_port,
             meter_id=meter_id,
-            proxy_host_override=PROXY_HOST,
-            proxy_cert_override=PROXY_CERT,
+            # access_token=SUPABASE_ACCESS_TOKEN,
+            # proxy_host_override=PROXY_HOST,
+            # proxy_cert_override=PROXY_CERT,
         )
 
     # =================================
@@ -148,10 +154,10 @@ class EMOPCLI(EmliteMediatorClient):
     #   Utils
     # =================================
 
-    def env_show():
+    def env_show(self):
         print(config["env"])
 
-    def env_set(env: str):
+    def env_set(self, env: str):
         allowed_env = ["prod", "qa", "local"]
         if env not in allowed_env:
             print(f"ERROR: env must be one of {allowed_env}")

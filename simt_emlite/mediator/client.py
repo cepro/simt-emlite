@@ -105,17 +105,19 @@ class EmliteMediatorClient(object):
     def __init__(
         self,
         mediator_host="0.0.0.0",
-        access_token=None,
+        mediator_port=50051,
         meter_id=None,
-        proxy_host_override=None,
-        proxy_cert_override=None,
+        # access_token=None,
+        # proxy_host_override=None,
+        # proxy_cert_override=None,
     ):
         self.grpc_client = EmliteMediatorGrpcClient(
             mediator_host=mediator_host,
-            access_token=access_token,
+            mediator_port=mediator_port,
             meter_id=meter_id,
-            proxy_host_override=proxy_host_override,
-            proxy_cert_override=proxy_cert_override,
+            # access_token=access_token,
+            # proxy_host_override=proxy_host_override,
+            # proxy_cert_override=proxy_cert_override,
         )
         global logger
         self.log = logger.bind(host=mediator_host, meter_id=meter_id)

@@ -99,6 +99,22 @@ Use account `damonrand` and publishing to test-pypi for now.
 poetry publish --build -r test-pypi
 ```
 
+# Fly
+
+## Create App
+```
+# TODO - add commands for creating the initial empty app
+
+# later remove public ips and create one flycast / private ip:
+APP=mediators-wlce
+fly ips allocate-v6 --private -a $APP
+```
+
+## Publish Docker Image
+
+Whenever a tag is pushed the 'docker-image' github action will build and push an image to both ghcr and fly docker registries.
+
+
 # Mediator Servers
 
 ## run_mediators (soon to be deprecated)
@@ -133,3 +149,4 @@ The gRPC server uses the emlite-api to make calls to the meter.
 cd simt_emlite/mediator/grpc
 python grpc_codegen.py
 ```
+

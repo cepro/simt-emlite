@@ -1,6 +1,7 @@
 import os
 import signal
 import sys
+import threading
 import time
 import traceback
 from concurrent import futures
@@ -47,6 +48,23 @@ emlite_port = os.environ.get("EMLITE_PORT") or "8080"
 listen_port = os.environ.get("LISTEN_PORT") or "50051"
 
 """
+    Inactive shutdown properties 
+"""
+
+inactivity_seconds = os.environ.get("MEDIATOR_INACTIVITY_SECONDS") or 0
+inactivity_check_interval_seconds = 30
+
+
+def epoch_seconds():
+    return round(time.time())
+
+
+last_request_time = epoch_seconds()
+inactivity_event = threading.Event()
+
+server = None
+
+"""
     The mediator is a gRPC server that takes requests and relays them to an
     Emlite meter over the EMOP protocol.
 
@@ -72,6 +90,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         self.log = logger.bind(emlite_host=host)
 
     def sendRawMessage(self, request, context):
+        self._refresh_last_request_time()
         self.log.info("sendRawMessage", message=request.dataField.hex())
         self._space_out_requests()
         try:
@@ -84,6 +103,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return SendRawMessageReply()
 
     def readElement(self, request, context):
+        self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info("readElement request", object_id=object_id_bytes.hex())
         self._space_out_requests()
@@ -100,6 +120,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             return ReadElementReply()
 
     def writeElement(self, request, context):
+        self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info(
             "writeElement request",
@@ -156,10 +177,28 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             )
             time.sleep(minimum_time_between_emlite_requests_seconds)
 
+    def _refresh_last_request_time(self):
+        global last_request_time
+        last_request_time = epoch_seconds()
+
 
 def shutdown_handler(signal, frame):
-    print("\nServer shutting down...")
+    logger.info("Server shutting down...")
     sys.exit(0)
+
+
+def inactivity_checking():
+    """
+    check for inactivity on a Timer and reaise event and exit the thread when reached
+    """
+    seconds_inactive = epoch_seconds() - last_request_time
+    if seconds_inactive >= inactivity_seconds:
+        logger.info(f"Server inactive for {seconds_inactive} seconds")
+        global inactivity_event
+        inactivity_event.set()
+        sys.exit(0)
+    else:
+        threading.Timer(inactivity_check_interval_seconds, inactivity_checking).start()
 
 
 def serve():
@@ -172,6 +211,7 @@ def serve():
 
     log.info("starting server")
 
+    global server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     add_EmliteMediatorServiceServicer_to_server(
         EmliteMediatorServicer(emlite_host, emlite_port), server
@@ -179,7 +219,13 @@ def serve():
 
     server.add_insecure_port(f"[::]:{listen_port}")
     server.start()
-    server.wait_for_termination()
+
+    if inactivity_seconds > 0:
+        inactivity_checking()
+        inactivity_event.wait()
+        shutdown_handler(None, None)
+    else:
+        server.wait_for_termination()
 
 
 if __name__ == "__main__":

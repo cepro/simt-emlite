@@ -12,18 +12,25 @@ services:
       - NET_ADMIN
     volumes:
       - ./openvpn_conf:/openvpn_conf
-
-  mediator-gateway:
-    image: simt-mediator-gateway
-    environment:
-      # binhex formatted supabase jwt secret (super-secret-jwt-token-with-at-least-32-characters-long)
-      - SUPABASE_JWT_SECRET=73757065722d7365637265742d6a77742d746f6b656e2d776974682d61742d6c656173742d33322d636861726163746572732d6c6f6e67
-      # docker DNS for custom network
-      - NGINX_DNS_RESOLVER=127.0.0.11
-    volumes:
-      - ./certificates:/ssl
     ports:
-      - 1443:1443
+      - 1080:1080
+
+  # Drop the gateway for now and go straight to the mediators:
+  #  - in fly context this means setting up a wireguard tunnel
+  #  - locally we simply connect to mediator docker container
+   
+  # mediator-gateway:
+  #   image: simt-mediator-gateway
+  #   environment:
+  #     # binhex formatted supabase jwt secret (super-secret-jwt-token-with-at-least-32-characters-long)
+  #     - SUPABASE_JWT_SECRET=73757065722d7365637265742d6a77742d746f6b656e2d776974682d61742d6c656173742d33322d636861726163746572732d6c6f6e67
+  #     # docker DNS for custom network
+  #     - NGINX_DNS_RESOLVER=127.0.0.11
+  #     - FLY_API_TOKEN=fo1_BcvaKI2-xV1YbbTn3OBgTW8OMpWTvMrDm_UhNr8N-04
+  #   volumes:
+  #     - ./certificates:/ssl
+  #   ports:
+  #     - 1443:1443
 
   # TODO: consider starting these with the mediators cli once stack testing is stable ...
   mediator-EML2137580826:

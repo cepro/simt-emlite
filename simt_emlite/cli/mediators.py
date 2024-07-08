@@ -65,6 +65,15 @@ class MediatorsCLI:
             machine_state: one of [started, stopped, suspended, destroyed]
             show_all: show all meters [True | False]
         """
+        meters = self._list(site, machine_state, show_all)
+        return json.dumps(meters, indent=2, sort_keys=True)
+
+    def _list(
+        self,
+        site: str = None,
+        machine_state: Union[MACHINE_STATE_TYPE] = None,
+        show_all=False,
+    ) -> List:
         log("top list - get sites:")
         sites_result = self.supabase.table("sites").select("id,code").execute()
         log("got sites - get meters")
@@ -106,9 +115,11 @@ class MediatorsCLI:
 
             machine_dict = None
             if machine is not None:
+                print(f"machine {machine}")
                 machine_dict = {}
                 machine_dict["id"] = machine["id"]
                 machine_dict["name"] = machine["name"]
+                machine_dict["instance_id"] = machine["instance_id"]
                 machine_dict["state"] = machine["state"]
                 machine_dict["image"] = machine["config"]["image"]
             meter["machine"] = machine_dict
@@ -122,8 +133,7 @@ class MediatorsCLI:
                 )
             )
 
-        log("bottom list")
-        return json.dumps(meters, indent=2, sort_keys=True)
+        return meters
 
     def create(self, serial: str):
         meter = self._meter_by_serial(serial)
@@ -137,8 +147,9 @@ Image:      {SIMT_EMLITE_IMAGE}
 Name:       {machine_name}
 Metadata:   {machine_metadata}
 
-Create machine with these details (Y/n): """)
-        if answer != "Y":
+Create machine with these details (y/n): """)
+        if answer != "y":
+            print("\naborting ...\n")
             sys.exit(1)
 
         result = self.machines.create(
@@ -184,15 +195,16 @@ Create machine with these details (Y/n): """)
 
     def stop_one(self, serial: str) -> str:
         machine = self._machine_by_serial(serial)
+        print(f"machine {machine}")
         self.machines.stop(FLY_APP, machine["id"])
         return machine["id"], machine["instance_id"]
 
     def _machine_by_serial(self, serial):
         meter = self._meter_by_serial(serial)
-        machines = self.list(("meter_id", meter["id"]))
-        if len(machines) == 0:
+        machines_match = list(filter(lambda m: m["id"] == meter["id"], self._list()))
+        if len(machines_match) == 0:
             raise Exception(f"machine for meter {serial} not found")
-        return machines[0]
+        return machines_match[0]["machine"]
 
     def _machine_id_by_serial(self, serial):
         machine = self._machine_by_serial(serial)
