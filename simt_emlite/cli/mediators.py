@@ -1,11 +1,14 @@
-import json
 import os
 import subprocess
 import sys
 from datetime import datetime
+from json import dumps
 from typing import Dict, List, Literal, Union
 
 import fire
+from rich import box
+from rich.console import Console
+from rich.table import Table
 from simt_fly_machines.api import API
 
 from simt_emlite.util.config import load_config
@@ -55,61 +58,79 @@ class MediatorsCLI:
 
     def list(
         self,
-        site: str = None,
+        esco: str = None,
         machine_state: Union[MACHINE_STATE_TYPE] = None,
         machine: bool = None,
         no_machine: bool = None,
+        json=False,
         show_all=False,
     ) -> List:
         """
         List meters and corresponding machines
 
         Args:
-            site: site code [eg. 'hmce' for Hazelmead]
+            esco: esco code [eg. 'hmce' for Hazelmead]
             machine_state: one of [started, stopped, suspended, destroyed]
             machine: show only with machines
             no_machine: show meters without machines
             show_all: show all meters [True | False]
         """
         meters = self._list(
-            site=site,
+            esco=esco,
             machine_state=machine_state,
             machine=machine,
             no_machine=no_machine,
             show_all=show_all,
         )
-        return json.dumps(meters, indent=2, sort_keys=True)
+
+        if json is True:
+            print(dumps(meters, indent=2))
+            return
+
+        table = Table(
+            "esco", "serial", "machine state", "machine image", box=box.SQUARE
+        )
+
+        for meter in meters:
+            row_values = [meter["esco"], meter["serial"]]
+            if meter["machine"] is not None:
+                row_values.append(meter["machine"]["state"])
+                row_values.append(meter["machine"]["image"])
+            table.add_row(*row_values)
+
+        console = Console()
+        console.print(table)
 
     def _list(
         self,
-        site: str = None,
+        esco: str = None,
         machine_state: Union[MACHINE_STATE_TYPE] = None,
         machine: bool = None,
         no_machine: bool = None,
         show_all=False,
     ) -> List:
-        sites_result = self.supabase.table("sites").select("id,code").execute()
+        escos_result = self.supabase.table("escos").select("id,code").execute()
 
-        site_id_to_code = {s["id"]: s["code"] for s in sites_result.data}
-        site_code_to_id = {s["code"]: s["id"] for s in sites_result.data}
+        esco_id_to_code = {e["id"]: e["code"] for e in escos_result.data}
+        esco_code_to_id = {e["code"]: e["id"] for e in escos_result.data}
 
         meters_query = (
             self.supabase.table("meter_registry")
-            .select("id,ip_address,serial,site")
+            .select("id,ip_address,serial,esco")
             .eq("mode", "active")
         )
 
-        if site is not None:
-            site_lc = site.lower()
-            if site_lc not in site_code_to_id:
-                print(f"unknown site [{site_lc}]")
+        if esco is not None:
+            esco_lc = esco.lower()
+            if esco_lc not in esco_code_to_id:
+                print(f"unknown esco [{esco_lc}]")
                 sys.exit(1)
-            meters_query.eq("site", site_code_to_id[site_lc])
+            meters_query.eq("esco", esco_code_to_id[esco_lc])
 
         meters_result = meters_query.execute()
 
-        # meter result with site id replaced with site code
-        meters = [{**m, "site": site_id_to_code[m["site"]]} for m in meters_result.data]
+        # meter result with esco id replaced with esco code
+        meters = [{**m, "esco": esco_id_to_code[m["esco"]]} for m in meters_result.data]
 
         # add machine data
         machines = self.machines.list(

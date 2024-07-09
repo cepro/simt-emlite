@@ -158,10 +158,10 @@ class EMOPCLI(EmliteMediatorClient):
     #   Utils
     # =================================
 
-    def env_show(self):
+    def env_show():
         print(config["env"])
 
-    def env_set(self, env: str):
+    def env_set(env: str):
         allowed_env = ["prod", "qa", "local"]
         if env not in allowed_env:
             print(f"ERROR: env must be one of {allowed_env}")

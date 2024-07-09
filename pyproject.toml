@@ -37,6 +37,7 @@ docker = "^7.1.0"
 protobuf = "^5.26.1"
 python-dotenv = "^1.0.1"
 python-socks = "^2.4.4"
+rich = "^13.7.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.2"
