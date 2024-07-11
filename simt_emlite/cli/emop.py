@@ -5,10 +5,9 @@ import sys
 from decimal import Decimal
 
 import fire
-from simt_fly_machines.api import API
 
-# from simt_emlite.certificates import get_cert
 from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
 
@@ -31,7 +30,7 @@ FLY_APP = config["fly_app"]
 # =================================
 
 
-def _machine_by_meter_serial(machines_api, meter_id, serial):
+def _machine_by_meter_id(machines_api, meter_id):
     machines = machines_api.list(FLY_APP, metadata_filter=("meter_id", meter_id))
     if len(machines) == 0:
         return None
@@ -65,33 +64,28 @@ class EMOPCLI(EmliteMediatorClient):
 
         result = (
             self.supabase.table("meter_registry")
-            .select("id")
+            .select("id,esco")
             .eq("serial", serial)
             .execute()
         )
-
         if len(result.data) == 0:
             print(f"meter {serial} not found")
             sys.exit(10)
 
         meter_id = result.data[0]["id"]
+        esco_id = result.data[0]["esco"]
 
-        is_local = FLY_API_TOKEN is None
-        if is_local:
-            mediator_host = f"mediator-{serial}"
-            mediator_port = 50051
-        else:
-            # build fly address by querying mediator machine details
-            # see details at https://fly.io/docs/networking/private-networking/#fly-io-internal-dns
-            machines = API(FLY_API_TOKEN)
-            machine = _machine_by_meter_serial(machines, meter_id, serial)
-            if machine is None:
-                print(f"machine does not yet exist for meter {serial}")
-                sys.exit(1)
+        result = (
+            self.supabase.schema("flows")
+            .table("escos")
+            .select("code")
+            .eq("id", esco_id)
+            .execute()
+        )
+        esco_code = result.data[0]["code"]
 
-            # TODO: lookup private IP by app name
-            mediator_host = "[fdaa:5:3015:0:1::2]"
-            mediator_port = machine["config"]["services"][0]["ports"][0]["port"]
+        containers = get_instance(esco_code)
+        mediator_host, mediator_port = containers.mediator_host_port()
 
         super().__init__(
             mediator_host=mediator_host,

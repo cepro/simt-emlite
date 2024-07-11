@@ -1,16 +1,13 @@
-import argparse
 import os
 import random
 import socket
 import sys
 from typing import Dict, List
 
-import postgrest
 from httpx import ConnectError
 
-from simt_emlite.orchestrate.adapter.base_adapter import ContainerState
-from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
-from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
+from simt_emlite.orchestrate.adapter.container import ContainerState
+from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
@@ -21,21 +18,12 @@ supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 site_code: str = os.environ.get("SITE")
-use_fly: bool = os.environ.get("FLY_API_TOKEN") is not None
-fly_app: str = os.environ.get("FLY_APP")
 
 
 class Mediators:
     def __init__(self):
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
-
-        # TODO: look at config and the presense of the fly api key
-        if use_fly:
-            logger.info("container adapter: FlyAdapter")
-            self.containers = FlyAdapter(fly_app, mediator_image)
-        else:
-            logger.info("container adapter: DockerAdapter")
-            self.containers = DockerAdapter(mediator_image)
+        self.containers = get_instance()
 
     def start_one(self, meter_id: str) -> int:
         container_id = self.container_id_by_meter_id(meter_id)
@@ -174,43 +162,3 @@ class Mediators:
                 return False
             except socket.error:
                 return True
-
-
-if __name__ == "__main__":
-    if not mediator_image:
-        logger.error("SIMT_EMLITE_IMAGE not set to a docker image.")
-        exit(1)
-    if not supabase_url or not supabase_key:
-        logger.error(
-            "Environment variables SUPABASE_URL and SUPABASE_ANON_KEY not set."
-        )
-        exit(2)
-    if not site_code:
-        logger.error("SITE is not set")
-        exit(3)
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--start-one", metavar="<meter_id>")
-    parser.add_argument("--start-all", action="store_true", help="Start all")
-    parser.add_argument("--stop-all", action="store_true", help="Stop all")
-    parser.add_argument("--destroy-all", action="store_true", help="Remove all")
-    args = parser.parse_args()
-
-    try:
-        mediators = Mediators()
-
-        if args.start_one:
-            mediators.start_one(args.start_one)
-        elif args.start_all:
-            mediators.start_all()
-        elif args.stop_all:
-            mediators.stop_all()
-        elif args.destroy_all:
-            mediators.destroy_all()
-        else:
-            parser.print_usage()
-
-    except postgrest.exceptions.APIError as e:
-        logger.error("start mediators failed", error=e.message)
-    except Exception as e:
-        logger.error("unknown failure in mediators", error=e)

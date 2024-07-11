@@ -1,16 +1,27 @@
 from typing import List
 
+import dns.resolver
 import fire
 from simt_fly_machines.api import API
 
-from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter, ContainerState
+from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter
+from simt_emlite.orchestrate.adapter.container import (
+    Container,
+    ContainerEnvironment,
+    ContainerState,
+)
 from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-fly_status = {
+FLY_STATUS = {
     ContainerState.STARTED: "started",
     ContainerState.STOPPED: "stopped",
+}
+
+CONTAINER_STATUS = {
+    "started": ContainerState.STARTED,
+    "stopped": ContainerState.STOPPED,
 }
 
 
@@ -23,19 +34,25 @@ def metadata_filter_fn(key, value):
 
 
 class FlyAdapter(BaseAdapter):
-    def __init__(self, fly_app: str, image: str):
+    def __init__(
+        self,
+        api_token: str,
+        image: str,
+        esco: str,
+    ):
         super().__init__()
-
-        self.api = API()
-        self.fly_app = fly_app
+        self.api = API(api_token)
+        self.esco = esco
+        self.fly_app = f"mediators-{esco}"
         self.image = image
 
     def list(
         self,
         metadata_filter: tuple[str, str] = None,
         status_filter: ContainerState = None,
-    ) -> List[str]:
+    ) -> List[Container]:
         machines = self.api.list(self.fly_app)
+
         if metadata_filter:
             logger.debug(f"metadata filter [{metadata_filter}]")
             machines = list(
@@ -46,12 +63,31 @@ class FlyAdapter(BaseAdapter):
 
         if status_filter:
             logger.debug(f"status filter [{status_filter}]")
-            machines = list(filter(lambda m: m["state"] == status_filter, machines))
+            fly_state = FLY_STATUS[status_filter]
+            machines = list(filter(lambda m: m["state"] == fly_state, machines))
 
-        machine_ids = list(map(lambda m: m["id"], machines))
-        logger.info(f"list machine ids [{machine_ids}]", machine_ids=machine_ids)
+        return list(
+            map(
+                lambda m: Container(
+                    id=m["id"],
+                    name=m["name"],
+                    image=m["config"]["image"],
+                    status=CONTAINER_STATUS[m["state"]],
+                    container_environment=ContainerEnvironment.FLY,
+                    metadata=m["config"]["metadata"],
+                ),
+                machines,
+            )
+        )
 
-        return machine_ids
+    # in base class - check it works ...a
+
+    # def get(
+    #     self,
+    #     meter_id: str,
+    # ) -> Container:
+    #     meters = self.list(("meter_id", meter_id))
+    #     return meters[0] if len(meters) != 0 else None
 
     def create(self, cmd: str, name: str, meter_id: str, ip_address: str) -> str:
         envvar_dict = {"EMLITE_HOST": ip_address}
@@ -82,6 +118,27 @@ class FlyAdapter(BaseAdapter):
 
     def destroy(self, id: str):
         return self.api.destroy(self.fly_app, id)
+
+    def mediator_host_port(self, meter_id: str, serial: str):
+        machines = self.list(("meter_id", meter_id))
+        if len(machines) == 0:
+            print(f"machine does not yet exist for meter {meter_id}")
+            return None, None
+
+        mediator_host = self.get_app_ip(self.esco)
+        mediator_port = machines[0]["config"]["services"][0]["ports"][0]["port"]
+
+        return mediator_host, mediator_port
+
+    def get_app_ip(self, esco: str):
+        resolver = dns.resolver.Resolver(configure=False)
+        resolver.nameservers = ["fdaa:5:3015::3"]
+        try:
+            answers = resolver.resolve("mediators-wlce.flycast", "AAAA")
+            return answers[0].address
+        except Exception as e:
+            print(f"Failed to resolve flycast address [{e}]")
+            raise e
 
 
 def main():

@@ -1,12 +1,8 @@
 import os
 from abc import ABC, abstractmethod
-from enum import Enum
 from typing import List
 
-
-class ContainerState(Enum):
-    STARTED = 1
-    STOPPED = 2
+from simt_emlite.orchestrate.adapter.container import Container, ContainerState
 
 
 class BaseAdapter(ABC):
@@ -33,8 +29,15 @@ class BaseAdapter(ABC):
         self,
         metadata_filter: tuple[str, str] = None,
         status_filter: ContainerState = None,
-    ) -> List[str]:
+    ) -> List[Container]:
         pass
+
+    def get(
+        self,
+        meter_id: str,
+    ) -> Container:
+        meters = self.list(("meter_id", meter_id))
+        return meters[0] if len(meters) != 0 else None
 
     @abstractmethod
     def create(
@@ -52,4 +55,8 @@ class BaseAdapter(ABC):
 
     @abstractmethod
     def destroy(self, id: str):
+        pass
+
+    @abstractmethod
+    def mediator_host_port(self, meter_id: str, serial: str):
         pass

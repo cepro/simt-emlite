@@ -1,12 +1,12 @@
+import argparse
 import concurrent.futures
 import os
 import sys
 import traceback
 from typing import Any, Callable
 
-import docker
 from simt_emlite.jobs.meter_sync import MeterSyncJob
-from simt_emlite.orchestrate.mediators import Mediators
+from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
@@ -15,7 +15,6 @@ logger = get_logger(__name__, __file__)
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
-site_code: str = os.environ.get("SITE")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 15)
 
 
@@ -24,42 +23,45 @@ def filter_connected(meter):
 
 
 """
-    This script is a base class for scripts that run a job for all meters.
+    Run the meter sync job for all meters in a given esco.
 """
 
 
-class RunJobForAllMeters:
+class MeterSyncAllJob:
     def __init__(
-        self, job_name: str, filter_fn: Callable[[Any], bool] = None, run_frequency=None
+        self,
+        filter_fn: Callable[[Any], bool] = None,
+        run_frequency=None,
+        esco=None,
     ):
         self._check_environment()
-        self.job_name = job_name
         self.filter_fn = filter_fn
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
-        self.docker_client = docker.from_env()
-        self.mediators = Mediators()
+        self.containers = get_instance(esco)
         self.run_frequency = run_frequency
+        self.esco = esco
 
         global logger
-        self.log = logger.bind(job_name=job_name)
+        self.log = logger.bind(esco=self.esco)
 
-    def get_mediator_port(self, meter_id):
-        mediator_container = self.mediators.container_id_by_meter_id(meter_id)
-        if mediator_container is None:
-            self.log.error("NO MEDIATOR CONTAINER EXISTS FOR meter", meter_id=meter_id)
-            return
-
-        return mediator_container.labels["listen_port"]
-
-    def run_job(self, meter_id):
-        mediator_port = self.get_mediator_port(meter_id)
-        if mediator_port is None:
+    def run_job(self, meter_id, serial):
+        mediator_host, mediator_port = self.containers.mediator_host_port(
+            meter_id, serial
+        )
+        if mediator_port is None or mediator_host is None:
+            self.log.warn(f"no mediator container exists for meter {serial}")
             return
 
         try:
-            self.log.info("run_job", meter_id=meter_id, mediator_port=mediator_port)
+            self.log.info(
+                "run_job",
+                meter_id=meter_id,
+                mediator_host=mediator_host,
+                mediator_port=mediator_port,
+            )
             job = MeterSyncJob(
                 meter_id=meter_id,
+                mediator_host=mediator_host,
                 mediator_port=mediator_port,
                 supabase_url=supabase_url,
                 supabase_key=supabase_key,
@@ -74,20 +76,20 @@ class RunJobForAllMeters:
     def run(self):
         self.log.info("starting ...")
 
-        sites = (
-            self.supabase.table("sites").select("id").ilike("code", site_code).execute()
+        escos = (
+            self.supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
-        if len(sites.data) == 0:
-            self.log.error("no site found for " + site_code)
+        if len(escos.data) == 0:
+            self.log.error("no esco found for " + self.esco)
             sys.exit(10)
 
-        site_id = list(sites.data)[0]["id"]
+        esco_id = list(escos.data)[0]["id"]
 
         registry_result = (
             self.supabase.table("meter_registry")
             .select("id,ip_address,serial,hardware")
-            # only process meters at the given site
-            .eq("site", site_id)
+            # only process meters at the given esco
+            .eq("esco", esco_id)
             # only sync active / real hardware meters
             # passive meters are synced from active meters in
             #   some other database and environment
@@ -106,7 +108,10 @@ class RunJobForAllMeters:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max_parallel_jobs
         ) as executor:
-            futures = [executor.submit(self.run_job, meter["id"]) for meter in meters]
+            futures = [
+                executor.submit(self.run_job, meter["id"], meter["serial"])
+                for meter in meters
+            ]
 
         concurrent.futures.wait(futures)
 
@@ -122,3 +127,27 @@ class RunJobForAllMeters:
         if not flows_role_key:
             self.log.error("Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--freq",
+        required=True,
+        action="store",
+        choices=["hourly", "daily", "12hourly"],
+        help="Sync meter_metrics that have this frequency",
+    )
+    parser.add_argument(
+        "--esco",
+        required=True,
+        action="store",
+        help="Apply sync to meters in this esco only",
+    )
+    args = parser.parse_args()
+
+    freq = args.freq
+    esco = args.esco
+
+    runner = MeterSyncAllJob(run_frequency=freq, esco=esco)
+    runner.run()

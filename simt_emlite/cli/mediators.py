@@ -3,21 +3,17 @@ import subprocess
 import sys
 from datetime import datetime
 from json import dumps
-from typing import Dict, List, Literal, Union
+from typing import Dict, List, Union
 
 import fire
 from rich import box
 from rich.console import Console
 from rich.table import Table
-from simt_fly_machines.api import API
 
+from simt_emlite.orchestrate.adapter.container import ContainerState
+from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import Client, supa_client
-
-# merge this with ContainerState when merging with orchestrate.mediators module
-MACHINE_STATE_TYPE = Union[
-    Literal["started"], Literal["stopped"], Literal["suspended"], Literal["destroyed"]
-]
 
 config = load_config()
 
@@ -26,7 +22,6 @@ SUPABASE_ANON_KEY = config["supabase_anon_key"]
 SUPABASE_URL = config["supabase_url"]
 
 FLY_API_TOKEN = config["fly_token"]
-FLY_APP = config["fly_app"]
 
 SOCKS_HOST = config["socks_host"]
 SOCKS_PORT = config["socks_port"]
@@ -49,19 +44,15 @@ def log(msg):
 
 class MediatorsCLI:
     def __init__(self):
-        log("top __init__")
         self.supabase: Client = supa_client(
             SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
         )
-        self.machines = API(FLY_API_TOKEN)
-        log("bottom __init__")
 
     def list(
         self,
         esco: str = None,
-        machine_state: Union[MACHINE_STATE_TYPE] = None,
-        machine: bool = None,
-        no_machine: bool = None,
+        mediator_state: Union[ContainerState] = None,
+        mediator_exists: bool = None,
         json=False,
         show_all=False,
     ) -> List:
@@ -70,16 +61,14 @@ class MediatorsCLI:
 
         Args:
             esco: esco code [eg. 'hmce' for Hazelmead]
-            machine_state: one of [started, stopped, suspended, destroyed]
-            machine: show only with machines
-            no_machine: show meters without machines
+            mediator_state: one of [started, stopped, suspended, destroyed]
+            mediator_exists: show only with or without mediators (ignore if not set)
             show_all: show all meters [True | False]
         """
         meters = self._list(
             esco=esco,
-            machine_state=machine_state,
-            machine=machine,
-            no_machine=no_machine,
+            mediator_state=mediator_state,
+            mediator_exists=mediator_exists,
             show_all=show_all,
         )
 
@@ -88,14 +77,14 @@ class MediatorsCLI:
             return
 
         table = Table(
-            "esco", "serial", "machine state", "machine image", box=box.SQUARE
+            "esco", "serial", "container state", "container image", box=box.SQUARE
         )
 
         for meter in meters:
             row_values = [meter["esco"], meter["serial"]]
-            if meter["machine"] is not None:
-                row_values.append(meter["machine"]["state"])
-                row_values.append(meter["machine"]["image"])
+            if meter["container"] is not None:
+                row_values.append(meter["container"].status.name)
+                row_values.append(meter["container"].image)
             table.add_row(*row_values)
 
         console = Console()
@@ -104,80 +93,49 @@ class MediatorsCLI:
     def _list(
         self,
         esco: str = None,
-        machine_state: Union[MACHINE_STATE_TYPE] = None,
-        machine: bool = None,
-        no_machine: bool = None,
+        mediator_state: Union[ContainerState] = None,
+        mediator_exists: bool = None,
         show_all=False,
     ) -> List:
-        escos_result = self.supabase.table("escos").select("id,code").execute()
+        meters = self._get_meters(esco)
 
-        esco_id_to_code = {e["id"]: e["code"] for e in escos_result.data}
-        esco_code_to_id = {e["code"]: e["id"] for e in escos_result.data}
+        # add container info
+        escos = set(map(lambda m: m["esco"].lower(), meters))
 
-        meters_query = (
-            self.supabase.table("meter_registry")
-            .select("id,ip_address,serial,esco")
-            .eq("mode", "active")
-        )
+        for esco_code in escos:
+            print(f"esco {esco_code}")
+            containers_api = get_instance(esco_code)
+            containers = containers_api.list()
 
-        if esco is not None:
-            esco_lc = esco.lower()
-            if esco_lc not in esco_code_to_id:
-                print(f"unknown esco [{esco_lc}]")
-                sys.exit(1)
-            meters_query.eq("esco", esco_code_to_id[esco_lc])
+            esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
 
-        meters_result = meters_query.execute()
-
-        # meter result with esco id replaced with esco code
-        meters = [{**m, "esco": esco_id_to_code[m["esco"]]} for m in meters_result.data]
-
-        # add machine data
-        machines = self.machines.list(
-            FLY_APP,
-            #  metadata_filter=metadata_filter
-        )
-
-        for meter in meters:
-            machine_matches = list(
-                filter(
-                    lambda m: m["config"]["metadata"]["meter_id"] == meter["id"],
-                    machines,
+            for meter in esco_meters:
+                print(f"meter {meter["id"]}")
+                container_matches = list(
+                    filter(
+                        lambda c: c.metadata["meter_id"] == meter["id"],
+                        containers,
+                    )
                 )
-            )
-            mach = machine_matches[0] if len(machine_matches) != 0 else None
+                print(f"matches {container_matches}")
+                meter["container"] = (
+                    container_matches[0] if len(container_matches) != 0 else None
+                )
 
-            machine_dict = None
-            if mach is not None:
-                machine_dict = {}
-                machine_dict["id"] = mach["id"]
-                machine_dict["name"] = mach["name"]
-                machine_dict["instance_id"] = mach["instance_id"]
-                machine_dict["state"] = mach["state"]
-                machine_dict["image"] = mach["config"]["image"]
-            meter["machine"] = machine_dict
-
-        if machine is True:
+        if mediator_exists is not None:
             meters = list(
                 filter(
-                    lambda m: m["machine"] is not None,
+                    lambda m: (mediator_exists is True and m["container"] is not None)
+                    or (mediator_exists is False and m["container"] is None),
                     meters,
                 )
             )
 
-        if no_machine is True:
+        if mediator_state is not None:
             meters = list(
                 filter(
-                    lambda m: m["machine"] is None,
-                    meters,
-                )
-            )
-
-        if machine_state is not None:
-            meters = list(
-                filter(
-                    lambda m: m["machine"] is not None
-                    and m["machine"]["state"] == machine_state,
+                    lambda m: m["container"] is not None
+                    and m["container"].state == mediator_state,
                     meters,
                 )
             )
@@ -187,11 +145,12 @@ class MediatorsCLI:
     def create(self, serial: str):
         meter = self._meter_by_serial(serial)
 
+        fly_app = f"mediators-{meter["esco"]}"
         machine_name = f"mediator-{serial}"
         machine_metadata = {"meter_id": meter["id"]}
 
         answer = input(f"""
-Fly App:    {FLY_APP}
+Fly App:    {fly_app}
 Image:      {SIMT_EMLITE_IMAGE}
 Name:       {machine_name}
 Metadata:   {machine_metadata}
@@ -202,7 +161,7 @@ Create machine with these details (y/n): """)
             sys.exit(1)
 
         result = self.machines.create(
-            FLY_APP,
+            fly_app,
             SIMT_EMLITE_IMAGE,
             ["simt_emlite.mediator.grpc.server"],
             name=machine_name,
@@ -218,9 +177,27 @@ Create machine with these details (y/n): """)
         return result
 
     def start_one(self, serial: str):
-        machine_id = self._machine_id_by_serial(serial)
-        self.machines.start(FLY_APP, machine_id)
-        return machine_id
+        meter = self._meter_by_serial(serial)
+        containers = get_instance(meter["esco"])
+        container = containers.get(meter["id"])
+        if container is None:
+            print(f"No mediator found for serial {serial}")
+            sys.exit(1)
+        return containers.start(container.id)
+
+    def wait_one(self, esco: str, machine_id: str):
+        self.machines.wait(self._fly_app(esco), machine_id, "started")
+
+    def destroy_one(self, esco: str, serial: str):
+        machine_id, instance_id = self.stop_one(serial)
+        self.machines.wait(self._fly_app(esco), machine_id, instance_id, "stopped")
+        self.machines.destroy(self._fly_app(esco), machine_id)
+
+    def stop_one(self, esco: str, serial: str) -> str:
+        machine = self._machine_by_serial(serial)
+        print(f"machine {machine}")
+        self.machines.stop(self._fly_app(esco), machine["id"])
+        return machine["id"], machine["instance_id"]
 
     def start_many(self, meter_ids: List[str]) -> Dict[str, int]:
         pass
@@ -234,19 +211,11 @@ Create machine with these details (y/n): """)
     def destroy_all(self):
         pass
 
-    def wait_one(self, machine_id: str):
-        self.machines.wait(FLY_APP, machine_id, "started")
+    def _fly_app_from_meter(self, meter):
+        return self._fly_app(meter["esco"])
 
-    def destroy_one(self, serial: str):
-        machine_id, instance_id = self.stop_one(serial)
-        self.machines.wait(FLY_APP, machine_id, instance_id, "stopped")
-        self.machines.destroy(FLY_APP, machine_id)
-
-    def stop_one(self, serial: str) -> str:
-        machine = self._machine_by_serial(serial)
-        print(f"machine {machine}")
-        self.machines.stop(FLY_APP, machine["id"])
-        return machine["id"], machine["instance_id"]
+    def _fly_app(self, esco_code):
+        return f"mediators-{esco_code}"
 
     # =================================
     #   Utils
@@ -288,22 +257,54 @@ Create machine with these details (y/n): """)
             raise Exception(f"machine for meter {serial} not found")
         return machines_match[0]["machine"]
 
-    def _machine_id_by_serial(self, serial):
-        machine = self._machine_by_serial(serial)
-        return machine["id"]
-
     def _meter_by_serial(self, serial) -> str:
-        result = (
+        meter_result = (
             self.supabase.table("meter_registry")
-            .select("id,ip_address")
+            .select("id,ip_address,esco")
             .eq("serial", serial)
             .execute()
         )
-        if len(result.data) == 0:
+        if len(meter_result.data) == 0:
             print(f"meter {serial} not found")
             sys.exit(10)
 
-        return result.data[0]
+        meter = meter_result.data[0]
+
+        esco_result = (
+            self.supabase.table("escos")
+            .select("code")
+            .eq("id", meter["esco"])
+            .execute()
+        )
+        meter["esco"] = esco_result.data[0]["code"]
+
+        return meter
+
+    def _get_meters(self, esco: str = None):
+        escos_result = self.supabase.table("escos").select("id,code").execute()
+
+        esco_id_to_code = {e["id"]: e["code"] for e in escos_result.data}
+        esco_code_to_id = {e["code"]: e["id"] for e in escos_result.data}
+
+        meters_query = (
+            self.supabase.table("meter_registry")
+            .select("id,ip_address,serial,esco")
+            .eq("mode", "active")
+        )
+
+        if esco is not None:
+            esco_lc = esco.lower()
+            if esco_lc not in esco_code_to_id:
+                print(f"unknown esco [{esco_lc}]")
+                sys.exit(1)
+            meters_query.eq("esco", esco_code_to_id[esco_lc])
+
+        meters_result = meters_query.execute()
+
+        # meter result with esco id replaced with esco code
+        meters = [{**m, "esco": esco_id_to_code[m["esco"]]} for m in meters_result.data]
+
+        return meters
 
 
 def main():

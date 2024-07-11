@@ -33,25 +33,25 @@ services:
   #     - 1443:1443
 
   # TODO: consider starting these with the mediators cli once stack testing is stable ...
-  mediator-EML2137580826:
+  mediator-EML2137580751:
     image: simt-emlite
-    depends_on:
-      - emnify-gateway
+    # depends_on:
+      # - emnify-gateway
     expose:
       - 50051
     env_file:
       - socks_proxy.env
     environment:
-      - EMLITE_HOST=100.79.244.203
+      - EMLITE_HOST=100.79.244.216
     command: simt_emlite.mediator.grpc.server
     labels:
       - "meter_id=02bf733d-15ca-4d82-8943-68424024cd96"
-      - "emlite_host=100.79.244.203"
+      - "emlite_host=100.79.244.216"
 
   mediator-EML2244826972:
     image: simt-emlite
-    depends_on:
-      - emnify-gateway
+    # depends_on:
+      # - emnify-gateway
     expose:
       - 50051
     env_file:
