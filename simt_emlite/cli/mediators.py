@@ -21,7 +21,7 @@ SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
 SUPABASE_ANON_KEY = config["supabase_anon_key"]
 SUPABASE_URL = config["supabase_url"]
 
-FLY_API_TOKEN = config["fly_token"]
+FLY_API_TOKEN = config["fly_api_token"]
 
 SOCKS_HOST = config["socks_host"]
 SOCKS_PORT = config["socks_port"]

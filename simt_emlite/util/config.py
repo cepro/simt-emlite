@@ -23,8 +23,7 @@ def load_config():
         "supabase_anon_key": os.environ.get("SUPABASE_ANON_KEY"),
         "supabase_access_token": os.environ.get("SUPABASE_ACCESS_TOKEN"),
         # fly
-        "fly_token": os.environ.get("FLY_API_TOKEN"),
-        "fly_app": os.environ.get("FLY_APP"),
+        "fly_api_token": os.environ.get("FLY_API_TOKEN"),
         # emnify gateway socks proxy
         "socks_host": os.environ.get("SOCKS_HOST"),
         "socks_port": os.environ.get("SOCKS_PORT"),
@@ -34,6 +33,4 @@ def load_config():
         "mediator_proxy_host": os.environ.get("MEDIATOR_PROXY_HOST"),
         # simt_emlite docker image
         "simt_emlite_image": os.environ.get("SIMT_EMLITE_IMAGE"),
-        # site (optional)
-        "site": os.environ.get("SITE"),
     }

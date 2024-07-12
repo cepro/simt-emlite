@@ -31,8 +31,8 @@ pip install --extra-index-url https://test.pypi.org/simple/ simt-emlite
 - ln -s ~/.simt/emlite.<qa|prod>.env ~/.simt/emlite.env
     - see `emop env_set` command for changing this after initial setup
 - edit ~/.simt/emlite.env
-    - set SITE=wlce|hmce|...
     - set SUPABASE_ACCESS_TOKEN
+    - etc.
 
 ## Use
 

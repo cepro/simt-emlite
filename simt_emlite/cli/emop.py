@@ -22,19 +22,7 @@ SUPABASE_URL = config["supabase_url"]
 # PROXY_HOST = config["mediator_proxy_host"]
 # PROXY_CERT = get_cert()
 
-FLY_API_TOKEN = config["fly_token"]
-FLY_APP = config["fly_app"]
-
-# =================================
-#   Fly lookup utils
-# =================================
-
-
-def _machine_by_meter_id(machines_api, meter_id):
-    machines = machines_api.list(FLY_APP, metadata_filter=("meter_id", meter_id))
-    if len(machines) == 0:
-        return None
-    return machines[0]
+FLY_API_TOKEN = config["fly_api_token"]
 
 
 """
