@@ -34,21 +34,21 @@ class MeterSyncAllJob:
         run_frequency=None,
         esco=None,
     ):
-        self._check_environment()
-        self.filter_fn = filter_fn
-        self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
-        self.containers = get_instance(esco)
-        self.run_frequency = run_frequency
-        self.esco = esco
-
         global logger
-        self.log = logger.bind(esco=self.esco)
+        self.log = logger.bind(esco=esco)
+
+        self._check_environment()
+
+        self.esco = esco
+        self.filter_fn = filter_fn
+        self.run_frequency = run_frequency
+
+        self.containers = get_instance(esco)
+        self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run_job(self, meter_id, serial):
-        mediator_host, mediator_port = self.containers.mediator_address(
-            meter_id, serial
-        )
-        if mediator_port is None or mediator_host is None:
+        mediator_address = self.containers.mediator_address(meter_id, serial)
+        if mediator_address is None:
             self.log.warn(f"no mediator container exists for meter {serial}")
             return
 
@@ -56,13 +56,11 @@ class MeterSyncAllJob:
             self.log.info(
                 "run_job",
                 meter_id=meter_id,
-                mediator_host=mediator_host,
-                mediator_port=mediator_port,
+                mediator_address=mediator_address,
             )
             job = MeterSyncJob(
                 meter_id=meter_id,
-                mediator_host=mediator_host,
-                mediator_port=mediator_port,
+                mediator_address=mediator_address,
                 supabase_url=supabase_url,
                 supabase_key=supabase_key,
                 flows_role_key=flows_role_key,

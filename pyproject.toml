@@ -25,7 +25,7 @@ mediators = "simt_emlite.cli.mediators:main"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-grpcio = "^1.63.0"
+grpcio = "1.64.1"
 tenacity = "^8.2.3"
 supabase = "^2.4.3"
 crcmod = "^1.7"
@@ -42,7 +42,7 @@ dnspython = "^2.6.1"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.4.2"
-grpcio-tools = "^1.63.0"
+grpcio-tools = "1.64.1"
 
 [[tool.poetry.source]]
 name = "testpypi"

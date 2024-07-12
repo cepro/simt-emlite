@@ -113,7 +113,6 @@ Create machine with these details (y/n): """)
             env_vars=self._env_vars(ip_address),
             metadata=metadata,
         )
-        logger.info(machine)
         logger.info(
             f"created machine with id {machine["id"]}", machine_id=machine["id"]
         )
@@ -141,8 +140,7 @@ Create machine with these details (y/n): """)
     def mediator_address(self, meter_id: str, serial: str):
         machines = self.list(("meter_id", meter_id))
         if len(machines) == 0:
-            print(f"machine does not yet exist for meter {meter_id}")
-            return None, None
+            return None
 
         mediator_host = self.get_app_ip(self.esco)
         mediator_port = machines[0].port

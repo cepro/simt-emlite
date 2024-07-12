@@ -35,24 +35,21 @@ class MeterSyncJob:
         self,
         *,
         meter_id: str,
-        mediator_host: str = "0.0.0.0",
-        mediator_port: str,
+        mediator_address: str = "0.0.0.0:50051",
         supabase_url: str,
         supabase_key: str,
         flows_role_key: str,
         run_frequency: str,
     ):
         self.meter_id = meter_id
-        self.mediator_host = mediator_host
-        self.mediator_port = mediator_port
+        self.mediator_address = mediator_address
         self.supabase_url = supabase_url
         self.supabase_key = supabase_key
         self.flows_role_key = flows_role_key
         self.run_frequency = run_frequency
 
         self.emlite_client = EmliteMediatorClient(
-            port=self.mediator_port,
-            mediator_host=self.mediator_host,
+            mediator_address=mediator_address,
             meter_id=self.meter_id,
         )
         self.supabase = supa_client(
@@ -60,7 +57,9 @@ class MeterSyncJob:
         )
 
         global logger
-        self.log = logger.bind(meter_id=self.meter_id, mediator_port=self.mediator_port)
+        self.log = logger.bind(
+            meter_id=self.meter_id, mediator_address=self.mediator_address
+        )
 
     def sync(self):
         try:
