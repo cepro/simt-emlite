@@ -9,9 +9,7 @@ mediator_image: str = os.environ.get("SIMT_EMLITE_IMAGE")
 
 def get_instance(esco: str = None):
     if fly_api_token is not None:
-        print("FlyAddapter")
         adapter = FlyAdapter(fly_api_token, mediator_image, esco)
     else:
-        print("DockerAddapter")
         adapter = DockerAdapter(mediator_image)
     return adapter

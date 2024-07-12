@@ -103,21 +103,18 @@ class MediatorsCLI:
         escos = set(map(lambda m: m["esco"].lower(), meters))
 
         for esco_code in escos:
-            print(f"esco {esco_code}")
             containers_api = get_instance(esco_code)
             containers = containers_api.list()
 
             esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
 
             for meter in esco_meters:
-                print(f"meter {meter["id"]}")
                 container_matches = list(
                     filter(
                         lambda c: c.metadata["meter_id"] == meter["id"],
                         containers,
                     )
                 )
-                print(f"matches {container_matches}")
                 meter["container"] = (
                     container_matches[0] if len(container_matches) != 0 else None
                 )
@@ -177,27 +174,22 @@ Create machine with these details (y/n): """)
         return result
 
     def start_one(self, serial: str):
-        meter = self._meter_by_serial(serial)
-        containers = get_instance(meter["esco"])
-        container = containers.get(meter["id"])
-        if container is None:
-            print(f"No mediator found for serial {serial}")
-            sys.exit(1)
-        return containers.start(container.id)
+        containers_api, container = self._container_by_serial(serial)
+        containers_api.start(container.id)
+        print("container started")
 
-    def wait_one(self, esco: str, machine_id: str):
-        self.machines.wait(self._fly_app(esco), machine_id, "started")
+    def wait_one(self, serial: str, state: ContainerState):
+        containers_api, container = self._container_by_serial(serial)
+        return containers_api.wait(container.id, state)
 
-    def destroy_one(self, esco: str, serial: str):
-        machine_id, instance_id = self.stop_one(serial)
-        self.machines.wait(self._fly_app(esco), machine_id, instance_id, "stopped")
-        self.machines.destroy(self._fly_app(esco), machine_id)
+    def destroy_one(self, serial: str):
+        containers_api, container = self._container_by_serial(serial)
+        return containers_api.destroy(container.id)
 
-    def stop_one(self, esco: str, serial: str) -> str:
-        machine = self._machine_by_serial(serial)
-        print(f"machine {machine}")
-        self.machines.stop(self._fly_app(esco), machine["id"])
-        return machine["id"], machine["instance_id"]
+    def stop_one(self, serial: str) -> str:
+        containers_api, container = self._container_by_serial(serial)
+        containers_api.stop(container.id)
+        print("container stopped")
 
     def start_many(self, meter_ids: List[str]) -> Dict[str, int]:
         pass
@@ -210,12 +202,6 @@ Create machine with these details (y/n): """)
 
     def destroy_all(self):
         pass
-
-    def _fly_app_from_meter(self, meter):
-        return self._fly_app(meter["esco"])
-
-    def _fly_app(self, esco_code):
-        return f"mediators-{esco_code}"
 
     # =================================
     #   Utils
@@ -305,6 +291,17 @@ Create machine with these details (y/n): """)
         meters = [{**m, "esco": esco_id_to_code[m["esco"]]} for m in meters_result.data]
 
         return meters
+
+    def _container_by_serial(self, serial: str):
+        meter = self._meter_by_serial(serial)
+
+        containers_api = get_instance(meter["esco"])
+        container = containers_api.get(meter["id"])
+        if container is None:
+            print(f"No mediator found for serial {serial}")
+            sys.exit(1)
+
+        return containers_api, container
 
 
 def main():

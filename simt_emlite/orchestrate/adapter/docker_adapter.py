@@ -45,7 +45,7 @@ class DockerAdapter(BaseAdapter):
             all=True,
             filters=filters,
         )
-        print(f"docker containirs {docker_containers}")
+
         return list(
             map(
                 lambda c: Container(
@@ -92,7 +92,9 @@ class DockerAdapter(BaseAdapter):
 
     def stop(self, id: str):
         container = self.docker_client.containers.get(id)
-        container.stop()
+        # stop is slow - 15 sec timeout before sending SIGINT
+        # killing causes an immediate stop and this is fine for mediators
+        container.kill()
 
     def destroy(self, id: str):
         container = self.docker_client.containers.get(id)

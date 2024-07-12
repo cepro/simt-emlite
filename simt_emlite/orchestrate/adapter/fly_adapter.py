@@ -80,15 +80,6 @@ class FlyAdapter(BaseAdapter):
             )
         )
 
-    # in base class - check it works ...a
-
-    # def get(
-    #     self,
-    #     meter_id: str,
-    # ) -> Container:
-    #     meters = self.list(("meter_id", meter_id))
-    #     return meters[0] if len(meters) != 0 else None
-
     def create(self, cmd: str, name: str, meter_id: str, ip_address: str) -> str:
         envvar_dict = {"EMLITE_HOST": ip_address}
         if self.use_socks is True:
@@ -117,7 +108,17 @@ class FlyAdapter(BaseAdapter):
         return self.api.stop(self.fly_app, id)
 
     def destroy(self, id: str):
-        return self.api.destroy(self.fly_app, id)
+        stop_rsp = self.api.stop(self.fly_app, id)
+        print(f"stop_rsp {stop_rsp}")
+
+        machine = self.api.get(self.fly_app, id)
+        wait_rsp = self.api.wait(
+            self.fly_app, id, machine["instance_id"], FLY_STATUS[ContainerState.STOPPED]
+        )
+        print(f"wait_rsp {wait_rsp}")
+
+        destroy_rsp = self.api.destroy(self.fly_app, id)
+        print(f"destroy_rsp {destroy_rsp}")
 
     def mediator_host_port(self, meter_id: str, serial: str):
         machines = self.list(("meter_id", meter_id))
