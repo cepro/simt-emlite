@@ -1,10 +1,11 @@
-import os
-
 from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
 from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
+from simt_emlite.util.config import load_config
 
-fly_api_token: bool = os.environ.get("FLY_API_TOKEN")
-mediator_image: str = os.environ.get("SIMT_EMLITE_IMAGE")
+config = load_config()
+
+fly_api_token = config["fly_token"]
+mediator_image = config["simt_emlite_image"]
 
 
 def get_instance(esco: str = None):

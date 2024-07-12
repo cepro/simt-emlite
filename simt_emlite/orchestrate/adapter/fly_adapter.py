@@ -1,3 +1,4 @@
+import sys
 from typing import List
 
 import dns.resolver
@@ -17,11 +18,13 @@ logger = get_logger(__name__, __file__)
 FLY_STATUS = {
     ContainerState.STARTED: "started",
     ContainerState.STOPPED: "stopped",
+    ContainerState.STOPPING: "stopping",
 }
 
 CONTAINER_STATUS = {
     "started": ContainerState.STARTED,
     "stopped": ContainerState.STOPPED,
+    "stopping": ContainerState.STOPPING,
 }
 
 
@@ -72,6 +75,7 @@ class FlyAdapter(BaseAdapter):
                     id=m["id"],
                     name=m["name"],
                     image=m["config"]["image"],
+                    port=m["config"]["services"][0]["ports"][0]["port"],
                     status=CONTAINER_STATUS[m["state"]],
                     container_environment=ContainerEnvironment.FLY,
                     metadata=m["config"]["metadata"],
@@ -80,22 +84,36 @@ class FlyAdapter(BaseAdapter):
             )
         )
 
-    def create(self, cmd: str, name: str, meter_id: str, ip_address: str) -> str:
-        envvar_dict = {"EMLITE_HOST": ip_address}
-        if self.use_socks is True:
-            logger.info(
-                "configuring socks proxy ", socks_host=self.socks_dict["SOCKS_HOST"]
-            )
-            envvar_dict.update(self.socks_dict)
+    def create(
+        self,
+        cmd: str,
+        meter_id: str,
+        serial: str,
+        ip_address: str,
+    ) -> str:
+        machine_name = f"mediator-{serial}"
+        metadata = self._metadata(meter_id, ip_address)
+
+        answer = input(f"""
+Fly App:    {self.fly_app}
+Image:      {self.image}
+Name:       {machine_name}
+Metadata:   {metadata}
+
+Create machine with these details (y/n): """)
+        if answer != "y":
+            print("\naborting ...\n")
+            sys.exit(1)
 
         machine = self.api.create(
             self.fly_app,
             self.image,
             [cmd],
-            name=name,
-            env_vars=envvar_dict,
-            metadata={"meter_id": meter_id, "emlite_host": ip_address},
+            name=machine_name,
+            env_vars=self._env_vars(ip_address),
+            metadata=metadata,
         )
+        logger.info(machine)
         logger.info(
             f"created machine with id {machine["id"]}", machine_id=machine["id"]
         )
@@ -120,16 +138,17 @@ class FlyAdapter(BaseAdapter):
         destroy_rsp = self.api.destroy(self.fly_app, id)
         print(f"destroy_rsp {destroy_rsp}")
 
-    def mediator_host_port(self, meter_id: str, serial: str):
+    def mediator_address(self, meter_id: str, serial: str):
         machines = self.list(("meter_id", meter_id))
         if len(machines) == 0:
             print(f"machine does not yet exist for meter {meter_id}")
             return None, None
 
         mediator_host = self.get_app_ip(self.esco)
-        mediator_port = machines[0]["config"]["services"][0]["ports"][0]["port"]
+        mediator_port = machines[0].port
 
-        return mediator_host, mediator_port
+        # ipv6 so wrap host ip in []'s
+        return f"[{mediator_host}]:{mediator_port}"
 
     def get_app_ip(self, esco: str):
         resolver = dns.resolver.Resolver(configure=False)

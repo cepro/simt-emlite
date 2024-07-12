@@ -85,11 +85,10 @@ class EMOPCLI(EmliteMediatorClient):
         esco_code = result.data[0]["code"]
 
         containers = get_instance(esco_code)
-        mediator_host, mediator_port = containers.mediator_host_port()
+        mediator_address = containers.mediator_address(meter_id, serial)
 
         super().__init__(
-            mediator_host=mediator_host,
-            mediator_port=mediator_port,
+            mediator_address=mediator_address,
             meter_id=meter_id,
             # access_token=SUPABASE_ACCESS_TOKEN,
             # proxy_host_override=PROXY_HOST,

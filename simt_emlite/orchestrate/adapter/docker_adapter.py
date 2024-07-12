@@ -16,9 +16,14 @@ logger = get_logger(__name__, __file__)
 DOCKER_STATUS = {
     ContainerState.STARTED: "running",
     ContainerState.STOPPED: "exited",
+    ContainerState.STOPPING: "stopping",
 }
 
-CONTAINER_STATUS = {"running": ContainerState.STARTED, "exited": ContainerState.STOPPED}
+CONTAINER_STATUS = {
+    "running": ContainerState.STARTED,
+    "exited": ContainerState.STOPPED,
+    "stopping": ContainerState.STOPPING,
+}
 
 
 class DockerAdapter(BaseAdapter):
@@ -60,28 +65,16 @@ class DockerAdapter(BaseAdapter):
             )
         )
 
-    def create(
-        self, cmd: str, name: str, meter_id: str, ip_address: str, mediator_port: int
-    ) -> str:
-        envvar_dict = {"EMLITE_HOST": ip_address, "LISTEN_PORT": mediator_port}
-        if self.use_socks is True:
-            logger.info(
-                "configuring socks proxy ", socks_host=self.socks_dict["SOCKS_HOST"]
-            )
-            envvar_dict.update(self.socks_dict)
-
+    def create(self, cmd: str, meter_id: str, serial: str, ip_address: str) -> str:
+        mediator_name = f"mediator-{serial}"
         container = self.docker_client.containers.run(
             self.image,
-            name=name,
+            name=mediator_name,
             command=cmd,
-            environment=envvar_dict,
+            environment=self._env_vars(ip_address),
             network_mode="host",
             restart_policy={"Name": "always"},
-            labels={
-                "meter_id": meter_id,
-                "emlite_host": ip_address,
-                "listen_port": str(mediator_port),
-            },
+            labels=self._metadata(meter_id, ip_address),
             detach=True,
         )
         return container.id
@@ -101,8 +94,8 @@ class DockerAdapter(BaseAdapter):
         container.kill()
         container.remove(force=True)
 
-    def mediator_host_port(self, meter_id: str, serial: str):
-        return f"mediator-{serial}", 50051
+    def mediator_address(self, meter_id: str, serial: str):
+        return f"mediator-{serial}:{50051}"
 
 
 def main():

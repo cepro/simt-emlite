@@ -11,6 +11,7 @@ class ContainerEnvironment(Enum):
 class ContainerState(Enum):
     STARTED = 1
     STOPPED = 2
+    STOPPING = 3
 
 
 @dataclass
@@ -18,6 +19,16 @@ class Container:
     id: str
     name: str
     image: str
+    port: int
     status: ContainerState
     container_environment: ContainerEnvironment
     metadata: Dict[str, str]
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "image": self.image,
+            "port": self.port,
+            "status": self.status.name,
+        }

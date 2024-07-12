@@ -141,35 +141,9 @@ class MediatorsCLI:
 
     def create(self, serial: str):
         meter = self._meter_by_serial(serial)
-
-        fly_app = f"mediators-{meter["esco"]}"
-        machine_name = f"mediator-{serial}"
-        machine_metadata = {"meter_id": meter["id"]}
-
-        answer = input(f"""
-Fly App:    {fly_app}
-Image:      {SIMT_EMLITE_IMAGE}
-Name:       {machine_name}
-Metadata:   {machine_metadata}
-
-Create machine with these details (y/n): """)
-        if answer != "y":
-            print("\naborting ...\n")
-            sys.exit(1)
-
-        result = self.machines.create(
-            fly_app,
-            SIMT_EMLITE_IMAGE,
-            ["simt_emlite.mediator.grpc.server"],
-            name=machine_name,
-            env_vars={
-                "EMLITE_HOST": meter["ip_address"],
-                "SOCKS_HOST": SOCKS_HOST,
-                "SOCKS_PORT": SOCKS_PORT,
-                "SOCKS_USERNAME": SOCKS_USERNAME,
-                "SOCKS_PASSWORD": SOCKS_PASSWORD,
-            },
-            metadata=machine_metadata,
+        containers_api = get_instance(meter["esco"])
+        result = containers_api.create(
+            "simt_emlite.mediator.grpc.server", meter["id"], serial, meter["ip_address"]
         )
         return result
 

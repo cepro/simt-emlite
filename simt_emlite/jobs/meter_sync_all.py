@@ -45,7 +45,7 @@ class MeterSyncAllJob:
         self.log = logger.bind(esco=self.esco)
 
     def run_job(self, meter_id, serial):
-        mediator_host, mediator_port = self.containers.mediator_host_port(
+        mediator_host, mediator_port = self.containers.mediator_address(
             meter_id, serial
         )
         if mediator_port is None or mediator_host is None:

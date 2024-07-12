@@ -1,17 +1,22 @@
 import os
 from abc import ABC, abstractmethod
-from typing import List
+from typing import Dict, List
 
 from simt_emlite.orchestrate.adapter.container import Container, ContainerState
+from simt_emlite.util.config import load_config
+
+config = load_config()
+
+print(config)
 
 
 class BaseAdapter(ABC):
     def __init__(self):
         self.socks_dict = {
-            "SOCKS_HOST": os.environ.get("SOCKS_HOST"),
-            "SOCKS_PORT": os.environ.get("SOCKS_PORT"),
-            "SOCKS_USERNAME": os.environ.get("SOCKS_USERNAME"),
-            "SOCKS_PASSWORD": os.environ.get("SOCKS_PASSWORD"),
+            "SOCKS_HOST": config["socks_host"],
+            "SOCKS_PORT": config["socks_port"],
+            "SOCKS_USERNAME": config["socks_username"],
+            "SOCKS_PASSWORD": config["socks_password"],
         }
 
         self.use_socks = all(
@@ -24,13 +29,7 @@ class BaseAdapter(ABC):
             ]
         )
 
-    @abstractmethod
-    def list(
-        self,
-        metadata_filter: tuple[str, str] = None,
-        status_filter: ContainerState = None,
-    ) -> List[Container]:
-        pass
+        print(f"self.use_socks {self.use_socks}")
 
     def get(
         self,
@@ -40,9 +39,15 @@ class BaseAdapter(ABC):
         return meters[0] if len(meters) != 0 else None
 
     @abstractmethod
-    def create(
-        self, cmd: str, name: str, meter_id: str, ip_address: str, mediator_port: int
-    ) -> str:
+    def list(
+        self,
+        metadata_filter: tuple[str, str] = None,
+        status_filter: ContainerState = None,
+    ) -> List[Container]:
+        pass
+
+    @abstractmethod
+    def create(self, cmd: str, meter_id: str, serial: str, ip_address: str) -> str:
         pass
 
     @abstractmethod
@@ -58,5 +63,14 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def mediator_host_port(self, meter_id: str, serial: str):
+    def mediator_address(self, meter_id: str, serial: str):
         pass
+
+    def _env_vars(self, ip_address: str):
+        env_vars: Dict = {"EMLITE_HOST": ip_address}
+        if self.use_socks is True:
+            env_vars.update(self.socks_dict)
+        return env_vars
+
+    def _metadata(self, meter_id, ip_address: str):
+        return {"meter_id": meter_id, "emlite_host": ip_address}

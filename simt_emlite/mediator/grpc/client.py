@@ -36,15 +36,13 @@ TIMEOUT_SECONDS = 50
 class EmliteMediatorGrpcClient:
     def __init__(
         self,
-        mediator_host="0.0.0.0",
-        mediator_port=50051,
+        mediator_address="0.0.0.0:50051",
         meter_id=None,
         # access_token=None,
         # proxy_host_override=None,
         # proxy_cert_override=None,
     ):
-        self.mediator_host = mediator_host
-        self.mediator_address = f"{mediator_host}:{mediator_port}"
+        self.mediator_address = mediator_address
         self.meter_id = meter_id if meter_id is not None else "unknown"
 
         # For use with mediator proxy (https://github.com/cepro/simt-mediator-gateway):
@@ -59,7 +57,7 @@ class EmliteMediatorGrpcClient:
         # self.proxy_address = f"{self.proxy_host}:1443"
 
         global logger
-        self.log = logger.bind(mediator_host=mediator_host, meter_id=meter_id)
+        self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
         # secure_channel for when using the mediator proxy (https://github.com/cepro/simt-mediator-gateway)
