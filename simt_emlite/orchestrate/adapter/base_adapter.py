@@ -1,4 +1,3 @@
-import os
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
@@ -6,8 +5,6 @@ from simt_emlite.orchestrate.adapter.container import Container, ContainerState
 from simt_emlite.util.config import load_config
 
 config = load_config()
-
-print(config)
 
 
 class BaseAdapter(ABC):
@@ -28,8 +25,6 @@ class BaseAdapter(ABC):
                 "PASSWORD",
             ]
         )
-
-        print(f"self.use_socks {self.use_socks}")
 
     def get(
         self,
