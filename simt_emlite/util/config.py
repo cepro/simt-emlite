@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 
 from dotenv import load_dotenv
 
@@ -8,6 +9,10 @@ EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emlite.env")
 
 
 def load_config():
+    # dump stack to see what's calling this
+    for line in traceback.format_stack():
+        print(line.strip())
+
     if os.path.isfile(EMOP_CONFIG_FILE) is False:
         print(
             "ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up."
