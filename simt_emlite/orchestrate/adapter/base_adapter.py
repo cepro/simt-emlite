@@ -4,27 +4,10 @@ from typing import Dict, List
 from simt_emlite.orchestrate.adapter.container import Container, ContainerState
 from simt_emlite.util.config import load_config
 
-config = load_config()
-
 
 class BaseAdapter(ABC):
     def __init__(self):
-        self.socks_dict = {
-            "SOCKS_HOST": config["socks_host"],
-            "SOCKS_PORT": config["socks_port"],
-            "SOCKS_USERNAME": config["socks_username"],
-            "SOCKS_PASSWORD": config["socks_password"],
-        }
-
-        self.use_socks = all(
-            self.socks_dict[f"SOCKS_{v}"] is not None
-            for v in [
-                "HOST",
-                "PORT",
-                "USERNAME",
-                "PASSWORD",
-            ]
-        )
+        pass
 
     def get(
         self,
@@ -61,11 +44,34 @@ class BaseAdapter(ABC):
     def mediator_address(self, meter_id: str, serial: str):
         pass
 
-    def _env_vars(self, ip_address: str):
+    def _env_vars(self, ip_address: str) -> Dict:
         env_vars: Dict = {"EMLITE_HOST": ip_address}
-        if self.use_socks is True:
-            env_vars.update(self.socks_dict)
+        socks_dict: Dict = self._socks_dict()
+        if socks_dict is not None:
+            env_vars.update(socks_dict)
         return env_vars
+
+    def _socks_dict(self) -> Dict:
+        config = load_config()
+
+        socks_dict = {
+            "SOCKS_HOST": config["socks_host"],
+            "SOCKS_PORT": config["socks_port"],
+            "SOCKS_USERNAME": config["socks_username"],
+            "SOCKS_PASSWORD": config["socks_password"],
+        }
+
+        use_socks = all(
+            socks_dict[f"SOCKS_{v}"] is not None
+            for v in [
+                "HOST",
+                "PORT",
+                "USERNAME",
+                "PASSWORD",
+            ]
+        )
+
+        return socks_dict if use_socks is True else None
 
     def _metadata(self, meter_id, ip_address: str):
         return {"meter_id": meter_id, "emlite_host": ip_address}

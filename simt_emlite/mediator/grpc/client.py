@@ -1,11 +1,10 @@
-import os
-
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
 
 import grpc
-from simt_emlite.certificates import get_cert
+
+# from simt_emlite.certificates import get_cert
 from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
@@ -21,8 +20,8 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
 logger = get_logger(__name__, __file__)
 
-PROXY_HOST = os.environ.get("MEDIATOR_PROXY_HOST")
-PROXY_CERT = get_cert()
+# PROXY_HOST = os.environ.get("MEDIATOR_PROXY_HOST")
+# PROXY_CERT = get_cert()
 
 
 # timeout considerations:
