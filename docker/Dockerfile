@@ -10,8 +10,8 @@ COPY simt_emlite simt_emlite
 RUN poetry install --only main
 
 # Remove packages caches and unnessary files
-RUN pip cache purge
-RUN poetry cache clear --all .
-RUN rm -rf /root/.cache /tmp/*
+# RUN pip cache purge
+# RUN poetry cache clear --all .
+# RUN rm -rf /root/.cache /tmp/*
 
 ENTRYPOINT ["poetry", "run", "python", "-m"]
