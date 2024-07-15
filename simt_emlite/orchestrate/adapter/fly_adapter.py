@@ -151,7 +151,7 @@ Create machine with these details (y/n): """)
     def get_app_ip(self, esco: str):
         resolver = dns.resolver.Resolver(configure=False)
         # cepro org dns server
-        resolver.nameservers = ["fdaa:5:3015::3"]
+        # resolver.nameservers = ["fdaa:5:3015::3"]
         try:
             answers = resolver.resolve(f"mediators-{esco}.flycast", "AAAA")
             return answers[0].address
