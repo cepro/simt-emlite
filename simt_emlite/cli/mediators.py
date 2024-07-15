@@ -51,8 +51,8 @@ class MediatorsCLI:
     def list(
         self,
         esco: str = None,
-        mediator_state: Union[ContainerState] = None,
-        mediator_exists: bool = None,
+        state: Union[ContainerState] = None,
+        exists: bool = None,
         json=False,
         show_all=False,
     ) -> List:
@@ -61,14 +61,14 @@ class MediatorsCLI:
 
         Args:
             esco: esco code [eg. 'hmce' for Hazelmead]
-            mediator_state: one of [started, stopped, suspended, destroyed]
-            mediator_exists: show only with or without mediators (ignore if not set)
+            state: one of [started, stopped, suspended, destroyed]
+            exists: show only with or without mediators (ignore if not set)
             show_all: show all meters [True | False]
         """
         meters = self._list(
             esco=esco,
-            mediator_state=mediator_state,
-            mediator_exists=mediator_exists,
+            state=state,
+            exists=exists,
             show_all=show_all,
         )
 
@@ -93,8 +93,8 @@ class MediatorsCLI:
     def _list(
         self,
         esco: str = None,
-        mediator_state: Union[ContainerState] = None,
-        mediator_exists: bool = None,
+        state: Union[ContainerState] = None,
+        exists: bool = None,
         show_all=False,
     ) -> List:
         meters = self._get_meters(esco)
@@ -119,20 +119,20 @@ class MediatorsCLI:
                     container_matches[0] if len(container_matches) != 0 else None
                 )
 
-        if mediator_exists is not None:
+        if exists is not None:
             meters = list(
                 filter(
-                    lambda m: (mediator_exists is True and m["container"] is not None)
-                    or (mediator_exists is False and m["container"] is None),
+                    lambda m: (exists is True and m["container"] is not None)
+                    or (exists is False and m["container"] is None),
                     meters,
                 )
             )
 
-        if mediator_state is not None:
+        if state is not None:
             meters = list(
                 filter(
                     lambda m: m["container"] is not None
-                    and m["container"].state == mediator_state,
+                    and m["container"].state == state,
                     meters,
                 )
             )

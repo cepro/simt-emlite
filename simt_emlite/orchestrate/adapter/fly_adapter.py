@@ -107,7 +107,7 @@ Create machine with these details (y/n): """)
             print("\naborting ...\n")
             sys.exit(1)
 
-        machine = self.api.create(
+        create_response = self.api.create(
             self.fly_app,
             self.image,
             [cmd],
@@ -115,11 +115,17 @@ Create machine with these details (y/n): """)
             env_vars=self._env_vars(ip_address),
             metadata=metadata,
         )
-        logger.info(f"created machine {machine}")
+        logger.info(f"created machine {create_response}")
+
+        if "error" in create_response:
+            logger.error(f'create machine failed {create_response['error']}')
+            sys.exit(1)
+
         logger.info(
-            f"created machine with id {machine["id"]}", machine_id=machine["id"]
+            f"created machine with id {create_response["id"]}",
+            machine_id=create_response["id"],
         )
-        return machine["id"]
+        return create_response["id"]
 
     def start(self, id: str):
         return self.api.start(self.fly_app, id)
