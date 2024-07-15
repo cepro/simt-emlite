@@ -40,12 +40,14 @@ class FlyAdapter(BaseAdapter):
     def __init__(
         self,
         api_token: str,
+        dns_server: str,
         image: str,
         esco: str,
     ):
         super().__init__()
         self.api = API(api_token)
         self.esco = esco
+        self.dns_server = dns_server
         self.fly_app = f"mediators-{esco}"
         self.image = image
 
@@ -150,11 +152,7 @@ Create machine with these details (y/n): """)
 
     def get_app_ip(self, esco: str):
         resolver = dns.resolver.Resolver(configure=False)
-        # cepro org dns server
-        resolver.nameservers = [
-            # "fdaa:5:3015::3",  # Cepro org DNS in Wireguard
-            "fdaa::3",  # Fly.io DNS in machines
-        ]
+        resolver.nameservers = [self.dns_server]
         try:
             answers = resolver.resolve(f"mediators-{esco}.flycast", "AAAA")
             return answers[0].address
