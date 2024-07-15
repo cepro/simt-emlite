@@ -9,10 +9,6 @@ EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emlite.env")
 
 
 def load_config():
-    # dump stack to see what's calling this
-    for line in traceback.format_stack():
-        print(line.strip())
-
     if os.path.isfile(EMOP_CONFIG_FILE) is False:
         print(
             "ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up."
@@ -29,6 +25,7 @@ def load_config():
         "supabase_access_token": os.environ.get("SUPABASE_ACCESS_TOKEN"),
         # fly
         "fly_api_token": os.environ.get("FLY_API_TOKEN"),
+        "fly_dns_server": os.environ.get("FLY_DNS_SERVER"),
         # emnify gateway socks proxy
         "socks_host": os.environ.get("SOCKS_HOST"),
         "socks_port": os.environ.get("SOCKS_PORT"),
