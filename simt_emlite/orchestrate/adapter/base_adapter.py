@@ -45,15 +45,20 @@ class BaseAdapter(ABC):
         pass
 
     def _env_vars(self, ip_address: str) -> Dict:
-        env_vars: Dict = {"EMLITE_HOST": ip_address}
-        socks_dict: Dict = self._socks_dict()
-        if socks_dict is not None:
-            env_vars.update(socks_dict)
-        return env_vars
-
-    def _socks_dict(self) -> Dict:
         config = load_config()
 
+        env_vars: Dict = {
+            "EMLITE_HOST": ip_address,
+            "MEDIATOR_INACTIVITY_SECONDS": config["mediator_inactivity_seconds"],
+        }
+
+        socks_dict: Dict = self._socks_dict(config)
+        if socks_dict is not None:
+            env_vars.update(socks_dict)
+
+        return env_vars
+
+    def _socks_dict(self, config) -> Dict:
         socks_dict = {
             "SOCKS_HOST": config["socks_host"],
             "SOCKS_PORT": config["socks_port"],

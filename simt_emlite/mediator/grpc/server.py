@@ -51,7 +51,7 @@ listen_port = os.environ.get("LISTEN_PORT") or "50051"
     Inactive shutdown properties 
 """
 
-inactivity_seconds = os.environ.get("MEDIATOR_INACTIVITY_SECONDS") or 0
+inactivity_seconds = int(os.environ.get("MEDIATOR_INACTIVITY_SECONDS")) or 0
 inactivity_check_interval_seconds = 30
 
 
