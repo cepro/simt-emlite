@@ -197,7 +197,7 @@ class MediatorsCLI:
             [
                 "ln",
                 "-s",
-                "--force",
+                "-f",  # force
                 os.path.join(config_path, f"emlite.{env}.env"),
                 os.path.join(config_path, "emlite.env"),
             ],
