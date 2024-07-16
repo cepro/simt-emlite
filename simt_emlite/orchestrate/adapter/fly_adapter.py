@@ -165,8 +165,9 @@ Create machine with these details (y/n): """)
             answers = resolver.resolve(f"mediators-{esco}.flycast", "AAAA")
             return answers[0].address
         except Exception as e:
-            print(f"Failed to resolve flycast address [{e}]")
-            raise e
+            print(f"\nFailed to resolve flycast address [{e}]\n")
+            print("Has Wireguard been started??\n")
+            sys.exit(10)
 
 
 def main():
