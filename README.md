@@ -16,9 +16,7 @@ This repository contains:
 
 ## Install
 
-Because we are currently publishing to test pypi we need to run this in 2 steps
-to get the main package from test pypi but all other packages from the main
-pypi:
+Because we are currently publishing to test pypi, add the extra index option:
 
 ```
 pip install --extra-index-url https://test.pypi.org/simple/ simt-emlite
@@ -50,12 +48,12 @@ emop --serial EML2137580826 csq
 ### mediators
 ```sh
 mediators list
-mediators list --full | jq
-mediators list --metadata-filter "('meter_id', '9f7d7906-3980-4b6c-9714-ab1403fbd7ff')"
+mediators list --esco wlce      # show only mediators from the Waterlilies esco
+mediators list --exists False   # show all meters that don't yet have a mediator 
 
 mediators create EML2137580826
-mediators destroy_one EML2137580826
-mediators start_one EML2137580826
+mediators destroy EML2137580826
+mediators start EML2137580826
 ```
 
 # Setup
@@ -74,16 +72,11 @@ see also emlite.env below
 (.venv)> poetry install
 ```
 
-## Remote mediator server
-
-see also emlite.env below
-
-see Notion for docs on setting up the mediator server:
-https://www.notion.so/Setting-up-Emlite-meter-mediator-server-0cf0c8f97ee44843977334bc6efa86ba#658ff25657a54fbfa6388b2b42d70f66
-
 ## emlite.env
 
 Copy emlite.env.example to ~/.simt/emlite.env and set secrets and variables as needed.
+
+Or once already setup you can use `mediators env_set local` to point at the local env file. 
 
 # Tests
 
@@ -99,43 +92,34 @@ Use account `damonrand` and publishing to test-pypi for now.
 poetry publish --build -r test-pypi
 ```
 
-# Fly
+# Fly Deployment
 
-## Create App
+In Fly we create one Fly App per ESCO and each app has a mediator machine (container) per meter for that ESCO. An example hierarchy of apps and machines:
+- mediators-wlce (Fly app)
+  - mediator-EML2137580814 (machine/container)
+  - mediator-EML2137580833 (machine/container)
+- mediators-hmce (Fly app)
+  - mediator-EML2137580900 (machine/container)
+  - mediator-EML2137580901 (machine/container)
+
+See the notes on the mediators CLI above for how to list these machines.
+
+## Create App for ESCO
+```sh
+> ESCO=wlce
+> APP=mediators-$ESCO
+> fly app create $APP --org cepro
+> fly ips allocate-v6 --private -a $APP
 ```
-# TODO - add commands for creating the initial empty app
 
-# later remove public ips and create one flycast / private ip:
-APP=mediators-wlce
-fly ips allocate-v6 --private -a $APP
+## Create Mediator Container for meter in ESCO
+```sh
+> mediators create <meter serial>
 ```
 
-## Publish Docker Image
+## Publish Docker Image to Fly
 
 Whenever a tag is pushed the 'docker-image' github action will build and push an image to both ghcr and fly docker registries.
-
-
-# Mediator Servers
-
-## run_mediators (soon to be deprecated)
-
-```
-bin/run_mediators --start-all
-bin/run_mediators --stop-all
-bin/run_mediators --remove-all
-```
-
-## cli.mediators (soon to replace run_mediators)
-
-see examples under CLI mediators above
-
-## Run Jobs
-
-```
-bin/run_meter_health_syncs
-bin/run_meter_csq_syncs
-bin/run_meter_prepay_syncs
-```
 
 # gRPC
 
