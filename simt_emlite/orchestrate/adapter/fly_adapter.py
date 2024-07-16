@@ -25,6 +25,7 @@ CONTAINER_STATUS = {
     "started": ContainerState.STARTED,
     "stopped": ContainerState.STOPPED,
     "stopping": ContainerState.STOPPING,
+    # "created": ???
 }
 
 
