@@ -14,23 +14,9 @@ This repository contains:
 
 # CLIs
 
-## Install
+## Install and Configure
 
-Because we are currently publishing to test pypi, add the extra index option:
-
-```
-pip install --extra-index-url https://test.pypi.org/simple/ simt-emlite
-```
-
-## Configure
-
-- create file ~/.simt/emlite.prod.env from Lastpass secret 'emop-cli-env-file (prod)'
-- create file ~/.simt/emlite.qa.env from Lastpass secret 'emop-cli-env-file (qa)'
-- ln -s ~/.simt/emlite.<qa|prod>.env ~/.simt/emlite.env
-    - see `emop env_set` command for changing this after initial setup
-- edit ~/.simt/emlite.env
-    - set SUPABASE_ACCESS_TOKEN
-    - etc.
+see https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8
 
 ## Use
 
