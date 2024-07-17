@@ -96,11 +96,3 @@ class DockerAdapter(BaseAdapter):
 
     def mediator_address(self, meter_id: str, serial: str):
         return f"mediator-{serial}:50051"
-
-
-def main():
-    fire.Fire(DockerAdapter)
-
-
-if __name__ == "__main__":
-    main()

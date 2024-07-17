@@ -1,3 +1,6 @@
+import argparse
+import importlib
+import logging
 import os
 import subprocess
 import sys
@@ -5,7 +8,6 @@ from datetime import datetime
 from json import dumps
 from typing import Dict, List, Union
 
-import fire
 from rich import box
 from rich.console import Console
 from rich.table import Table
@@ -56,15 +58,6 @@ class MediatorsCLI:
         json=False,
         show_all=False,
     ) -> List:
-        """
-        List meters and corresponding machines
-
-        Args:
-            esco: esco code [eg. 'hmce' for Hazelmead]
-            state: one of [started, stopped, suspended, destroyed]
-            exists: show only with or without mediators (ignore if not set)
-            show_all: show all meters [True | False]
-        """
         meters = self._list(
             esco=esco,
             state=state,
@@ -183,13 +176,17 @@ class MediatorsCLI:
 
     # TODO: these are duplicated in emop - put them in one tool or at least consolidate the duplicated code
 
+    def version(self):
+        version = importlib.metadata.version("simt-emlite")
+        logging.info(version)
+
     def env_show(self):
-        print(config["env"])
+        logging.info(config["env"])
 
     def env_set(self, env: str):
         allowed_env = ["prod", "qa", "local"]
         if env not in allowed_env:
-            print(f"ERROR: env must be one of {allowed_env}")
+            logging.info(f"ERROR: env must be one of {allowed_env}")
             sys.exit(1)
 
         config_path = os.path.join(os.path.expanduser("~"), ".simt")
@@ -206,9 +203,9 @@ class MediatorsCLI:
         )
 
         if rt.returncode == 0:
-            print(f"env set to {env}")
+            logging.info(f"env set to {env}")
         else:
-            print("failed to set env")
+            logging.info("failed to set env")
 
     def _machine_by_serial(self, serial):
         meter = self._meter_by_serial(serial)
@@ -279,7 +276,76 @@ class MediatorsCLI:
 
 
 def main():
-    fire.Fire(MediatorsCLI)
+    logging.basicConfig(level=logging.INFO)
+    # supress supabase py request logging:
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="subparser")
+
+    subparsers.add_parser("version", help="Show version")
+
+    subparsers.add_parser("env_show", help="Show current environment context")
+    subparsers.add_parser(
+        "env_set",
+        help="Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
+    ).add_argument(
+        "env",
+        choices=["prod", "qa", "local"],
+    )
+
+    parser_list = subparsers.add_parser(
+        "list",
+        help="List meters and mediators details",
+    )
+    parser_list.add_argument(
+        "-e", "--esco", help="Filter by ESCO code [eg. wlce, hmce, lab]"
+    )
+    parser_list.add_argument(
+        "--exists",
+        action=argparse.BooleanOptionalAction,
+        help="Filter by existance of mediator for each meter.",
+    )
+    # Broken as Container does not yet serialise:
+    #
+    # parser_list.add_argument(
+    #     "--json",
+    #     action="store_true",
+    #     help="Output result in JSON ",
+    # )
+    parser_list.add_argument(
+        "-s",
+        "--state",
+        help="Filter by mediator state",
+        choices=[
+            ContainerState.STARTED.name.lower(),
+            ContainerState.STOPPED.name.lower(),
+            ContainerState.STOPPING.name.lower(),
+        ],
+    )
+
+    subparsers.add_parser(
+        "create",
+        help="Create mediator for given meter serial",
+    ).add_argument("serial")
+
+    subparsers.add_parser(
+        "destroy_one",
+        help="Destroy a mediator for given meter serial",
+    ).add_argument("serial")
+
+    kwargs = vars(parser.parse_args())
+
+    command = kwargs.pop("subparser")
+    if command is None:
+        parser.print_help()
+        exit(-1)
+
+    logging.info(kwargs)
+
+    cli = MediatorsCLI()
+    method = getattr(cli, command)
+    method(**kwargs)
 
 
 if __name__ == "__main__":

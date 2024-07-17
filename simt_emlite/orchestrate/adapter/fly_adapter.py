@@ -168,11 +168,3 @@ Create machine with these details (y/n): """)
             print(f"\nFailed to resolve flycast address [{e}]\n")
             print("Has Wireguard been started??\n")
             sys.exit(10)
-
-
-def main():
-    fire.Fire(FlyAdapter)
-
-
-if __name__ == "__main__":
-    main()

@@ -1,10 +1,11 @@
+import argparse
 import datetime
+import importlib
+import logging
 import os
 import subprocess
 import sys
 from decimal import Decimal
-
-import fire
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
@@ -26,13 +27,12 @@ FLY_API_TOKEN = config["fly_api_token"]
 
 
 """
-    This is a CLI wrapper around the mediator client using Fire to generate the
-    CLI interface from the client python interface.
+    This is a CLI wrapper around the mediator client.
 """
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self, serial, emnify_id=None):
+    def __init__(self, serial=None, emnify_id=None):
         # TODO: necessary for meters that have not yet had a serial read
         #       they will be in the registry but with a NULL serial
         if emnify_id is not None:
@@ -40,48 +40,43 @@ class EMOPCLI(EmliteMediatorClient):
             print(err_msg)
             raise Exception(err_msg)
 
-        # serial mandatory until emnify_id supported above
-        if serial is None:
-            err_msg = "serial property required at this stage"
-            print(err_msg)
-            raise Exception(err_msg)
-
         self.supabase = supa_client(
             SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
         )
 
-        result = (
-            self.supabase.table("meter_registry")
-            .select("id,esco")
-            .eq("serial", serial)
-            .execute()
-        )
-        if len(result.data) == 0:
-            print(f"meter {serial} not found")
-            sys.exit(10)
+        if serial is not None:
+            result = (
+                self.supabase.table("meter_registry")
+                .select("id,esco")
+                .eq("serial", serial)
+                .execute()
+            )
+            if len(result.data) == 0:
+                print(f"meter {serial} not found")
+                sys.exit(10)
 
-        meter_id = result.data[0]["id"]
-        esco_id = result.data[0]["esco"]
+            meter_id = result.data[0]["id"]
+            esco_id = result.data[0]["esco"]
 
-        result = (
-            self.supabase.schema("flows")
-            .table("escos")
-            .select("code")
-            .eq("id", esco_id)
-            .execute()
-        )
-        esco_code = result.data[0]["code"]
+            result = (
+                self.supabase.schema("flows")
+                .table("escos")
+                .select("code")
+                .eq("id", esco_id)
+                .execute()
+            )
+            esco_code = result.data[0]["code"]
 
-        containers = get_instance(esco_code)
-        mediator_address = containers.mediator_address(meter_id, serial)
+            containers = get_instance(esco_code)
+            mediator_address = containers.mediator_address(meter_id, serial)
 
-        super().__init__(
-            mediator_address=mediator_address,
-            meter_id=meter_id,
-            # access_token=SUPABASE_ACCESS_TOKEN,
-            # proxy_host_override=PROXY_HOST,
-            # proxy_cert_override=PROXY_CERT,
-        )
+            super().__init__(
+                mediator_address=mediator_address,
+                meter_id=meter_id,
+                # access_token=SUPABASE_ACCESS_TOKEN,
+                # proxy_host_override=PROXY_HOST,
+                # proxy_cert_override=PROXY_CERT,
+            )
 
     # =================================
     #   EMOP Commands Wrappers
@@ -139,13 +134,17 @@ class EMOPCLI(EmliteMediatorClient):
     #   Utils
     # =================================
 
-    def env_show():
-        print(config["env"])
+    def version(self):
+        version = importlib.metadata.version("simt-emlite")
+        logging.info(version)
 
-    def env_set(env: str):
+    def env_show(self):
+        logging.info(config["env"])
+
+    def env_set(self, env: str):
         allowed_env = ["prod", "qa", "local"]
         if env not in allowed_env:
-            print(f"ERROR: env must be one of {allowed_env}")
+            logging.info(f"ERROR: env must be one of {allowed_env}")
             sys.exit(1)
 
         config_path = os.path.join(os.path.expanduser("~"), ".simt")
@@ -162,9 +161,9 @@ class EMOPCLI(EmliteMediatorClient):
         )
 
         if rt.returncode == 0:
-            print(f"env set to {env}")
+            logging.info(f"env set to {env}")
         else:
-            print("failed to set env")
+            logging.info("failed to set env")
 
     # =================================
     #   Shelved for now
@@ -199,7 +198,57 @@ class EMOPCLI(EmliteMediatorClient):
 
 
 def main():
-    fire.Fire(EMOPCLI)
+    logging.basicConfig(level=logging.INFO)
+    # supress supabase py request logging:
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="subparser")
+
+    subparsers.add_parser("version", help="Show version")
+
+    subparsers.add_parser("env_show", help="Show current environment context")
+    subparsers.add_parser(
+        "env_set",
+        help="Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
+    ).add_argument(
+        "env",
+        choices=["prod", "qa", "local"],
+    )
+
+    simple_read_commands = [
+        "csq",
+        "hardware",
+        "firmware_version",
+        "serial",
+        "clock_time",
+        "instantaneous_voltage",
+        "prepay_enabled",
+        "prepay_balance",
+        "prepay_transaction_count",
+        "three_phase_instantaneous_voltage",
+        "tariffs_active_read",
+        "tariffs_future_read",
+        "tariffs_time_switches_element_a_or_single_read",
+        "tariffs_time_switches_element_b_read",
+    ]
+    for cmd in simple_read_commands:
+        subparsers.add_parser(cmd).add_argument("serial")
+
+    kwargs = vars(parser.parse_args())
+
+    command = kwargs.pop("subparser")
+    if command is None:
+        parser.print_help()
+        exit(-1)
+
+    logging.info(kwargs)
+
+    serial = kwargs.pop("serial", None)
+    cli = EMOPCLI(serial=serial)
+
+    method = getattr(cli, command)
+    method(**kwargs)
 
 
 if __name__ == "__main__":
