@@ -99,12 +99,9 @@ class MeterSyncAllJob:
             self.log.error("no meters record found")
             sys.exit(11)
 
-        print(registry_result.data)
         meters = list(filter(filter_connected, registry_result.data))
-        print(f"after connectd filter {meters}")
         if self.filter_fn:
             meters = list(filter(self.filter_fn, meters))
-            print(f"after filter_fn filter {meters}")
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max_parallel_jobs
@@ -115,12 +112,6 @@ class MeterSyncAllJob:
             ]
 
         concurrent.futures.wait(futures)
-
-        for f in futures:
-            e = f.exception()
-            print(e)
-            print(e.__cause__)
-            print(traceback.print_exception(e))
 
         self.log.info("finished")
 
