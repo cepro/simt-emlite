@@ -1,7 +1,5 @@
 from typing import List
 
-import fire
-
 import docker
 from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter
 from simt_emlite.orchestrate.adapter.container import (

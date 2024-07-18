@@ -2,7 +2,6 @@ import sys
 from typing import List
 
 import dns.resolver
-import fire
 from simt_fly_machines.api import API
 
 from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter
@@ -58,6 +57,7 @@ class FlyAdapter(BaseAdapter):
         status_filter: ContainerState = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
+        logger.debug(f"all machines [{len(machines)}]")
 
         if metadata_filter:
             logger.debug(f"metadata filter [{metadata_filter}]")
@@ -66,6 +66,7 @@ class FlyAdapter(BaseAdapter):
                     metadata_filter_fn(metadata_filter[0], metadata_filter[1]), machines
                 )
             )
+            logger.debug(f"result [{len(machines)}]")
 
         if status_filter:
             logger.debug(f"status filter [{status_filter}]")
@@ -150,6 +151,7 @@ Create machine with these details (y/n): """)
     def mediator_address(self, meter_id: str, serial: str):
         machines = self.list(("meter_id", meter_id))
         if len(machines) == 0:
+            print("no match")
             return None
 
         mediator_host = self.get_app_ip(self.esco)
