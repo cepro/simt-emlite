@@ -30,6 +30,7 @@ CONTAINER_STATUS = {
 
 def metadata_filter_fn(key, value):
     def machine_filter(machine) -> bool:
+        print(machine["config"])
         metadata = machine["config"]["metadata"]
         return key in metadata and metadata[key] == value
 

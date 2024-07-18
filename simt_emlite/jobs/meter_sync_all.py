@@ -117,7 +117,10 @@ class MeterSyncAllJob:
         concurrent.futures.wait(futures)
 
         for f in futures:
-            print(f.exception())
+            e = f.exception()
+            print(e)
+            print(e.__cause__)
+            print(e.__traceback__)
 
         self.log.info("finished")
 
