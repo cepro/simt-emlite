@@ -120,7 +120,7 @@ class MeterSyncAllJob:
             e = f.exception()
             print(e)
             print(e.__cause__)
-            print(e.__traceback__)
+            print(traceback.print_exception(e))
 
         self.log.info("finished")
 
