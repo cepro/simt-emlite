@@ -116,6 +116,9 @@ class MeterSyncAllJob:
 
         concurrent.futures.wait(futures)
 
+        for f in futures:
+            print(f.exception())
+
         self.log.info("finished")
 
     def _check_environment(self):
