@@ -79,21 +79,6 @@ class EMOPCLI(EmliteMediatorClient):
             )
 
     # =================================
-    #   EMOP Commands Wrappers
-    # =================================
-
-    def tariffs_future_write_str_args(
-        self, from_ts_iso_str: str, standing_charge_str: str, unit_rate_str: str
-    ):
-        self._check_amount_arg_is_string(standing_charge_str)
-        self._check_amount_arg_is_string(unit_rate_str)
-        self.tariffs_future_write(
-            datetime.datetime.fromisoformat(from_ts_iso_str),
-            standing_charge=Decimal(standing_charge_str),
-            unit_rate=Decimal(unit_rate_str),
-        )
-
-    # =================================
     #   Supabase Commands
     # =================================
 
@@ -110,18 +95,8 @@ class EMOPCLI(EmliteMediatorClient):
 
         print(result.data[0]["name"])
 
-    def _check_amount_arg_is_string(self, arg_value):
-        if isinstance(arg_value, str):
-            return
-        print(
-            "\nERROR: amount argument passed as floating point number. pass "
-            + "as string to avoid floating point rounding errors "
-            + "[eg. \"'0.234'\" or '\"0.234\"']"
-        )
-        sys.exit(10)
-
     # =================================
-    #   Utils
+    #   Tool related
     # =================================
 
     def version(self):
@@ -194,6 +169,15 @@ def valid_iso_datetime(timestamp: str):
         raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
 
 
+def valid_decimal(rate: str):
+    try:
+        return Decimal(rate)
+    except Exception:
+        raise argparse.ArgumentTypeError(
+            f"Invalid rate {rate}. Should be a floating point number."
+        )
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
@@ -247,6 +231,29 @@ def main():
             required=True,
             type=valid_iso_datetime,
         )
+
+    tariff_write_parser = subparsers.add_parser(
+        "tariffs_future_write", help="Write future dated tariff into the meter"
+    )
+    tariff_write_parser.add_argument("serial", help="meter serial")
+    tariff_write_parser.add_argument(
+        "--future-date",
+        help="Date and time in iso8601 format of when the date tariff will apply from.",
+        required=True,
+        type=valid_iso_datetime,
+    )
+    tariff_write_parser.add_argument(
+        "--unit-rate",
+        help="Tariff unit rate",
+        required=True,
+        type=valid_decimal,
+    )
+    tariff_write_parser.add_argument(
+        "--standing-charge",
+        help="Tariff standing charge",
+        required=True,
+        type=valid_decimal,
+    )
 
     kwargs = vars(parser.parse_args())
 
