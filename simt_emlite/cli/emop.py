@@ -82,16 +82,6 @@ class EMOPCLI(EmliteMediatorClient):
     #   EMOP Commands Wrappers
     # =================================
 
-    def profile_log_1_str_args(self, ts_iso_str: str):
-        return self.profile_log_1(
-            datetime.datetime.fromisoformat(ts_iso_str),
-        )
-
-    def profile_log_2_str_args(self, ts_iso_str: str):
-        return self.profile_log_2(
-            datetime.datetime.fromisoformat(ts_iso_str),
-        )
-
     def tariffs_future_write_str_args(
         self, from_ts_iso_str: str, standing_charge_str: str, unit_rate_str: str
     ):
@@ -197,6 +187,13 @@ class EMOPCLI(EmliteMediatorClient):
     #     return dotenv_values(SUPABASE_TOKEN_FILE)
 
 
+def valid_iso_datetime(timestamp: str):
+    try:
+        return datetime.datetime.fromisoformat(timestamp)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
@@ -233,7 +230,23 @@ def main():
         "tariffs_time_switches_element_b_read",
     ]
     for cmd in simple_read_commands:
-        subparsers.add_parser(cmd).add_argument("serial")
+        subparsers.add_parser(cmd).add_argument("serial", help="meter serial")
+
+    profile_log_commands = [
+        "profile_log_1",
+        "profile_log_2",
+    ]
+    for cmd in profile_log_commands:
+        profile_parser = subparsers.add_parser(
+            cmd, help="Fetch half hourly date from a given date time."
+        )
+        profile_parser.add_argument("serial", help="meter serial")
+        profile_parser.add_argument(
+            "--timestamp",
+            help="Date and time in iso8601 format of time to read profile logs from.",
+            required=True,
+            type=valid_iso_datetime,
+        )
 
     kwargs = vars(parser.parse_args())
 

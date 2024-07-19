@@ -59,7 +59,6 @@ class FlyAdapter(BaseAdapter):
         status_filter: ContainerState = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
-        logger.debug(f"all machines [{len(machines)}]")
 
         if metadata_filter:
             logger.debug(f"metadata filter [{metadata_filter}]")
@@ -68,7 +67,6 @@ class FlyAdapter(BaseAdapter):
                     metadata_filter_fn(metadata_filter[0], metadata_filter[1]), machines
                 )
             )
-            logger.debug(f"result [{len(machines)}]")
 
         if status_filter:
             logger.debug(f"status filter [{status_filter}]")

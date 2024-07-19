@@ -213,17 +213,17 @@ class EmliteMediatorClient(object):
             None if vl3 is None else vl3.voltage / 10,
         )
 
-    def profile_log_1(self, ts: datetime):
-        return self._profile_log(ts, EmopData.RecordFormat.profile_log_1)
+    def profile_log_1(self, timestamp: datetime):
+        return self._profile_log(timestamp, EmopData.RecordFormat.profile_log_1)
 
-    def profile_log_2(self, ts: datetime):
-        return self._profile_log(ts, EmopData.RecordFormat.profile_log_2)
+    def profile_log_2(self, timestamp: datetime):
+        return self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
 
-    def _profile_log(self, ts: datetime, format: EmopData.RecordFormat):
+    def _profile_log(self, timestamp: datetime, format: EmopData.RecordFormat):
         message_len = 5  # profile log request - format (1) + timestamp (4)
 
         message_field = EmopData.ProfileLogRec(message_len)
-        message_field.timestamp = emop_datetime_to_epoch_seconds(ts)
+        message_field.timestamp = emop_datetime_to_epoch_seconds(timestamp)
 
         data_field = EmopData(None)
         data_field.format = format
