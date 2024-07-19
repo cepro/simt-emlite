@@ -341,7 +341,7 @@ def main():
         parser.print_help()
         exit(-1)
 
-    logging.info(kwargs)
+    # logging.info(kwargs)
 
     cli = MediatorsCLI()
     method = getattr(cli, command)

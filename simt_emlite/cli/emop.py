@@ -58,6 +58,9 @@ class EMOPCLI(EmliteMediatorClient):
             meter_id = result.data[0]["id"]
             esco_id = result.data[0]["esco"]
 
+            print(self.supabase)
+            print(self.supabase.schema)
+
             result = (
                 self.supabase.schema("flows")
                 .table("escos")
@@ -262,7 +265,7 @@ def main():
         parser.print_help()
         exit(-1)
 
-    logging.info(kwargs)
+    # logging.info(kwargs)
 
     serial = kwargs.pop("serial", None)
     cli = EMOPCLI(serial=serial)
