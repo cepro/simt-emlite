@@ -25,10 +25,11 @@ see https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab
 emop env_show
 emop env_set prod
 
-emop --serial EML2137580826 --help
+emop --help
 
-emop --serial EML2137580826 prepay_balance
-emop --serial EML2137580826 csq
+emop prepay_balance EML2137580826 
+emop csq EML2137580826 
+emop profile_log_1 --timestamp 2024-07-19T00:00 EML1411042768
 ```
 
 ### mediators
