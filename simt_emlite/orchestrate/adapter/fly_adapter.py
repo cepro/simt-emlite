@@ -91,25 +91,22 @@ class FlyAdapter(BaseAdapter):
         )
 
     def create(
-        self,
-        cmd: str,
-        meter_id: str,
-        serial: str,
-        ip_address: str,
+        self, cmd: str, meter_id: str, serial: str, ip_address: str, skip_confirm=False
     ) -> str:
         machine_name = f"mediator-{serial}"
         metadata = self._metadata(meter_id, ip_address)
 
-        answer = input(f"""
+        if skip_confirm is not True:
+            answer = input(f"""
 Fly App:    {self.fly_app}
 Image:      {self.image}
 Name:       {machine_name}
 Metadata:   {metadata}
 
 Create machine with these details (y/n): """)
-        if answer != "y":
-            print("\naborting ...\n")
-            sys.exit(1)
+            if answer != "y":
+                print("\naborting ...\n")
+                sys.exit(1)
 
         create_response = self.api.create(
             self.fly_app,

@@ -140,11 +140,15 @@ class MediatorsCLI:
 
         return meters
 
-    def create(self, serial: str):
+    def create(self, serial: str, skip_confirm=False):
         meter = self._meter_by_serial(serial)
         containers_api = get_instance(meter["esco"])
         result = containers_api.create(
-            "simt_emlite.mediator.grpc.server", meter["id"], serial, meter["ip_address"]
+            "simt_emlite.mediator.grpc.server",
+            meter["id"],
+            serial,
+            meter["ip_address"],
+            skip_confirm=skip_confirm,
         )
         return result
 
@@ -347,10 +351,16 @@ def main():
         ],
     )
 
-    subparsers.add_parser(
+    parser_create = subparsers.add_parser(
         "create",
         help="Create mediator for given meter serial",
-    ).add_argument("serial")
+    )
+    parser_create.add_argument("serial")
+    parser_create.add_argument(
+        "--skip_confirm",
+        action=argparse.BooleanOptionalAction,
+        help="Skip interactive confirmation",
+    )
 
     subparsers.add_parser(
         "destroy_one",
