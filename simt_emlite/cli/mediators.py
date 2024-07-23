@@ -70,14 +70,22 @@ class MediatorsCLI:
             return
 
         table = Table(
-            "esco", "serial", "container state", "container image", box=box.SQUARE
+            "esco",
+            "serial",
+            "container state",
+            "container image",
+            "container id",
+            box=box.SQUARE,
         )
 
         for meter in meters:
             row_values = [meter["esco"], meter["serial"]]
             if meter["container"] is not None:
                 row_values.append(meter["container"].status.name)
-                row_values.append(meter["container"].image)
+                row_values.append(
+                    meter["container"].image.replace("registry.fly.io/", "")
+                )
+                row_values.append(meter["container"].id)
             table.add_row(*row_values)
 
         console = Console()

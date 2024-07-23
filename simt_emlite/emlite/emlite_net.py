@@ -74,7 +74,9 @@ class EmliteNET:
                     f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
                 )
                 logger.info("connect to proxy ...")
-                sock = proxy.connect(dest_host=self.host, dest_port=self.port)
+                sock = proxy.connect(
+                    dest_host=self.host, dest_port=self.port, timeout=10
+                )
                 logger.info("after proxy connect")
             else:
                 sock = socket.socket()
@@ -106,8 +108,7 @@ class EmliteNET:
             sock = None
             raise e
         except Exception as e:
-            logger.error("catch all exception in _open_socket:")
-            logger.error(e)
+            logger.error(f"catch all exception in _open_socket: [{e}]")
             raise e
 
         return sock

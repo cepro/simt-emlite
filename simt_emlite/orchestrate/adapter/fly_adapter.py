@@ -60,6 +60,8 @@ class FlyAdapter(BaseAdapter):
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
 
+        machines = list(filter(lambda m: m["name"].startswith("mediator-"), machines))
+
         if metadata_filter:
             logger.debug(f"metadata filter [{metadata_filter}]")
             machines = list(
