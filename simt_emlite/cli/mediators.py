@@ -161,6 +161,23 @@ class MediatorsCLI:
         containers_api, container = self._container_by_serial(serial)
         return containers_api.destroy(container.id)
 
+    def destroy_all(self, esco: str):
+        if esco is None:
+            print("esco mandatory")
+            sys.exit(1)
+
+        mediators = self._list(esco=esco, exists=True)
+
+        answer = input(f"""Found {len(mediators)} mediator to destroy in ESCO {esco}.
+
+Go ahead and destroy ALL of these? (y/n): """)
+        if answer != "y":
+            print("\naborting ...\n")
+            sys.exit(1)
+
+        for m in mediators:
+            self.destroy_one(m["serial"])
+
     def stop_one(self, serial: str) -> str:
         containers_api, container = self._container_by_serial(serial)
         containers_api.stop(container.id)
@@ -173,9 +190,6 @@ class MediatorsCLI:
         pass
 
     def stop_all(self):
-        pass
-
-    def destroy_all(self):
         pass
 
     # =================================
@@ -283,6 +297,9 @@ class MediatorsCLI:
         return containers_api, container
 
 
+ESCO_FILTER_HELP = "Filter by ESCO code [eg. wlce, hmce, lab]"
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
@@ -306,9 +323,7 @@ def main():
         "list",
         help="List meters and mediators details",
     )
-    parser_list.add_argument(
-        "-e", "--esco", help="Filter by ESCO code [eg. wlce, hmce, lab]"
-    )
+    parser_list.add_argument("-e", "--esco", help=ESCO_FILTER_HELP)
     parser_list.add_argument(
         "--exists",
         action=argparse.BooleanOptionalAction,
@@ -341,6 +356,11 @@ def main():
         "destroy_one",
         help="Destroy a mediator for given meter serial",
     ).add_argument("serial")
+
+    subparsers.add_parser(
+        "destroy_all",
+        help="Destroy all mediators for a given ESCO",
+    ).add_argument("esco", help=ESCO_FILTER_HELP)
 
     kwargs = vars(parser.parse_args())
 

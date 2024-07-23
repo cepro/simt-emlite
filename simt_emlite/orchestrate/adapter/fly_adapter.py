@@ -139,16 +139,16 @@ Create machine with these details (y/n): """)
 
     def destroy(self, id: str):
         stop_rsp = self.api.stop(self.fly_app, id)
-        print(f"stop_rsp {stop_rsp}")
+        print(f"stop_rsp [{id}]: {stop_rsp}")
 
         machine = self.api.get(self.fly_app, id)
         wait_rsp = self.api.wait(
             self.fly_app, id, machine["instance_id"], FLY_STATUS[ContainerState.STOPPED]
         )
-        print(f"wait_rsp {wait_rsp}")
+        print(f"wait_rsp [{id}]: {wait_rsp}")
 
         destroy_rsp = self.api.destroy(self.fly_app, id)
-        print(f"destroy_rsp {destroy_rsp}")
+        print(f"destroy_rsp [{id}]: {destroy_rsp}")
 
     def mediator_address(self, meter_id: str, serial: str):
         machines = self.list(("meter_id", meter_id))
