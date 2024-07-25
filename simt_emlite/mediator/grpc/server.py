@@ -3,7 +3,6 @@ import signal
 import sys
 import threading
 import time
-import traceback
 from concurrent import futures
 from datetime import datetime, timedelta
 

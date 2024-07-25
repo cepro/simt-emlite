@@ -93,5 +93,5 @@ class DockerAdapter(BaseAdapter):
         container.remove(force=True)
 
     def mediator_address(self, meter_id: str, serial: str):
-        return "172.19.0.2:50051"
+        return "172.19.0.5:50051"
         # return f"mediator-{serial}:50051"
