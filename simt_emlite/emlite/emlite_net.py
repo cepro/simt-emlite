@@ -1,8 +1,9 @@
 import os
 import socket
 
+from python_socks import ProxyConnectionError, ProxyTimeoutError
 from python_socks.sync import Proxy
-from tenacity import retry, stop_after_attempt
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from simt_emlite.util.logging import get_logger
 
@@ -35,61 +36,72 @@ class EmliteNET:
         global logger
         logger = logger.bind(host=host)
 
-    @retry(stop=stop_after_attempt(3))
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(3))
     def send_message(self, req_bytes: bytes):
-        sock = self._open_socket()
+        sock = self._open_socket(self.send_message.statistics["attempt_number"])
         try:
-            logger.info("sending", request_payload=req_bytes.hex())
+            logger.debug("sending", request_payload=req_bytes.hex())
             self._write_bytes(sock, req_bytes)
             rsp_bytes = self._read_bytes(sock, 128)
-            logger.info("closing socket ...")
             sock.close()
         except socket.timeout as e:
-            logger.warn("Timeout in send_message", host=self.host)
-            logger.info("closing socket in timeout exception ...")
+            logger.warn("Timeout in send_message")
             sock.close()
             sock = None
             raise e
         except socket.error as e:
-            logger.info("closing socket in socket.error ...")
+            logger.error(f"socket.error {e}")
             sock.close()
             sock = None
             raise e
         logger.info("received response", response_payload=rsp_bytes.hex())
         return rsp_bytes
 
-    @retry(stop=stop_after_attempt(3))
-    def _open_socket(self):
-        logger.info("connecting", host=self.host)
-
+    def _open_socket(self, attempt: int = None):
         try:
             if use_socks is True:
-                logger.info(
-                    "connect to socks proxy",
-                    socks_host=socks_host,
-                    socks_port=socks_port,
-                    socks_username=socks_username,
+                logger.debug(
+                    "use socks",
                 )
                 proxy = Proxy.from_url(
                     f"socks5://{socks_username}:{socks_password}@{socks_host}:{socks_port}"
                 )
-                logger.info("connect to proxy ...")
+                logger.debug(
+                    "proxy.connect()",
+                    socks_host=socks_host,
+                    socks_port=socks_port,
+                    socks_username=socks_username,
+                    attempt=attempt,
+                )
                 sock = proxy.connect(
                     dest_host=self.host, dest_port=self.port, timeout=10
                 )
-                logger.info("after proxy connect")
+                logger.debug("connected")
             else:
                 sock = socket.socket()
-                logger.info("before sock.connect")
+                logger.debug("connect()")
                 sock.connect((self.host, self.port))
 
             sock.settimeout(socket_timeout_seconds)
-            logger.info("connected", host=self.host)
 
-        except socket.timeout as e:
-            logger.info("Timeout connecting to socket", host=self.host, error=e)
+        except ProxyTimeoutError as e:
+            # very common so log at debug level
+            logger.debug("timeout connecting to meter by proxy")
             sock.close()
             sock = None
+            # raise again will be caught by @retry
+            raise e
+        except ProxyConnectionError as e:
+            logger.error(f"socks proxy connection failure [{e}]")
+            sock.close()
+            sock = None
+            # raise again will be caught by @retry
+            raise e
+        except socket.timeout as e:
+            logger.info("timeout connecting to socket", error=e)
+            sock.close()
+            sock = None
+            # raise again will be caught by @retry
             raise e
         except socket.error as e:
             if e.__class__.__name__ == "ConnectionRefusedError":
@@ -100,15 +112,18 @@ class EmliteNET:
                 #
                 # NOTE: Care is taken here not to log the string 'error' so it
                 # doesn't appear in papertrail filters for errors. We tolerate these
-                # and usual a retry succeeds.
-                logger.warn("ConnectionRefused connecting to socket", host=self.host)
+                # and often a retry succeeds.
+                logger.warn("ConnectionRefused connecting to socket")
             else:
-                logger.warn("Error connecting to socket", host=self.host, error=e)
+                logger.warn("Error connecting to socket", error=e)
             sock.close()
             sock = None
+            # raise again will be caught by @retry
             raise e
         except Exception as e:
-            logger.error(f"catch all exception in _open_socket: [{e}]")
+            logger.error(
+                f"catch all exception in _open_socket: [class={e.__class__.__name__}] [{e}] "
+            )
             raise e
 
         return sock

@@ -7,7 +7,7 @@ import subprocess
 import sys
 from decimal import Decimal
 
-from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
@@ -57,9 +57,6 @@ class EMOPCLI(EmliteMediatorClient):
 
             meter_id = result.data[0]["id"]
             esco_id = result.data[0]["esco"]
-
-            print(self.supabase)
-            print(self.supabase.schema)
 
             result = (
                 self.supabase.schema("flows")
@@ -271,7 +268,13 @@ def main():
     cli = EMOPCLI(serial=serial)
 
     method = getattr(cli, command)
-    method(**kwargs)
+    try:
+        method(**kwargs)
+    except MediatorClientException as e:
+        if e.code_str == "EMLITE_CONNECTION_FAILURE":
+            logging.error("Failed to connect to meter")
+        else:
+            logging.error(f"Failure [{e}]")
 
 
 if __name__ == "__main__":

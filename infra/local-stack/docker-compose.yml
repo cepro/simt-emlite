@@ -63,6 +63,21 @@ services:
       - "meter_id=91bb8372-4ca4-4465-a9da-2a995493e09b"
       - "emlite_host=100.79.244.215"
 
+  mediator-EMP1AX2137000069:
+    image: simt-emlite
+    # depends_on:
+      # - emnify-gateway
+    expose:
+      - 50051
+    env_file:
+      - socks_proxy.env
+    environment:
+      - EMLITE_HOST=100.79.244.129
+    command: simt_emlite.mediator.grpc.server
+    labels:
+      - "meter_id=91bb8372-4ca4-4465-a9da-2a995493e09b"
+      - "emlite_host=100.79.244.129"
+
 networks:
   default:
     name: simt-mediator-local
