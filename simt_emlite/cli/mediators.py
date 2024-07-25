@@ -11,6 +11,7 @@ from typing import Dict, List, Union
 from rich import box
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
 
 from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
@@ -44,6 +45,26 @@ def log(msg):
         print(f"{datetime.now().strftime('%S.%f')} {msg}")
 
 
+def rich_status_circle(color):
+    return f"[{color}]●[/{color}]"
+
+
+def rich_signal_circle(csq: int):
+    if csq is None or csq < 1:
+        color = "rgb(255,0,0)"  # Red
+    elif csq > 22:
+        color = "rgb(0,255,0)"  # Green
+    elif csq > 17:
+        color = "rgb(128,255,0)"  # Light Green
+    elif csq > 12:
+        color = "rgb(255,255,0)"  # Yellow
+    elif csq > 7:
+        color = "rgb(255,192,0)"  # Orange-yellow
+    elif csq > 0:
+        color = "rgb(255,128,0)"  # Orange
+    return Text("●", style=color)
+
+
 class MediatorsCLI:
     def __init__(self):
         self.supabase: Client = supa_client(
@@ -72,18 +93,25 @@ class MediatorsCLI:
         table = Table(
             "esco",
             "serial",
-            "container state",
-            "container image",
+            "signal",
+            "health",
+            # "container state",
+            "version",
             "container id",
             box=box.SQUARE,
         )
 
         for meter in meters:
-            row_values = [meter["esco"], meter["serial"]]
+            row_values = [
+                meter["esco"],
+                meter["serial"],
+                rich_signal_circle(meter["csq"]),
+                rich_status_circle("green" if meter["health"] == "healthy" else "red"),
+            ]
             if meter["container"] is not None:
-                row_values.append(meter["container"].status.name)
+                # row_values.append(meter["container"].status.name)
                 row_values.append(
-                    meter["container"].image.replace("registry.fly.io/", "")
+                    meter["container"].image.replace("registry.fly.io/simt-emlite:", "")
                 )
                 row_values.append(meter["container"].id)
             table.add_row(*row_values)
@@ -264,30 +292,10 @@ Go ahead and destroy ALL of these? (y/n): """)
         return meter
 
     def _get_meters(self, esco: str = None):
-        escos_result = self.supabase.table("escos").select("id,code").execute()
-
-        esco_id_to_code = {e["id"]: e["code"] for e in escos_result.data}
-        esco_code_to_id = {e["code"]: e["id"] for e in escos_result.data}
-
-        meters_query = (
-            self.supabase.table("meter_registry")
-            .select("id,ip_address,serial,esco")
-            .eq("mode", "active")
-        )
-
-        if esco is not None:
-            esco_lc = esco.lower()
-            if esco_lc not in esco_code_to_id:
-                print(f"unknown esco [{esco_lc}]")
-                sys.exit(1)
-            meters_query.eq("esco", esco_code_to_id[esco_lc])
-
-        meters_result = meters_query.execute()
-
-        # meter result with esco id replaced with esco code
-        meters = [{**m, "esco": esco_id_to_code[m["esco"]]} for m in meters_result.data]
-
-        return meters
+        meters_result = self.supabase.rpc(
+            "get_meters_for_cli", {"esco_filter": esco}
+        ).execute()
+        return meters_result.data
 
     def _container_by_serial(self, serial: str):
         meter = self._meter_by_serial(serial)
