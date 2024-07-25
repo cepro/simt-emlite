@@ -68,11 +68,11 @@ class MeterSyncAllJob:
             )
             job.sync()
         except Exception as e:
-            self.log.error("failure occured syncing", error=e)
-            # TODO: change all print_exc to format_exception and optionally
-            # replace all newlines in there too so we only get one line in
-            # the logs
-            traceback.print_exc()
+            self.log.error(
+                "failure occured syncing",
+                error=e,
+                exception=traceback.format_exception(e),
+            )
 
     def run(self):
         self.log.info("starting ...")

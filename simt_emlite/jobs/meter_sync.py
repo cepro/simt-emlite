@@ -109,5 +109,8 @@ if __name__ == "__main__":
         )
         job.sync()
     except Exception as e:
-        logger.error("failure occured syncing", error=e)
-        traceback.print_exc()
+        logger.error(
+            "failure occured syncing",
+            error=e,
+            exception=traceback.format_exception(e),
+        )

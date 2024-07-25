@@ -98,7 +98,6 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self.log.info("sendRawMessage response", payload=rsp_payload.hex())
             return SendRawMessageReply(response=rsp_payload)
         except Exception as e:
-            traceback.print_exc()
             self._handle_failure(e, "sendRawMessage", context)
             return SendRawMessageReply()
 
