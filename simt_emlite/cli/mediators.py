@@ -180,6 +180,23 @@ class MediatorsCLI:
         )
         return result
 
+    def create_all(self, esco: str):
+        if esco is None:
+            print("esco mandatory")
+            sys.exit(1)
+
+        mediators = self._list(esco=esco, exists=False)
+
+        answer = input(f"""Found {len(mediators)} mediators to create in ESCO {esco}.
+
+Go ahead and create ALL of these? (y/n): """)
+        if answer != "y":
+            print("\naborting ...\n")
+            sys.exit(1)
+
+        for m in mediators:
+            self.create(m["serial"], skip_confirm=True)
+
     def start_one(self, serial: str):
         containers_api, container = self._container_by_serial(serial)
         containers_api.start(container.id)
@@ -200,7 +217,7 @@ class MediatorsCLI:
 
         mediators = self._list(esco=esco, exists=True)
 
-        answer = input(f"""Found {len(mediators)} mediator to destroy in ESCO {esco}.
+        answer = input(f"""Found {len(mediators)} mediators to destroy in ESCO {esco}.
 
 Go ahead and destroy ALL of these? (y/n): """)
         if answer != "y":
@@ -369,6 +386,11 @@ def main():
         action=argparse.BooleanOptionalAction,
         help="Skip interactive confirmation",
     )
+
+    subparsers.add_parser(
+        "create_all",
+        help="Create all mediators for a given ESCO",
+    ).add_argument("esco", help=ESCO_FILTER_HELP)
 
     subparsers.add_parser(
         "destroy_one",
