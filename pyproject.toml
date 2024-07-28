@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simt-emlite"
-version = "0.12.6"
+version = "0.12.7"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = ["Chris Hatch <chris@cepro.energy>"]
 readme = "README.pypi.md"
@@ -39,6 +39,7 @@ python-socks = "2.5.0"
 rich = "13.7.1"
 dnspython = "2.6.1"
 httpx = "0.27.0"
+argcomplete = "^3.4.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "0.4.10"

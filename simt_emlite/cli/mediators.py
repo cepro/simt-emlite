@@ -74,14 +74,18 @@ class MediatorsCLI:
     def list(
         self,
         esco: str = None,
-        state: Union[ContainerState] = None,
+        state: str = None,
         exists: bool = None,
         json=False,
         show_all=False,
     ) -> List:
+        container_state: Union[ContainerState] = (
+            ContainerState.__members__[state.upper()] if state is not None else None
+        )
+
         meters = self._list(
             esco=esco,
-            state=state,
+            state=container_state,
             exists=exists,
             show_all=show_all,
         )
@@ -93,6 +97,7 @@ class MediatorsCLI:
         table = Table(
             "esco",
             "serial",
+            "name",
             "signal",
             "health",
             # "container state",
@@ -105,6 +110,7 @@ class MediatorsCLI:
             row_values = [
                 meter["esco"],
                 meter["serial"],
+                meter["name"],
                 rich_signal_circle(meter["csq"]),
                 rich_status_circle("green" if meter["health"] == "healthy" else "red"),
             ]
@@ -161,7 +167,7 @@ class MediatorsCLI:
             meters = list(
                 filter(
                     lambda m: m["container"] is not None
-                    and m["container"].state == state,
+                    and m["container"].status == state,
                     meters,
                 )
             )

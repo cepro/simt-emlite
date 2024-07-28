@@ -7,6 +7,8 @@ import subprocess
 import sys
 from decimal import Decimal
 
+import argcomplete
+
 from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
@@ -178,12 +180,10 @@ def valid_decimal(rate: str):
         )
 
 
-def main():
-    logging.basicConfig(level=logging.INFO)
-    # supress supabase py request logging:
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-
+def args_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-s", help="Serial", required=False)
+
     subparsers = parser.add_subparsers(dest="subparser")
 
     subparsers.add_parser("version", help="Show version")
@@ -221,7 +221,7 @@ def main():
     ]
     for cmd in simple_read_commands:
         subparsers.add_parser(cmd[0], help=cmd[1]).add_argument(
-            "serial", help="meter serial"
+            "serial", help="meter serial", nargs="?"
         )
 
     profile_log_commands = [
@@ -267,8 +267,20 @@ def main():
         type=valid_decimal,
     )
 
-    kwargs = vars(parser.parse_args())
+    return parser
 
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    # supress supabase py request logging:
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    parser = args_parser()
+
+    # support autocompletion - see https://kislyuk.github.io/argcomplete
+    argcomplete.autocomplete(parser)
+
+    kwargs = vars(parser.parse_args())
     command = kwargs.pop("subparser")
     if command is None:
         parser.print_help()
@@ -276,7 +288,13 @@ def main():
 
     # logging.info(kwargs)
 
-    serial = kwargs.pop("serial", None)
+    # supporting either -s <serial> or positional argument <serial> after commands
+    # pop both off so they are removed from kwargs.
+    # use -s if it's there otherwise the positional.
+    arg_s = kwargs.pop("s", None)
+    arg_serial = kwargs.pop("serial", None)
+    serial = arg_s or arg_serial
+
     cli = EMOPCLI(serial=serial)
 
     method = getattr(cli, command)
