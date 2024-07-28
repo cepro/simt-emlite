@@ -10,6 +10,7 @@ from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
+    emop_encode_datetime_to_time_rec,
     emop_encode_timestamp_as_u4le_rec,
     emop_epoch_seconds_to_datetime,
     emop_format_firmware_version,
@@ -145,13 +146,17 @@ class EmliteMediatorClient(object):
         self.log.info("firmware version", firmware_version=version_str)
         return version_str
 
-    def clock_time(self) -> datetime:
+    def clock_time_read(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)
         date_obj = datetime.datetime(
             2000 + data.year, data.month, data.date, data.hour, data.minute, data.second
         )
         self.log.info("received time", time=date_obj.isoformat())
         return date_obj
+
+    def clock_time_write(self):
+        time_bytes = emop_encode_datetime_to_time_rec(datetime.datetime.now())
+        self._write_element(ObjectIdEnum.time, time_bytes)
 
     def csq(self) -> int:
         data = self._read_element(ObjectIdEnum.csq_net_op)

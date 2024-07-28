@@ -198,23 +198,31 @@ def main():
     )
 
     simple_read_commands = [
-        "csq",
-        "hardware",
-        "firmware_version",
-        "serial",
-        "clock_time",
-        "instantaneous_voltage",
-        "prepay_enabled",
-        "prepay_balance",
-        "prepay_transaction_count",
-        "three_phase_instantaneous_voltage",
-        "tariffs_active_read",
-        "tariffs_future_read",
-        "tariffs_time_switches_element_a_or_single_read",
-        "tariffs_time_switches_element_b_read",
+        ("csq", "Signal quality"),
+        ("hardware", "Hardware code"),
+        ("firmware_version", "Firmware version code"),
+        ("serial", "Meter serial"),
+        ("clock_time_read", "Current clock time on the meter"),
+        ("instantaneous_voltage", "Current voltage"),
+        ("prepay_enabled", "Is prepay mode enabled?"),
+        ("prepay_balance", "Current prepay balance (if in prepay mode)"),
+        ("prepay_transaction_count", "Count of prepay transactions"),
+        (
+            "three_phase_instantaneous_voltage",
+            "Current three phase voltage (if three phase meter)",
+        ),
+        ("tariffs_active_read", "Current tariff settings"),
+        ("tariffs_future_read", "Future tariff settings"),
+        (
+            "tariffs_time_switches_element_a_or_single_read",
+            "Time switches for element A",
+        ),
+        ("tariffs_time_switches_element_b_read", "Time switches for element B"),
     ]
     for cmd in simple_read_commands:
-        subparsers.add_parser(cmd).add_argument("serial", help="meter serial")
+        subparsers.add_parser(cmd[0], help=cmd[1]).add_argument(
+            "serial", help="meter serial"
+        )
 
     profile_log_commands = [
         "profile_log_1",
@@ -231,6 +239,10 @@ def main():
             required=True,
             type=valid_iso_datetime,
         )
+
+    subparsers.add_parser(
+        "clock_time_write", help="Update clock time with current timestamp"
+    ).add_argument("serial", help="meter serial")
 
     tariff_write_parser = subparsers.add_parser(
         "tariffs_future_write", help="Write future dated tariff into the meter"

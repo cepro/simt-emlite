@@ -11,7 +11,7 @@ logger = get_logger(__name__, __file__)
 class SyncerClockDiff(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
-        clock_time: datetime = self.emlite_client.clock_time()
+        clock_time: datetime = self.emlite_client.clock_time_read()
 
         now = datetime.utcnow()
         clock_time_diff_seconds = abs(now - clock_time).seconds
