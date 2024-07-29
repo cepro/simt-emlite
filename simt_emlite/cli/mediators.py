@@ -76,6 +76,7 @@ class MediatorsCLI:
         esco: str = None,
         state: str = None,
         exists: bool = None,
+        three_phase_only=False,
         json=False,
         show_all=False,
     ) -> List:
@@ -87,6 +88,7 @@ class MediatorsCLI:
             esco=esco,
             state=container_state,
             exists=exists,
+            three_phase_only=three_phase_only,
             show_all=show_all,
         )
 
@@ -130,9 +132,13 @@ class MediatorsCLI:
         esco: str = None,
         state: Union[ContainerState] = None,
         exists: bool = None,
+        three_phase_only=False,
         show_all=False,
     ) -> List:
         meters = self._get_meters(esco)
+
+        if three_phase_only is True:
+            meters = list(filter(lambda m: m["hardware"] == "P1.ax", meters))
 
         # add container info
         escos = set(map(lambda m: m["esco"].lower(), meters))
@@ -364,6 +370,12 @@ def main():
         action=argparse.BooleanOptionalAction,
         help="Filter by existance of mediator for each meter.",
     )
+    parser_list.add_argument(
+        "--three_phase_only",
+        action=argparse.BooleanOptionalAction,
+        help="Filter for three phase meters.",
+    )
+
     # Broken as Container does not yet serialise:
     #
     # parser_list.add_argument(
