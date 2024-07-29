@@ -100,8 +100,7 @@ if __name__ == "__main__":
     try:
         job = MeterSyncJob(
             meter_id=meter_id,
-            mediator_host=mediator_host,
-            mediator_port=mediator_port,
+            mediator_address=f"{mediator_host}:{mediator_port}",
             supabase_url=supabase_url,
             supabase_key=supabase_key,
             flows_role_key=flows_role_key,

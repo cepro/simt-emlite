@@ -207,6 +207,7 @@ def args_parser():
         ("prepay_enabled", "Is prepay mode enabled?"),
         ("prepay_balance", "Current prepay balance (if in prepay mode)"),
         ("prepay_transaction_count", "Count of prepay transactions"),
+        ("three_phase_serial", "Three phase meter serial"),
         (
             "three_phase_instantaneous_voltage",
             "Current three phase voltage (if three phase meter)",

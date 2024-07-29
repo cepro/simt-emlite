@@ -192,6 +192,12 @@ class EmliteMediatorClient(object):
         )
         return data.count
 
+    def three_phase_serial(self) -> str:
+        data = self._read_element(ObjectIdEnum.three_phase_serial)
+        serial = data.serial.strip()
+        self.log.info("received three phase serial", serial=serial)
+        return serial
+
     def three_phase_instantaneous_voltage(self) -> tuple[float, float, float]:
         vl1 = self._read_element(ObjectIdEnum.three_phase_instantaneous_voltage_l1)
 

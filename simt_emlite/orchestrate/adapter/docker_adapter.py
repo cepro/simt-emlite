@@ -52,9 +52,10 @@ class DockerAdapter(BaseAdapter):
         return list(
             map(
                 lambda c: Container(
-                    id=c.id,
+                    id=c.id[0:12],  # shortened form
                     name=c.name,
                     image=c.image.tags[0],
+                    port=50051,
                     status=CONTAINER_STATUS[c.status],
                     container_environment=ContainerEnvironment.DOCKER,
                     metadata=c.labels,
@@ -93,5 +94,6 @@ class DockerAdapter(BaseAdapter):
         container.remove(force=True)
 
     def mediator_address(self, meter_id: str, serial: str):
-        return "172.19.0.5:50051"
+        # update to lookup ip:
+        return "172.19.0.2:50051"
         # return f"mediator-{serial}:50051"

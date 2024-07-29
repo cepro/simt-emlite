@@ -24,17 +24,16 @@ class SyncerHardware(SyncerBase):
         )
         meter_registry_entry = result.data[0]
 
-        # if 3 phase meter hardware fetch will fail.
-        #
-        # currently we have no other way to query the hardware so we check the
-        # serial prefix and hardcode the hardware.
-        #
+        hardware_rsp = self.emlite_client.hardware()
+
+        # if 3 phase meter hardware fetch will return None
+
         # see also ticket related to this issue on the EMOP downloader:
         #   https://cepro.unfuddle.com/a#/projects/13/tickets/by_number/390
-        if meter_registry_entry["serial"].startswith("EMP1AX"):
+
+        if hardware_rsp == "":
             hardware = "P1.ax"
         else:
-            hardware_rsp = self.emlite_client.hardware()
             hardware = hardware_meter_str_to_registry_str[hardware_rsp]
             if hardware is None:
                 logger.error(
