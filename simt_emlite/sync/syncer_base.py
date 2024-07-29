@@ -148,3 +148,6 @@ class SyncerBase(ABC):
 
         except ConnectError as e:
             handle_supabase_faliure(self.log, e)
+
+    def _is_three_phase(hardware: str) -> bool:
+        return hardware == "P1.ax"

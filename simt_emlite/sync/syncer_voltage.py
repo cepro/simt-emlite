@@ -11,16 +11,12 @@ class SyncerVoltage(SyncerBase):
     def fetch_metrics(self) -> UpdatesTuple | None:
         result = (
             self.supabase.table("meter_registry")
-            .select("serial")
+            .select("hardware")
             .eq("id", self.meter_id)
             .execute()
         )
-        serial = result.data[0]["serial"]
-        if serial is None:
-            logger.info("no serial yet for meter, skipping ...", meter_id=self.meter_id)
-            return None
 
-        is_3p = serial.startswith("EMP1AX")
+        is_3p = self._is_three_phase(result.data[0]["hardware"])
         if is_3p:
             (v1, v2, v3) = self.emlite_client.three_phase_instantaneous_voltage()
             metrics = {"3p_voltage_l1": v1, "3p_voltage_l2": v2, "3p_voltage_l3": v3}

@@ -11,15 +11,13 @@ class SyncerPrepayBalance(SyncerBase):
     def fetch_metrics(self) -> UpdatesTuple | None:
         result = (
             self.supabase.table("meter_registry")
-            .select("prepay_enabled, serial")
+            .select("prepay_enabled, hardware")
             .eq("id", self.meter_id)
             .execute()
         )
-        serial = result.data[0]["serial"]
-        is_3phase = serial.startswith("EMP1AX")
 
         # skip prepay metrics on 3phase meters - properties don't exist so emop calls fail
-        if is_3phase:
+        if self._is_three_phase(result.data[0]["hardware"]):
             return None
 
         enabled = result.data[0]["prepay_enabled"]

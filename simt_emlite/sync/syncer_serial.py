@@ -17,9 +17,10 @@ class SyncerSerial(SyncerBase):
         )
         meter_registry_entry = result.data[0]
 
+        is_3p = self._is_three_phase(result.data[0]["hardware"])
         serial = (
             self.emlite_client.three_phase_serial()
-            if meter_registry_entry["hardware"] == "P1.ax"
+            if is_3p
             else self.emlite_client.serial()
         )
 
