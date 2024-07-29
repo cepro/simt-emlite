@@ -2,6 +2,7 @@ from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.meters import is_three_phase
 
 logger = get_logger(__name__, __file__)
 
@@ -17,7 +18,7 @@ class SyncerSerial(SyncerBase):
         )
         meter_registry_entry = result.data[0]
 
-        is_3p = self._is_three_phase(result.data[0]["hardware"])
+        is_3p = is_three_phase(result.data[0]["hardware"])
         serial = (
             self.emlite_client.three_phase_serial()
             if is_3p

@@ -16,6 +16,7 @@ from rich.text import Text
 from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
+from simt_emlite.util.meters import is_three_phase
 from simt_emlite.util.supabase import Client, supa_client
 
 config = load_config()
@@ -102,6 +103,7 @@ class MediatorsCLI:
             "name",
             "signal",
             "health",
+            "hardware",
             # "container state",
             "version",
             "container id",
@@ -115,6 +117,7 @@ class MediatorsCLI:
                 meter["name"],
                 rich_signal_circle(meter["csq"]),
                 rich_status_circle("green" if meter["health"] == "healthy" else "red"),
+                meter["hardware"],
             ]
             if meter["container"] is not None:
                 # row_values.append(meter["container"].status.name)
@@ -138,7 +141,7 @@ class MediatorsCLI:
         meters = self._get_meters(esco)
 
         if three_phase_only is True:
-            meters = list(filter(lambda m: m["hardware"] == "P1.ax", meters))
+            meters = list(filter(lambda m: is_three_phase(m["hardware"]), meters))
 
         # add container info
         escos = set(map(lambda m: m["esco"].lower(), meters))
