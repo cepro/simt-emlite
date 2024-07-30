@@ -149,13 +149,21 @@ class EmliteMediatorClient(object):
     def clock_time_read(self) -> datetime:
         data = self._read_element(ObjectIdEnum.time)
         date_obj = datetime.datetime(
-            2000 + data.year, data.month, data.date, data.hour, data.minute, data.second
+            2000 + data.year,
+            data.month,
+            data.date,
+            data.hour,
+            data.minute,
+            data.second,
+            tzinfo=datetime.timezone.utc,
         )
         self.log.info("received time", time=date_obj.isoformat())
         return date_obj
 
     def clock_time_write(self):
-        time_bytes = emop_encode_datetime_to_time_rec(datetime.datetime.now())
+        time_bytes = emop_encode_datetime_to_time_rec(
+            datetime.datetime.now(tz=datetime.timezone.utc)
+        )
         self._write_element(ObjectIdEnum.time, time_bytes)
 
     def csq(self) -> int:
