@@ -180,6 +180,11 @@ def valid_decimal(rate: str):
         )
 
 
+def add_arg_serial(parser):
+    """Adds optional positional argument serial"""
+    parser.add_argument("serial", help="meter serial", nargs="?")
+
+
 def args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", help="Serial", required=False)
@@ -221,9 +226,8 @@ def args_parser():
         ("tariffs_time_switches_element_b_read", "Time switches for element B"),
     ]
     for cmd in simple_read_commands:
-        subparsers.add_parser(cmd[0], help=cmd[1]).add_argument(
-            "serial", help="meter serial", nargs="?"
-        )
+        cmd_parser = subparsers.add_parser(cmd[0], help=cmd[1])
+        add_arg_serial(cmd_parser)
 
     profile_log_commands = [
         "profile_log_1",
@@ -233,7 +237,7 @@ def args_parser():
         profile_parser = subparsers.add_parser(
             cmd, help="Fetch half hourly date from a given date time."
         )
-        profile_parser.add_argument("serial", help="meter serial")
+        add_arg_serial(profile_parser)
         profile_parser.add_argument(
             "--timestamp",
             help="Date and time in iso8601 format of time to read profile logs from.",
@@ -241,14 +245,15 @@ def args_parser():
             type=valid_iso_datetime,
         )
 
-    subparsers.add_parser(
+    clock_write_parser = subparsers.add_parser(
         "clock_time_write", help="Update clock time with current timestamp"
-    ).add_argument("serial", help="meter serial")
+    )
+    add_arg_serial(clock_write_parser)
 
     tariff_write_parser = subparsers.add_parser(
         "tariffs_future_write", help="Write future dated tariff into the meter"
     )
-    tariff_write_parser.add_argument("serial", help="meter serial")
+    add_arg_serial(tariff_write_parser)
     tariff_write_parser.add_argument(
         "--future-date",
         help="Date and time in iso8601 format of when the date tariff will apply from.",
