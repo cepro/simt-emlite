@@ -209,6 +209,8 @@ def args_parser():
         ("serial", "Meter serial"),
         ("clock_time_read", "Current clock time on the meter"),
         ("instantaneous_voltage", "Current voltage"),
+        ("read_element_a", "Current read on element A"),
+        ("read_element_b", "Current read on element B"),
         ("prepay_enabled", "Is prepay mode enabled?"),
         ("prepay_balance", "Current prepay balance (if in prepay mode)"),
         ("prepay_transaction_count", "Count of prepay transactions"),

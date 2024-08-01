@@ -176,6 +176,28 @@ class EmliteMediatorClient(object):
         self.log.info("received instantaneous voltage", voltage=data.voltage)
         return data.voltage
 
+    def read_element_a(self) -> EmopMessage.ReadingRec:
+        data = self._read_element(ObjectIdEnum.read_element_a)
+        self.log.info(
+            "received read_element_a record",
+            import_active=data.import_active,
+            export_active=data.export_active,
+            import_reactive=data.import_reactive,
+            export_reactive=data.export_reactive,
+        )
+        return data
+
+    def read_element_b(self) -> EmopMessage.ReadingRec:
+        data = self._read_element(ObjectIdEnum.read_element_b)
+        self.log.info(
+            "received read_element_b record",
+            import_active=data.import_active,
+            export_active=data.export_active,
+            import_reactive=data.import_reactive,
+            export_reactive=data.export_reactive,
+        )
+        return data
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
