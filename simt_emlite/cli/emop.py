@@ -180,6 +180,18 @@ def valid_decimal(rate: str):
         )
 
 
+def valid_switch(bool_str: str):
+    bool_str_lc = bool_str.lower()
+    if bool_str_lc == "on":
+        return True
+    elif bool_str_lc == "off":
+        return False
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Invalid flag string '{bool_str}'. Should be 'on' or 'off'."
+        )
+
+
 def add_arg_serial(parser):
     """Adds optional positional argument serial"""
     parser.add_argument("serial", help="meter serial", nargs="?")
@@ -273,6 +285,25 @@ def args_parser():
         help="Tariff standing charge",
         required=True,
         type=valid_decimal,
+    )
+
+    prepay_enabled_write_parser = subparsers.add_parser(
+        "prepay_enabled_write", help="Set prepay mode flag"
+    )
+    add_arg_serial(prepay_enabled_write_parser)
+    prepay_enabled_write_parser.add_argument(
+        "enabled",
+        type=valid_switch,
+        help="set prepay flag (on=prepay mode, off=credit mode)",
+    )
+
+    prepay_send_token_parser = subparsers.add_parser(
+        "prepay_send_token",
+        help="Write a prepay token to the meter to topup the balance",
+    )
+    add_arg_serial(prepay_send_token_parser)
+    prepay_send_token_parser.add_argument(
+        "token", help="prepay token obtained from topupmeters.co.uk"
     )
 
     return parser

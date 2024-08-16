@@ -204,6 +204,10 @@ class EmliteMediatorClient(object):
         self.log.info("received prepay enabled flag", prepay_enabled_flag=enabled)
         return enabled
 
+    def prepay_enabled_write(self, enabled: bool):
+        flag_bytes = bytes.fromhex("01" if enabled else "00")
+        self._write_element(ObjectIdEnum.prepay_enabled_flag, flag_bytes)
+
     def prepay_balance(self) -> float:
         data = self._read_element(ObjectIdEnum.prepay_balance)
         self.log.debug("received prepay balance", prepay_balance_raw=data.balance)
