@@ -211,7 +211,7 @@ class EmliteMediatorClient(object):
     def prepay_balance(self) -> float:
         data = self._read_element(ObjectIdEnum.prepay_balance)
         self.log.debug("received prepay balance", prepay_balance_raw=data.balance)
-        balance_gbp: float = data.balance / 100000
+        balance_gbp: float = emop_scale_price_amount(Decimal(data.balance))
         self.log.info("prepay balance in GBP", prepay_balance_gbp=balance_gbp)
         return balance_gbp
 
@@ -463,7 +463,13 @@ class EmliteMediatorClient(object):
         return result
 
     def tariffs_future_write(
-        self, from_ts: datetime, standing_charge: Decimal, unit_rate: Decimal
+        self,
+        from_ts: datetime,
+        standing_charge: Decimal,
+        unit_rate: Decimal,
+        emergency_credit: Decimal,
+        ecredit_availability: Decimal,
+        debt_recovery_rate: Decimal,
     ):
         # block threshold mask and values - set values to zeros and rate 1 only in mask
         threshold_mask_bytes = bytes(1)
@@ -511,19 +517,20 @@ class EmliteMediatorClient(object):
         # )
 
         # prepayment amounts
-        # TODO: decide what these should be - setting dummy values for now
-        self.log.debug("set prepayment amounts")
+        self.log.debug(
+            f"set prepayment amounts [emergency_credit={emergency_credit}, ecredit_availability={ecredit_availability}, debt_recovery_rate={debt_recovery_rate}]"
+        )
         self._write_element(
             ObjectIdEnum.tariff_future_prepayment_emergency_credit,
-            emop_encode_amount_as_u4le_rec(Decimal("8.88")),
+            emop_encode_amount_as_u4le_rec(emergency_credit),
         )
         self._write_element(
             ObjectIdEnum.tariff_future_prepayment_ecredit_availability,
-            emop_encode_amount_as_u4le_rec(Decimal("7.77")),
+            emop_encode_amount_as_u4le_rec(ecredit_availability),
         )
         self._write_element(
             ObjectIdEnum.tariff_future_prepayment_debt_recovery_rate,
-            emop_encode_amount_as_u4le_rec(Decimal("6.66")),
+            emop_encode_amount_as_u4le_rec(debt_recovery_rate),
         )
 
         # gas tariff - set to zero as it doesn't apply

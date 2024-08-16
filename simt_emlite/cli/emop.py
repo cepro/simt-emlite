@@ -214,6 +214,8 @@ def args_parser():
         choices=["prod", "qa", "local"],
     )
 
+    # ===========    Simple Reads (no args)    ==========
+
     simple_read_commands = [
         ("csq", "Signal quality"),
         ("hardware", "Hardware code"),
@@ -243,6 +245,8 @@ def args_parser():
         cmd_parser = subparsers.add_parser(cmd[0], help=cmd[1])
         add_arg_serial(cmd_parser)
 
+    # ===========    Profile logs (half hourly reads)    ==========
+
     profile_log_commands = [
         "profile_log_1",
         "profile_log_2",
@@ -259,17 +263,21 @@ def args_parser():
             type=valid_iso_datetime,
         )
 
+    # ===========    Clock write    ==========
+
     clock_write_parser = subparsers.add_parser(
         "clock_time_write", help="Update clock time with current timestamp"
     )
     add_arg_serial(clock_write_parser)
+
+    # ===========      Tariff Writes    ==========
 
     tariff_write_parser = subparsers.add_parser(
         "tariffs_future_write", help="Write future dated tariff into the meter"
     )
     add_arg_serial(tariff_write_parser)
     tariff_write_parser.add_argument(
-        "--future-date",
+        "--from-ts",
         help="Date and time in iso8601 format of when the date tariff will apply from.",
         required=True,
         type=valid_iso_datetime,
@@ -286,6 +294,32 @@ def args_parser():
         required=True,
         type=valid_decimal,
     )
+    tariff_write_parser.add_argument(
+        # "--ec",
+        "--emergency-credit",
+        help="Emergency credit level",
+        required=False,
+        default=Decimal("15.00"),
+        type=valid_decimal,
+    )
+    tariff_write_parser.add_argument(
+        # "--ea",
+        "--ecredit-availability",
+        help="Emergency credit availability level",
+        required=False,
+        default=Decimal("10.00"),
+        type=valid_decimal,
+    )
+    tariff_write_parser.add_argument(
+        # "-drr",
+        "--debt-recovery-rate",
+        help="Daily rate of debt recovery",
+        required=False,
+        default=Decimal("0.30"),
+        type=valid_decimal,
+    )
+
+    # ===========      Prepay Writes    ==========
 
     prepay_enabled_write_parser = subparsers.add_parser(
         "prepay_enabled_write", help="Set prepay mode flag"
