@@ -75,6 +75,7 @@ class MediatorsCLI:
     def list(
         self,
         esco: str = None,
+        feeder: str = None,
         state: str = None,
         exists: bool = None,
         three_phase_only=False,
@@ -87,6 +88,7 @@ class MediatorsCLI:
 
         meters = self._list(
             esco=esco,
+            feeder=feeder,
             state=container_state,
             exists=exists,
             three_phase_only=three_phase_only,
@@ -104,6 +106,7 @@ class MediatorsCLI:
             "signal",
             "health",
             "hardware",
+            "feeder",
             # "container state",
             "version",
             "container id",
@@ -118,6 +121,7 @@ class MediatorsCLI:
                 rich_signal_circle(meter["csq"]),
                 rich_status_circle("green" if meter["health"] == "healthy" else "red"),
                 meter["hardware"],
+                meter["feeder"],
             ]
             if meter["container"] is not None:
                 # row_values.append(meter["container"].status.name)
@@ -133,12 +137,13 @@ class MediatorsCLI:
     def _list(
         self,
         esco: str = None,
+        feeder: str = None,
         state: Union[ContainerState] = None,
         exists: bool = None,
         three_phase_only=False,
         show_all=False,
     ) -> List:
-        meters = self._get_meters(esco)
+        meters = self._get_meters(esco, feeder)
 
         if three_phase_only is True:
             meters = list(filter(lambda m: is_three_phase(m["hardware"]), meters))
@@ -323,9 +328,9 @@ Go ahead and destroy ALL of these? (y/n): """)
 
         return meter
 
-    def _get_meters(self, esco: str = None):
+    def _get_meters(self, esco: str = None, feeder: str = None):
         meters_result = self.supabase.rpc(
-            "get_meters_for_cli", {"esco_filter": esco}
+            "get_meters_for_cli", {"esco_filter": esco, "feeder_filter": feeder}
         ).execute()
         return meters_result.data
 
@@ -377,6 +382,9 @@ def main():
         "--three_phase_only",
         action=argparse.BooleanOptionalAction,
         help="Filter for three phase meters.",
+    )
+    parser_list.add_argument(
+        "-f", "--feeder", help="Filter by name of feeder the meter is on"
     )
 
     # Broken as Container does not yet serialise:
