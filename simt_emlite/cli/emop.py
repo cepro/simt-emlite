@@ -180,6 +180,14 @@ def valid_decimal(rate: str):
         )
 
 
+def valid_rate(rate: str):
+    rate_dec = valid_decimal(rate)
+    if rate_dec > 1.0:
+        raise argparse.ArgumentTypeError(
+            f"Invalid rate {rate}. Can't be greater than 1 GBP."
+        )
+
+
 def valid_switch(bool_str: str):
     bool_str_lc = bool_str.lower()
     if bool_str_lc == "on":
@@ -286,13 +294,13 @@ def args_parser():
         "--unit-rate",
         help="Tariff unit rate",
         required=True,
-        type=valid_decimal,
+        type=valid_rate,
     )
     tariff_write_parser.add_argument(
         "--standing-charge",
         help="Tariff standing charge",
         required=True,
-        type=valid_decimal,
+        type=valid_rate,
     )
     tariff_write_parser.add_argument(
         # "--ec",

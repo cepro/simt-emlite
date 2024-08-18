@@ -27,9 +27,13 @@ emop env_set prod
 
 emop --help
 
-emop prepay_balance EML2137580826 
 emop csq EML2137580826 
 emop profile_log_1 --timestamp 2024-07-19T00:00 EML1411042768
+
+emop prepay_balance EML2137580826 
+emop -s EML2244826972 prepay_send_token "99992385202946455555"
+
+emop -s EML2244826972 tariffs_future_write --from-ts "2024-08-21T05:20:00" --unit-rate "0.175725" --standing-charge "0.503925" --ecredit-availability "10.0" --debt-recovery-rate "0.25" --emergency-credit "15.00"
 ```
 
 ### mediators

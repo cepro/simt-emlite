@@ -302,18 +302,20 @@ class EmliteMediatorClient(object):
             ObjectIdEnum.tariff_active_block_8_rate_1
         )
         self.log.debug(
-            "block 8 rate 1 (activated rate)",
+            "block 8 rate 1 (element a activated rate)",
             value=emop_scale_price_amount(block_8_rate_1_price_rec.value),
         )
 
         active_price_rec = self._read_element(ObjectIdEnum.tariff_active_price)
-        self.log.debug("price", value=active_price_rec.value)
+        self.log.debug(
+            "element a unit rate (active a price)", value=active_price_rec.value
+        )
 
         block_rate_rec = self._read_element(ObjectIdEnum.tariff_active_block_rate)
-        self.log.debug("block rate index (0-7)", value=block_rate_rec.value)
+        self.log.debug("element a block rate index (0-7)", value=block_rate_rec.value)
 
         tou_rate_index_rec = self._read_element(ObjectIdEnum.tariff_active_tou_rate)
-        self.log.debug("tou rate index (0-7)", value=tou_rate_index_rec.value)
+        self.log.debug("element a tou rate index (0-7)", value=tou_rate_index_rec.value)
 
         # price_index_rec = self._read_element(
         #     ObjectIdEnum.tariff_active_price_index_current
@@ -323,7 +325,9 @@ class EmliteMediatorClient(object):
         element_b_price_rec = self._read_element(
             ObjectIdEnum.tariff_active_element_b_price
         )
-        self.log.debug("element b price", value=element_b_price_rec.value)
+        self.log.debug(
+            "element b unit rate (active b price)", value=element_b_price_rec.value
+        )
 
         element_b_tou_rate_rec = self._read_element(
             ObjectIdEnum.tariff_active_element_b_tou_rate
@@ -365,12 +369,8 @@ class EmliteMediatorClient(object):
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
             "threshold_mask": threshold_mask_rec,
             "threshold_values": threshold_values_rec,
-            "price": emop_scale_price_amount(active_price_rec.value),
-            "block_rate_index": block_rate_rec.value,
-            "tou_rate_index": tou_rate_index_rec.value,
-            "element_b_price": emop_scale_price_amount(element_b_price_rec.value),
-            "element_b_tou_rate_index": element_b_tou_rate_rec.value,
-            # "element_b_price_index": element_b_price_index_rec.value,
+            "unit_rate_element_a": emop_scale_price_amount(active_price_rec.value),
+            "unit_rate_element_b": emop_scale_price_amount(element_b_price_rec.value),
             "prepayment_debt_recovery_rate": emop_scale_price_amount(
                 debt_recovery_rec.value
             ),
@@ -408,7 +408,7 @@ class EmliteMediatorClient(object):
             ObjectIdEnum.tariff_future_block_8_rate_1
         )
         self.log.debug(
-            "block 8 rate 1",
+            "unit_rate_element_a (set on block 8, rate 1)",
             value=block_8_rate_1_rec.value,
         )
 
@@ -416,7 +416,8 @@ class EmliteMediatorClient(object):
             ObjectIdEnum.tariff_future_element_b_tou_rate_1
         )
         self.log.debug(
-            "element b tou rate price 1", value=element_b_tou_rate_1_rec.value
+            "unit_rate_element_b (set on tou rate 1)",
+            value=element_b_tou_rate_1_rec.value,
         )
 
         emergency_credit_rec = self._read_element(
@@ -444,8 +445,8 @@ class EmliteMediatorClient(object):
             ),
             "threshold_mask": threshold_mask_rec,
             "threshold_values": threshold_values_rec,
-            "block_8_rate_1": emop_scale_price_amount(block_8_rate_1_rec.value),
-            "element_b_tou_rate_1": emop_scale_price_amount(
+            "unit_rate_element_a": emop_scale_price_amount(block_8_rate_1_rec.value),
+            "unit_rate_element_b": emop_scale_price_amount(
                 element_b_tou_rate_1_rec.value
             ),
             "prepayment_debt_recovery_rate": emop_scale_price_amount(
@@ -493,12 +494,12 @@ class EmliteMediatorClient(object):
 
         unit_rate_encoded = emop_encode_amount_as_u4le_rec(unit_rate)
 
-        self.log.debug(f"set block 8 rate 1 to {unit_rate}")
+        self.log.debug(f"set element a unit rate (on block 8, rate 1) to {unit_rate}")
         self._write_element(
             ObjectIdEnum.tariff_future_block_8_rate_1, unit_rate_encoded
         )
 
-        self.log.debug(f"set element b tou rate 1 to {unit_rate}")
+        self.log.debug(f"set element b unit rate (on tou rate 1) to {unit_rate}")
         self._write_element(
             ObjectIdEnum.tariff_future_element_b_tou_rate_1, unit_rate_encoded
         )
