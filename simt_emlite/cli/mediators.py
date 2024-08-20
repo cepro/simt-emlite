@@ -3,7 +3,6 @@ import concurrent.futures
 import importlib
 import logging
 import os
-import subprocess
 import sys
 from datetime import datetime
 from json import dumps
@@ -285,22 +284,12 @@ Go ahead and destroy ALL of these? (y/n): """)
             sys.exit(1)
 
         config_path = os.path.join(os.path.expanduser("~"), ".simt")
-        rt = subprocess.run(
-            [
-                "ln",
-                "-s",
-                "-f",  # force
-                os.path.join(config_path, f"emlite.{env}.env"),
-                os.path.join(config_path, "emlite.env"),
-            ],
-            check=True,
-            cwd=config_path,
+        os.symlink(
+            os.path.join(config_path, f"emlite.{env}.env"),
+            os.path.join(config_path, "emlite.env"),
         )
 
-        if rt.returncode == 0:
-            logging.info(f"env set to {env}")
-        else:
-            logging.info("failed to set env")
+        logging.info(f"env set to {env}")
 
     def _machine_by_serial(self, serial):
         meter = self._meter_by_serial(serial)

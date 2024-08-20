@@ -3,7 +3,6 @@ import datetime
 import importlib
 import logging
 import os
-import subprocess
 import sys
 from decimal import Decimal
 
