@@ -12,6 +12,9 @@ class ContainerState(Enum):
     STARTED = 1
     STOPPED = 2
     STOPPING = 3
+    STARTING = 4
+    REMOVING = 5
+    CREATED = 6
 
 
 @dataclass

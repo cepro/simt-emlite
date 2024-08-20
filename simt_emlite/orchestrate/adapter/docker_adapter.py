@@ -15,12 +15,18 @@ DOCKER_STATUS = {
     ContainerState.STARTED: "running",
     ContainerState.STOPPED: "exited",
     ContainerState.STOPPING: "stopping",
+    ContainerState.STARTING: "starting",
+    ContainerState.REMOVING: "removing",
+    ContainerState.CREATED: "created",
 }
 
 CONTAINER_STATUS = {
     "running": ContainerState.STARTED,
     "exited": ContainerState.STOPPED,
     "stopping": ContainerState.STOPPING,
+    "starting": ContainerState.STARTING,
+    "removing": ContainerState.REMOVING,
+    "created": ContainerState.CREATED,
 }
 
 

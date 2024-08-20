@@ -1,4 +1,5 @@
 import argparse
+import concurrent.futures
 import importlib
 import logging
 import os
@@ -244,8 +245,11 @@ Go ahead and destroy ALL of these? (y/n): """)
             print("\naborting ...\n")
             sys.exit(1)
 
-        for m in mediators:
-            self.destroy_one(m["serial"])
+        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+            futures = [
+                executor.submit(self.destroy_one, m["serial"]) for m in mediators
+            ]
+        concurrent.futures.wait(futures)
 
     def stop_one(self, serial: str) -> str:
         containers_api, container = self._container_by_serial(serial)

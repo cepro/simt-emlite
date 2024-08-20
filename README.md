@@ -27,7 +27,7 @@ emop env_set prod
 
 emop --help
 
-emop csq EML2137580826 
+emop csq EML2137580826
 emop profile_log_1 --timestamp 2024-07-19T00:00 EML1411042768
 
 emop prepay_balance EML2137580826 

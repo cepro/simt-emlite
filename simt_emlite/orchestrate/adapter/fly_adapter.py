@@ -16,15 +16,20 @@ logger = get_logger(__name__, __file__)
 
 FLY_STATUS = {
     ContainerState.STARTED: "started",
+    ContainerState.STARTING: "starting",
     ContainerState.STOPPED: "stopped",
     ContainerState.STOPPING: "stopping",
+    ContainerState.REMOVING: "destroying",
+    ContainerState.CREATED: "created",
 }
 
 CONTAINER_STATUS = {
     "started": ContainerState.STARTED,
     "stopped": ContainerState.STOPPED,
     "stopping": ContainerState.STOPPING,
-    # "created": ???
+    "starting": ContainerState.STARTING,
+    "destroying": ContainerState.REMOVING,
+    "created": ContainerState.CREATED,
 }
 
 

@@ -186,6 +186,7 @@ def valid_rate(rate: str):
         raise argparse.ArgumentTypeError(
             f"Invalid rate {rate}. Can't be greater than 1 GBP."
         )
+    return rate_dec
 
 
 def valid_switch(bool_str: str):
