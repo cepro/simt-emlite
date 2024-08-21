@@ -264,7 +264,20 @@ def args_parser():
     # ===========      Tariff Writes    ==========
 
     tariff_write_parser = subparsers.add_parser(
-        "tariffs_future_write", help="Write future dated tariff into the meter"
+        "tariffs_future_write",
+        description="""Write future dated tariffs and emergency credit properties into the meter.
+
+Example usage:
+
+emop -s EML1411222333 tariffs_future_write \\
+        --from-ts "2024-08-21T06:54:00" \\
+        --unit-rate "0.23812" \\
+        --standing-charge "0.6975" \\
+        --ecredit-availability "10.0" \\
+        --debt-recovery-rate "0.25" \\
+        --emergency-credit "15.00"
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     add_arg_serial(tariff_write_parser)
     tariff_write_parser.add_argument(
@@ -275,20 +288,20 @@ def args_parser():
     )
     tariff_write_parser.add_argument(
         "--unit-rate",
-        help="Tariff unit rate",
+        help="Tariff unit rate (eg. '0.25' is 25 pence)",
         required=True,
         type=valid_rate,
     )
     tariff_write_parser.add_argument(
         "--standing-charge",
-        help="Tariff standing charge",
+        help="Tariff standing charge (eg. '0.695' is 69.5 pence)",
         required=True,
         type=valid_rate,
     )
     tariff_write_parser.add_argument(
         # "--ec",
         "--emergency-credit",
-        help="Emergency credit level",
+        help="Emergency credit level (eg. '15.00' is 15 GBP)",
         required=False,
         default=Decimal("15.00"),
         type=valid_decimal,
@@ -296,7 +309,7 @@ def args_parser():
     tariff_write_parser.add_argument(
         # "--ea",
         "--ecredit-availability",
-        help="Emergency credit availability level",
+        help="Emergency credit availability level. EC button can be pressed when balance goes under this. (eg. '10.00' is 10 GBP)",
         required=False,
         default=Decimal("10.00"),
         type=valid_decimal,
@@ -304,7 +317,7 @@ def args_parser():
     tariff_write_parser.add_argument(
         # "-drr",
         "--debt-recovery-rate",
-        help="Daily rate of debt recovery",
+        help="Daily rate of debt recovery (eg. '0.3' is 30 pence)",
         required=False,
         default=Decimal("0.30"),
         type=valid_decimal,
