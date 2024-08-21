@@ -282,7 +282,7 @@ emop -s EML1411222333 tariffs_future_write \\
     add_arg_serial(tariff_write_parser)
     tariff_write_parser.add_argument(
         "--from-ts",
-        help="Date and time in iso8601 format of when the date tariff will apply from.",
+        help="Date and time in iso8601 format of when the date tariff will apply from. NOTE: this is a clock time meaning in summer the BST time should be used here. If however a meter was configured with the daylight savings flag UNCHECKED then it should be UTC.",
         required=True,
         type=valid_iso_datetime,
     )
