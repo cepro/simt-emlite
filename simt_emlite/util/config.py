@@ -35,3 +35,14 @@ def load_config():
         # mediator
         "mediator_inactivity_seconds": os.environ.get("MEDIATOR_INACTIVITY_SECONDS"),
     }
+
+
+def set_config(env: str):
+    config_path = os.path.join(os.path.expanduser("~"), ".simt")
+    target_path = os.path.join(config_path, "emlite.env")
+    source_path = os.path.join(config_path, f"emlite.{env}.env")
+
+    if os.path.exists(target_path):
+        os.unlink(target_path)
+
+    os.symlink(source_path, target_path)

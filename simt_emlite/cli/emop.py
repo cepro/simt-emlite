@@ -2,7 +2,6 @@ import argparse
 import datetime
 import importlib
 import logging
-import os
 import sys
 from decimal import Decimal
 
@@ -10,7 +9,7 @@ import argcomplete
 
 from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.util.config import load_config
+from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.supabase import supa_client
 
 config = load_config()
@@ -112,13 +111,7 @@ class EMOPCLI(EmliteMediatorClient):
         if env not in allowed_env:
             logging.info(f"ERROR: env must be one of {allowed_env}")
             sys.exit(1)
-
-        config_path = os.path.join(os.path.expanduser("~"), ".simt")
-        os.symlink(
-            os.path.join(config_path, f"emlite.{env}.env"),
-            os.path.join(config_path, "emlite.env"),
-        )
-
+        set_config(env)
         logging.info(f"env set to {env}")
 
     # =================================
