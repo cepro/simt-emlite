@@ -70,7 +70,9 @@ class DockerAdapter(BaseAdapter):
             )
         )
 
-    def create(self, cmd: str, meter_id: str, serial: str, ip_address: str) -> str:
+    def create(
+        self, cmd: str, meter_id: str, serial: str, ip_address: str, skip_confirm=False
+    ) -> str:
         mediator_name = f"mediator-{serial}"
         container = self.docker_client.containers.run(
             self.image,
