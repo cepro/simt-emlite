@@ -223,13 +223,13 @@ websockets = ["websocket-client (>=1.3.0)"]
 
 [[package]]
 name = "emop-frame-protocol"
-version = "0.1.9"
+version = "0.1.10"
 description = "EMOP Frame Protocol messages defined with kaitai"
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "emop_frame_protocol-0.1.9-py3-none-any.whl", hash = "sha256:2b968d6e7c3efbd49db98e26f4a11b3d18cb6495f0e18c1dfba96faa6651c03a"},
-    {file = "emop_frame_protocol-0.1.9.tar.gz", hash = "sha256:77ec1d6c4ed18a31b73e770bf613c10e99d19ad4d78e1f2f42c2f08b809b2baa"},
+    {file = "emop_frame_protocol-0.1.10-py3-none-any.whl", hash = "sha256:155d73e5e3b14f3e954200e2faf4f3dc59fa2d6f6e56b8afb96add9ad91fde6d"},
+    {file = "emop_frame_protocol-0.1.10.tar.gz", hash = "sha256:d75b352c3a6e193509b87554f7cd06a68fea67953eef278974c5cb3114fb92ac"},
 ]
 
 [package.dependencies]
@@ -526,13 +526,13 @@ files = [
 
 [[package]]
 name = "postgrest"
-version = "0.16.10"
+version = "0.16.11"
 description = "PostgREST client for Python. This library provides an ORM interface to PostgREST."
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "postgrest-0.16.10-py3-none-any.whl", hash = "sha256:71a9d31a834488ab5f42e6b7a83ab7fbd941f8ac20c3b28d8aa72201cf826aca"},
-    {file = "postgrest-0.16.10.tar.gz", hash = "sha256:5518bf65ad5439f91d2019a25d51d9563ad7cdd8b5c71823559dd1b0e8d9e7a2"},
+    {file = "postgrest-0.16.11-py3-none-any.whl", hash = "sha256:22fb6b817ace1f68aa648fd4ce0f56d2786c9260fa4ed2cb9046191231a682b8"},
+    {file = "postgrest-0.16.11.tar.gz", hash = "sha256:10af51b4c39e288ad7df2db92d6a61fb3c4683131b40561f473e3de116e83fa5"},
 ]
 
 [package.dependencies]
@@ -849,13 +849,13 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "73.0.0"
+version = "73.0.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-73.0.0-py3-none-any.whl", hash = "sha256:f2bfcce7ae1784d90b04c57c2802e8649e1976530bb25dc72c2b078d3ecf4864"},
-    {file = "setuptools-73.0.0.tar.gz", hash = "sha256:3c08705fadfc8c7c445cf4d98078f0fafb9225775b2b4e8447e40348f82597c0"},
+    {file = "setuptools-73.0.1-py3-none-any.whl", hash = "sha256:b208925fcb9f7af924ed2dc04708ea89791e24bde0d3020b27df0e116088b34e"},
+    {file = "setuptools-73.0.1.tar.gz", hash = "sha256:d59a3e788ab7e012ab2c4baed1b376da6366883ee20d7a5fc426816e3d7b1193"},
 ]
 
 [package.extras]
@@ -1115,4 +1115,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "0812d9a1a8a2285ffa77cd25185181f60e7c7b711e4f9af9df390e9672047571"
+content-hash = "b991d3f7f9d2b7104a6e5238aa79666d7fd6925a1891013d3c56f4cc688c481e"

@@ -217,6 +217,18 @@ def args_parser():
         ("read_element_a", "Current read on element A"),
         ("read_element_b", "Current read on element B"),
         ("prepay_enabled", "Is prepay mode enabled?"),
+        (
+            "daylight_savings_correction_enabled",
+            "Is daylight savings correction enabled?",
+        ),
+        (
+            "prepay_no_debt_recovery_when_emergency_credit_enabled",
+            "Is no debt recovery in ecredit mode enabled?",
+        ),
+        (
+            "prepay_no_standing_charge_when_power_fail_enabled",
+            "Is no standing charge when power fail enabled?",
+        ),
         ("prepay_balance", "Current prepay balance (if in prepay mode)"),
         ("prepay_transaction_count", "Count of prepay transactions"),
         ("three_phase_serial", "Three phase meter serial"),
