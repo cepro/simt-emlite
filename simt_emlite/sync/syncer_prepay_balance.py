@@ -30,4 +30,4 @@ class SyncerPrepayBalance(SyncerBase):
             return None
 
         balance = self.emlite_client.prepay_balance()
-        return UpdatesTuple({"balance": balance}, None)
+        return UpdatesTuple({"balance": str(balance)}, None)

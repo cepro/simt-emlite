@@ -239,10 +239,10 @@ class EmliteMediatorClient(object):
         flag_bytes = bytes.fromhex("01" if enabled else "00")
         self._write_element(ObjectIdEnum.prepay_enabled_flag, flag_bytes)
 
-    def prepay_balance(self) -> float:
+    def prepay_balance(self) -> Decimal:
         data = self._read_element(ObjectIdEnum.prepay_balance)
         self.log.debug("received prepay balance", prepay_balance_raw=data.balance)
-        balance_gbp: float = emop_scale_price_amount(Decimal(data.balance))
+        balance_gbp: Decimal = emop_scale_price_amount(Decimal(data.balance))
         self.log.info("prepay balance in GBP", prepay_balance_gbp=balance_gbp)
         return balance_gbp
 
