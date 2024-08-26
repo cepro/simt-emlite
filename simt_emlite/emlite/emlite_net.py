@@ -1,7 +1,7 @@
 import os
 import socket
 
-from python_socks import ProxyConnectionError, ProxyTimeoutError
+from python_socks import ProxyConnectionError, ProxyError, ProxyTimeoutError
 from python_socks.sync import Proxy
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -87,6 +87,17 @@ class EmliteNET:
         except ProxyTimeoutError as e:
             # very common so log at debug level
             logger.debug("timeout connecting to meter by proxy")
+            sock.close()
+            sock = None
+            # raise again will be caught by @retry
+            raise e
+        except ProxyError as e:
+            err_str = str(e)
+            if err_str == "Connection refused by destination host":
+                # very common so log at debug level
+                logger.debug(err_str)
+            else:
+                logger.error(f"ProxyError: {err_str}")
             sock.close()
             sock = None
             # raise again will be caught by @retry
