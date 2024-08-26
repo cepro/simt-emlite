@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 from typing_extensions import override
 
@@ -11,9 +11,9 @@ logger = get_logger(__name__, __file__)
 class SyncerClockDiff(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
-        clock_time: datetime = self.emlite_client.clock_time_read()
+        clock_time: datetime.datetime = self.emlite_client.clock_time_read()
 
-        now = datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         clock_time_diff_seconds = abs(now - clock_time).seconds
         logger.info(
             "clock_time_diff_seconds calculated",
