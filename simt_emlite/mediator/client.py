@@ -401,19 +401,21 @@ class EmliteMediatorClient(object):
         # self.log.debug("pricing table", pricing_table=pricing_table)
 
         result = {
-            "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
+            "standing_charge": str(emop_scale_price_amount(standing_charge_rec.value)),
             "threshold_mask": self._pluck_keys(threshold_mask_rec, "rate"),
             "threshold_values": self._pluck_keys(threshold_values_rec, "th"),
-            "unit_rate_element_a": emop_scale_price_amount(active_price_rec.value),
-            "unit_rate_element_b": emop_scale_price_amount(element_b_price_rec.value),
-            "prepayment_debt_recovery_rate": emop_scale_price_amount(
-                debt_recovery_rec.value
+            "unit_rate_element_a": str(emop_scale_price_amount(active_price_rec.value)),
+            "unit_rate_element_b": str(
+                emop_scale_price_amount(element_b_price_rec.value)
             ),
-            "prepayment_ecredit_availability": emop_scale_price_amount(
-                ecredit_rec.value
+            "prepayment_debt_recovery_rate": str(
+                emop_scale_price_amount(debt_recovery_rec.value)
             ),
-            "prepayment_emergency_credit": emop_scale_price_amount(
-                emergency_credit_rec.value
+            "prepayment_ecredit_availability": str(
+                emop_scale_price_amount(ecredit_rec.value)
+            ),
+            "prepayment_emergency_credit": str(
+                emop_scale_price_amount(emergency_credit_rec.value)
             ),
             # "pricing_table": pricing_table,
         }
@@ -476,24 +478,26 @@ class EmliteMediatorClient(object):
         # self.log.debug("pricing_table", pricing_table=pricing_table)
 
         result = {
-            "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
+            "standing_charge": str(emop_scale_price_amount(standing_charge_rec.value)),
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
             ),
             "threshold_mask": self._pluck_keys(threshold_mask_rec, "rate"),
             "threshold_values": self._pluck_keys(threshold_values_rec, "th"),
-            "unit_rate_element_a": emop_scale_price_amount(block_8_rate_1_rec.value),
-            "unit_rate_element_b": emop_scale_price_amount(
-                element_b_tou_rate_1_rec.value
+            "unit_rate_element_a": str(
+                emop_scale_price_amount(block_8_rate_1_rec.value)
             ),
-            "prepayment_debt_recovery_rate": emop_scale_price_amount(
-                debt_recovery_rec.value
+            "unit_rate_element_b": str(
+                emop_scale_price_amount(element_b_tou_rate_1_rec.value)
             ),
-            "prepayment_ecredit_availability": emop_scale_price_amount(
-                ecredit_rec.value
+            "prepayment_debt_recovery_rate": str(
+                emop_scale_price_amount(debt_recovery_rec.value)
             ),
-            "prepayment_emergency_credit": emop_scale_price_amount(
-                emergency_credit_rec.value
+            "prepayment_ecredit_availability": str(
+                emop_scale_price_amount(ecredit_rec.value)
+            ),
+            "prepayment_emergency_credit": str(
+                emop_scale_price_amount(emergency_credit_rec.value)
             ),
             # "pricing_table": pricing_table,
         }
