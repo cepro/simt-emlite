@@ -9,4 +9,6 @@ from .syncer_prepay_balance import SyncerPrepayBalance as SyncerPrepayBalance
 from .syncer_prepay_enabled import SyncerPrepayEnabled as SyncerPrepayEnabled
 from .syncer_reads import SyncerReads as SyncerReads
 from .syncer_serial import SyncerSerial as SyncerSerial
+from .syncer_tariffs_active import SyncerTariffsActive as SyncerTariffsActive
+from .syncer_tariffs_future import SyncerTariffsFuture as SyncerTariffsFuture
 from .syncer_voltage import SyncerVoltage as SyncerVoltage
