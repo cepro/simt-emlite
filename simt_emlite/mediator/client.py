@@ -403,8 +403,8 @@ class EmliteMediatorClient(object):
 
         result = {
             "standing_charge": emop_scale_price_amount(standing_charge_rec.value),
-            "threshold_mask": threshold_mask_rec,
-            "threshold_values": threshold_values_rec,
+            "threshold_mask": self._pluck_keys(threshold_mask_rec, "rate"),
+            "threshold_values": self._pluck_keys(threshold_values_rec, "th"),
             "unit_rate_element_a": emop_scale_price_amount(active_price_rec.value),
             "unit_rate_element_b": emop_scale_price_amount(element_b_price_rec.value),
             "prepayment_debt_recovery_rate": emop_scale_price_amount(
@@ -418,7 +418,9 @@ class EmliteMediatorClient(object):
             ),
             # "pricing_table": pricing_table,
         }
-        print(json.dumps(result, indent=4, sort_keys=True, default=str))
+
+        self.log.info("active tariffs", result=result)
+
         return result
 
     def tariffs_future_read(self) -> TariffsFuture:
@@ -479,8 +481,8 @@ class EmliteMediatorClient(object):
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
             ),
-            "threshold_mask": threshold_mask_rec,
-            "threshold_values": threshold_values_rec,
+            "threshold_mask": self._pluck_keys(threshold_mask_rec, "rate"),
+            "threshold_values": self._pluck_keys(threshold_values_rec, "th"),
             "unit_rate_element_a": emop_scale_price_amount(block_8_rate_1_rec.value),
             "unit_rate_element_b": emop_scale_price_amount(
                 element_b_tou_rate_1_rec.value
@@ -496,7 +498,9 @@ class EmliteMediatorClient(object):
             ),
             # "pricing_table": pricing_table,
         }
-        print(json.dumps(result, indent=4, sort_keys=True, default=str))
+
+        self.log.info("future tariffs", result=result)
+
         return result
 
     def tariffs_future_write(
@@ -675,3 +679,6 @@ class EmliteMediatorClient(object):
         self.log.info(
             f"threshold values [1={threshold_values.th1} 2={threshold_values.th2} 3={threshold_values.th3} 4={threshold_values.th4} 5={threshold_values.th5} 6={threshold_values.th6} 7={threshold_values.th7}]"
         )
+
+    def _pluck_keys(self, rec, key_prefix):
+        return ({k: v for k, v in vars(rec).items() if k.startswith(key_prefix)},)
