@@ -79,6 +79,6 @@ services:
   #     - "emlite_host=100.79.244.147"
 
 networks:
-  default:
-    name: simt-mediator-local
+  host:
+    name: host
     external: true
