@@ -482,6 +482,7 @@ class EmliteMediatorClient(object):
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
             )
+            # TODO set timezone that works for BST and winter. is this it?
             # .replace(tzinfo=ZoneInfo("Europe/London"))
             .isoformat(timespec="seconds"),
             "threshold_mask": self._pluck_keys(threshold_mask_rec, "rate"),
