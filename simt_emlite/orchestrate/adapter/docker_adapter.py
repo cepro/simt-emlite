@@ -103,5 +103,5 @@ class DockerAdapter(BaseAdapter):
 
     def mediator_address(self, meter_id: str, serial: str):
         # update to lookup ip:
-        return "172.19.0.4:50051"
-        # return f"mediator-{serial}:50051"
+        # return "172.19.0.4:50051"
+        return f"mediator-{serial}:50051"

@@ -125,3 +125,22 @@ cd simt_emlite/mediator/grpc
 python grpc_codegen.py
 ```
 
+# Run mediators and sync locally
+
+```sh
+# ensure docker image built locally
+bin/build-docker.sh
+
+# start local stack with docker
+cd infra/local-stack
+
+# add mediators as needed
+# NOTE: each meter added should have mode=active in flows.meter_registry
+vim docker-compose.yml
+
+# start the emnify vpn gateway and the mediators
+docker compose up
+
+# run a sync (inside the local stack docker network)
+docker run --rm -it --network simt-mediator-local simt-emlite simt_emlite.jobs.meter_sync_all --esco wlce --freq daily
+```

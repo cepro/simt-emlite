@@ -7,6 +7,9 @@ import grpc
 from emop_frame_protocol.emop_data import EmopData
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
+from emop_frame_protocol.emop_profile_log_1_response import (
+    emop_decode_profile_log_1_response,
+)
 from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
@@ -290,7 +293,10 @@ class EmliteMediatorClient(object):
         )
 
     def profile_log_1(self, timestamp: datetime):
-        return self._profile_log(timestamp, EmopData.RecordFormat.profile_log_1)
+        log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_1)
+        log_decoded = emop_decode_profile_log_1_response(log_rsp)
+        self.log.debug(f"profile_log_1 response [{str(log_decoded)}]")
+        return log_decoded
 
     def profile_log_2(self, timestamp: datetime):
         return self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
@@ -311,7 +317,6 @@ class EmliteMediatorClient(object):
 
         self.log.info(f"profile log request [{data_field_bytes.hex()}]")
         response_bytes = self._send_message(data_field_bytes)
-        self.log.debug(f"profile log response [{response_bytes.hex()}]")
 
         return response_bytes
 

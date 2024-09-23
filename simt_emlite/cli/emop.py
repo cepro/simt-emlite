@@ -257,12 +257,19 @@ def args_parser():
     ]
     for cmd in profile_log_commands:
         profile_parser = subparsers.add_parser(
-            cmd, help="Fetch half hourly date from a given date time."
+            cmd,
+            description=f"""Fetch half hourly data for a given date time.
+
+Example usage:
+
+  emop -s EML1411222333 {cmd} --timestamp 2024-08-21
+""",
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         add_arg_serial(profile_parser)
         profile_parser.add_argument(
             "--timestamp",
-            help="Date and time in iso8601 format of time to read profile logs from.",
+            help="Date in iso8601 format (eg. 2024-08-21) of date to read profile logs for.",
             required=True,
             type=valid_iso_datetime,
         )
