@@ -285,6 +285,7 @@ Example usage:
 
     tariff_write_parser = subparsers.add_parser(
         "tariffs_future_write",
+        help="Write future tariffs to meter",
         description="""Write future dated tariffs and emergency credit properties into the meter.
 
 Example usage:

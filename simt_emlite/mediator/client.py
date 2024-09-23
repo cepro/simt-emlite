@@ -481,7 +481,9 @@ class EmliteMediatorClient(object):
             "standing_charge": str(emop_scale_price_amount(standing_charge_rec.value)),
             "activation_datetime": emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
-            ),
+            )
+            # .replace(tzinfo=ZoneInfo("Europe/London"))
+            .isoformat(timespec="seconds"),
             "threshold_mask": self._pluck_keys(threshold_mask_rec, "rate"),
             "threshold_values": self._pluck_keys(threshold_values_rec, "th"),
             "unit_rate_element_a": str(
