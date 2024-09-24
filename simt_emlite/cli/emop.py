@@ -4,6 +4,7 @@ import importlib
 import logging
 import sys
 from decimal import Decimal
+from typing import Any, Dict
 
 import argcomplete
 
@@ -191,6 +192,11 @@ def add_arg_serial(parser):
 def args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", help="Serial", required=False)
+    parser.add_argument(
+        "--serials",
+        help="Run command for all given serials",
+        required=False,
+    )
 
     subparsers = parser.add_subparsers(dest="subparser")
 
@@ -368,6 +374,17 @@ emop -s EML1411222333 tariffs_future_write \\
     return parser
 
 
+def run_command(cli: EMOPCLI, command: str, kwargs: Dict[str, Any]):
+    method = getattr(cli, command)
+    try:
+        method(**kwargs)
+    except MediatorClientException as e:
+        if e.code_str == "EMLITE_CONNECTION_FAILURE":
+            logging.error("Failed to connect to meter")
+        else:
+            logging.error(f"Failure [{e}]")
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
@@ -386,23 +403,32 @@ def main():
 
     # logging.info(kwargs)
 
-    # supporting either -s <serial> or positional argument <serial> after commands
-    # pop both off so they are removed from kwargs.
-    # use -s if it's there otherwise the positional.
+    # cli works on a given serial or list of serials.
+    #
+    # there are 3 ways to specify:
+    #  * emop -s <serial> csq
+    #  * emop csq <serial>
+    #  * emop --serials <serial1,serial2,...> csq
+
+    # we pop off all possibilities so they are removed from kwargs.
+    # then use first seen in order '-s', the positional argument or finally --serials.
     arg_s = kwargs.pop("s", None)
     arg_serial = kwargs.pop("serial", None)
+    arg_serials = kwargs.pop("serials", None)
+
     serial = arg_s or arg_serial
-
-    cli = EMOPCLI(serial=serial)
-
-    method = getattr(cli, command)
-    try:
-        method(**kwargs)
-    except MediatorClientException as e:
-        if e.code_str == "EMLITE_CONNECTION_FAILURE":
-            logging.error("Failed to connect to meter")
-        else:
-            logging.error(f"Failure [{e}]")
+    if serial:
+        cli = EMOPCLI(serial=serial)
+        run_command(cli, command, kwargs)
+    elif arg_serials:
+        serial_list = arg_serials.split(",")
+        for serial in serial_list:
+            logging.info(f"\nrunning '{command}' for meter {serial} ...\n")
+            cli = EMOPCLI(serial=serial)
+            run_command(cli, command, kwargs)
+    else:
+        parser.print_help()
+        exit(-1)
 
 
 if __name__ == "__main__":
