@@ -280,12 +280,42 @@ Example usage:
             type=valid_iso_datetime,
         )
 
-    # ===========    Clock write    ==========
+    # ===========    Writes    ==========
 
     clock_write_parser = subparsers.add_parser(
         "clock_time_write", help="Update clock time with current timestamp"
     )
     add_arg_serial(clock_write_parser)
+
+    prepay_enabled_write_parser = subparsers.add_parser(
+        "prepay_enabled_write", help="Set prepay mode flag"
+    )
+    add_arg_serial(prepay_enabled_write_parser)
+    prepay_enabled_write_parser.add_argument(
+        "enabled",
+        type=valid_switch,
+        help="set prepay flag (on=prepay mode, off=credit mode)",
+    )
+
+    prepay_send_token_parser = subparsers.add_parser(
+        "prepay_send_token",
+        help="Write a prepay token to the meter to topup the balance",
+    )
+    add_arg_serial(prepay_send_token_parser)
+    prepay_send_token_parser.add_argument(
+        "token", help="prepay token obtained from topupmeters.co.uk"
+    )
+
+    daylight_savings_correction_enabled_write_parser = subparsers.add_parser(
+        "daylight_savings_correction_enabled_write",
+        help="Set daylight_savings_correction flag",
+    )
+    add_arg_serial(daylight_savings_correction_enabled_write_parser)
+    daylight_savings_correction_enabled_write_parser.add_argument(
+        "enabled",
+        type=valid_switch,
+        help="set daylight_savings_correction flag (on, off)",
+    )
 
     # ===========      Tariff Writes    ==========
 
@@ -348,27 +378,6 @@ emop -s EML1411222333 tariffs_future_write \\
         required=False,
         default=Decimal("0.30"),
         type=valid_decimal,
-    )
-
-    # ===========      Prepay Writes    ==========
-
-    prepay_enabled_write_parser = subparsers.add_parser(
-        "prepay_enabled_write", help="Set prepay mode flag"
-    )
-    add_arg_serial(prepay_enabled_write_parser)
-    prepay_enabled_write_parser.add_argument(
-        "enabled",
-        type=valid_switch,
-        help="set prepay flag (on=prepay mode, off=credit mode)",
-    )
-
-    prepay_send_token_parser = subparsers.add_parser(
-        "prepay_send_token",
-        help="Write a prepay token to the meter to topup the balance",
-    )
-    add_arg_serial(prepay_send_token_parser)
-    prepay_send_token_parser.add_argument(
-        "token", help="prepay token obtained from topupmeters.co.uk"
     )
 
     return parser

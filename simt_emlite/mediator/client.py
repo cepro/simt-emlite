@@ -200,12 +200,6 @@ class EmliteMediatorClient(object):
         )
         return data
 
-    def prepay_enabled(self) -> bool:
-        data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
-        enabled: bool = data.enabled_flag == 1
-        self.log.info("received prepay enabled flag", prepay_enabled_flag=enabled)
-        return enabled
-
     def daylight_savings_correction_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.daylight_savings_correction_flag)
         enabled: bool = data.enabled_flag == 1
@@ -213,6 +207,16 @@ class EmliteMediatorClient(object):
             "received daylight savings correction flag",
             daylight_savings_correction_flag=enabled,
         )
+        return enabled
+
+    def daylight_savings_correction_enabled_write(self, enabled: bool):
+        flag_bytes = bytes.fromhex("01" if enabled else "00")
+        self._write_element(ObjectIdEnum.daylight_savings_correction_flag, flag_bytes)
+
+    def prepay_enabled(self) -> bool:
+        data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
+        enabled: bool = data.enabled_flag == 1
+        self.log.info("received prepay enabled flag", prepay_enabled_flag=enabled)
         return enabled
 
     def prepay_no_debt_recovery_when_emergency_credit_enabled(self) -> bool:
