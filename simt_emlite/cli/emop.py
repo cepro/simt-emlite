@@ -426,7 +426,7 @@ def main():
     arg_serials = kwargs.pop("serials", None)
 
     serial = arg_s or arg_serial
-    if serial:
+    if serial or command in ["env_set", "env_show", "version"]:
         cli = EMOPCLI(serial=serial)
         run_command(cli, command, kwargs)
     elif arg_serials:
