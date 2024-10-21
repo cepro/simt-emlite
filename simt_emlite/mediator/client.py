@@ -9,6 +9,9 @@ from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.emop_profile_log_1_response import (
     emop_decode_profile_log_1_response,
 )
+from emop_frame_protocol.emop_profile_log_2_response import (
+    emop_decode_profile_log_2_response,
+)
 from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
@@ -302,7 +305,17 @@ class EmliteMediatorClient(object):
         return log_decoded
 
     def profile_log_2(self, timestamp: datetime):
-        return self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
+        log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
+
+        hardware = self.hardware()
+        is_twin_element = hardware == "C1.w"
+        log_decoded = emop_decode_profile_log_2_response(is_twin_element, log_rsp)
+        self.log.debug(
+            f"profile_log_2 response [{str(log_decoded)}]",
+            is_twin_element=is_twin_element,
+        )
+
+        return log_decoded
 
     def _profile_log(self, timestamp: datetime, format: EmopData.RecordFormat):
         message_len = 5  # profile log request - format (1) + timestamp (4)
