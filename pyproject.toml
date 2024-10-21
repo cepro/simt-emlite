@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simt-emlite"
-version = "0.13.0"
+version = "0.14.0"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = ["Chris Hatch <chris@cepro.energy>"]
 readme = "README.pypi.md"
@@ -29,7 +29,7 @@ grpcio = "1.64.1"
 tenacity = "8.5.0"
 supabase = "2.5.3"
 crcmod = "1.7"
-emop-frame-protocol = { version = "0.1.11", source = "testpypi" }
+emop-frame-protocol = { version = "0.2.0", source = "testpypi" }
 simt-fly-machines = { version = "0.1.8", source = "testpypi" }
 structlog = "24.4.0"
 docker = "7.1.0"
