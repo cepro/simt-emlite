@@ -67,6 +67,10 @@ class FlyAdapter(BaseAdapter):
 
         machines = list(filter(lambda m: m["name"].startswith("mediator-"), machines))
 
+        # machines in an odd state will have no config - they are in the
+        #   machines listing but don't really exist (have asked fly about this)
+        machines = list(filter(lambda m: m["config"] is not None, machines))
+
         if metadata_filter:
             logger.debug(f"metadata filter [{metadata_filter}]")
             machines = list(
