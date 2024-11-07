@@ -216,6 +216,11 @@ class EmliteMediatorClient(object):
         flag_bytes = bytes.fromhex("01" if enabled else "00")
         self._write_element(ObjectIdEnum.daylight_savings_correction_flag, flag_bytes)
 
+    def backlight(self) -> bool:
+        data = self._read_element(ObjectIdEnum.backlight)
+        self.log.info("received backlight setting", backlight_setting=data.setting)
+        return data.setting
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1

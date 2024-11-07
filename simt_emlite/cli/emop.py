@@ -222,6 +222,7 @@ def args_parser():
         ("instantaneous_voltage", "Current voltage"),
         ("read_element_a", "Current read on element A"),
         ("read_element_b", "Current read on element B"),
+        ("backlight", "Backlight setting"),
         ("prepay_enabled", "Is prepay mode enabled?"),
         (
             "daylight_savings_correction_enabled",
