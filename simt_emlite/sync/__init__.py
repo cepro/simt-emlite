@@ -1,3 +1,4 @@
+from .syncer_backlight import SyncerBacklight as SyncerBacklight
 from .syncer_clock_diff import SyncerClockDiff as SyncerClockDiff
 from .syncer_csq import SyncerCsq as SyncerCsq
 from .syncer_daylight_savings_enabled import (
