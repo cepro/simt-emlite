@@ -221,6 +221,10 @@ class EmliteMediatorClient(object):
         self.log.info("received backlight setting", backlight_setting=data.setting)
         return data.setting
 
+    def backlight_write(self, setting: EmopMessage.BacklightSettingType):
+        setting_bytes = bytes([setting.value])
+        self._write_element(ObjectIdEnum.backlight, setting_bytes)
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1

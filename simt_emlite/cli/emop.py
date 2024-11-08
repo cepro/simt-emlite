@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any, Dict
 
 import argcomplete
+from emop_frame_protocol.emop_message import EmopMessage
 
 from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
@@ -172,7 +173,7 @@ def valid_rate(rate: str):
     return rate_dec
 
 
-def valid_switch(bool_str: str):
+def valid_switch(bool_str: str) -> bool:
     bool_str_lc = bool_str.lower()
     if bool_str_lc == "on":
         return True
@@ -181,6 +182,19 @@ def valid_switch(bool_str: str):
     else:
         raise argparse.ArgumentTypeError(
             f"Invalid flag string '{bool_str}'. Should be 'on' or 'off'."
+        )
+
+
+def valid_backlight_setting(setting: str) -> EmopMessage.BacklightSettingType:
+    if setting == "normal":
+        return EmopMessage.BacklightSettingType.normal
+    elif setting == "always_on":
+        return EmopMessage.BacklightSettingType.always_on
+    elif setting == "always_off":
+        return EmopMessage.BacklightSettingType.always_off
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Invalid backlight setting string '{setting}'. Can be one of ('normal', 'always_on', 'always_off')"
         )
 
 
@@ -316,6 +330,27 @@ Example usage:
         "enabled",
         type=valid_switch,
         help="set daylight_savings_correction flag (on, off)",
+    )
+
+    backlight_write_parser = subparsers.add_parser(
+        "backlight_write",
+        help="Write backlight setting to meter",
+        description="""Setting choices:
+  normal = off until button pressed on meter
+  always_on = light always on (lcd burnout!)
+  always_off = light never on
+
+Example usage:
+
+emop -s EML1411222333 backlight_write normal
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_arg_serial(backlight_write_parser)
+    backlight_write_parser.add_argument(
+        "setting",
+        help="new backlight setting",
+        type=valid_backlight_setting,
     )
 
     # ===========      Tariff Writes    ==========
