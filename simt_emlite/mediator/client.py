@@ -16,6 +16,7 @@ from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
     emop_encode_datetime_to_time_rec,
+    emop_encode_object_id,
     emop_encode_timestamp_as_u4le_rec,
     emop_epoch_seconds_to_datetime,
     emop_format_firmware_version,
@@ -344,6 +345,33 @@ class EmliteMediatorClient(object):
         response_bytes = self._send_message(data_field_bytes)
 
         return response_bytes
+
+    def event_log(self, log_idx: int) -> EmopMessage.EventLogRec:
+        message_len = 5  # object id (3) + format (1) + log_idx (1)
+
+        message_field = EmopData.EventLogRec()
+        message_field.object_id = emop_encode_object_id(
+            EmopMessage.ObjectIdType.event_log
+        )
+        message_field.log_idx = log_idx
+
+        data_field = EmopData(None)
+        data_field.format = EmopData.RecordFormat.event_log
+        data_field.message = message_field
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        data_field._write(_io)
+        data_field_bytes = _io.to_byte_array()
+
+        self.log.info(f"event log request [{data_field_bytes.hex()}]")
+        response_bytes = self._send_message(data_field_bytes)
+        self.log.info(f"event log response [{response_bytes.hex()}]")
+
+        data = EmopMessage.EventLogRec(KaitaiStream(BytesIO(response_bytes)))
+        data._read()
+        self.log.info(f"event logs [{data}]")
+
+        return data
 
     def tariffs_active_read(self) -> TariffsActive:
         standing_charge_rec = self._read_element(

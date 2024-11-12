@@ -155,6 +155,22 @@ def valid_iso_datetime(timestamp: str):
         raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
 
 
+def valid_event_log_idx(idx: str):
+    try:
+        idx_int = int(idx)
+    except Exception:
+        raise argparse.ArgumentTypeError(
+            f"Invalid log_idx {idx}. Should be an int between 0-9."
+        )
+
+    if idx_int < 0 or idx_int > 9:
+        raise argparse.ArgumentTypeError(
+            f"Invalid log_idx {idx}. Must be in range 0-9."
+        )
+
+    return idx_int
+
+
 def valid_decimal(rate: str):
     try:
         return Decimal(rate)
@@ -269,6 +285,19 @@ def args_parser():
     for cmd in simple_read_commands:
         cmd_parser = subparsers.add_parser(cmd[0], help=cmd[1])
         add_arg_serial(cmd_parser)
+
+    # ===========    Event logs     ==========
+
+    event_log_parser = subparsers.add_parser(
+        "event_log",
+        help="Read a block of 10 events from the event log at a given index",
+    )
+    event_log_parser.add_argument(
+        "log_idx",
+        type=valid_event_log_idx,
+        help="value 0-9 where 0 returns the latest 10 log entries; 9 the oldest 10 entries",
+    )
+    add_arg_serial(event_log_parser)
 
     # ===========    Profile logs (half hourly reads)    ==========
 
