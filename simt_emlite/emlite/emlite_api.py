@@ -54,7 +54,10 @@ class EmliteAPI:
 
         data_field = frame.data
 
-        if data_field.format == EmopData.RecordFormat.default:
+        if data_field.format in [
+            EmopData.RecordFormat.default,
+            EmopData.RecordFormat.event_log,
+        ]:
             return frame.data.message.payload
         else:
             # assume profile log message - no others handled as yet
@@ -117,6 +120,7 @@ class EmliteAPI:
         # which is 12 bytes (length 1, control 1, destination 4, source 4, crc 2)
         #   plus data field length which depends on format and payload
         frame_length = 12
+
         if data_field.format == EmopData.RecordFormat.default:
             # 5 (format 1, object id 3, rw flag 1) plus payload length
             frame_length = frame_length + 5 + len(data_field.message.payload)
