@@ -354,6 +354,7 @@ class EmliteMediatorClient(object):
             EmopMessage.ObjectIdType.event_log
         )
         message_field.log_idx = log_idx
+        message_field.payload = bytes()
 
         data_field = EmopData(None)
         data_field.format = EmopData.RecordFormat.event_log
