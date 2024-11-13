@@ -349,7 +349,7 @@ class EmliteMediatorClient(object):
     def event_log(self, log_idx: int) -> EmopMessage.EventLogRec:
         message_len = 5  # object id (3) + format (1) + log_idx (1)
 
-        message_field = EmopData.EventLogRec()
+        message_field = EmopData.EventLogRec(message_len)
         message_field.object_id = emop_encode_object_id(
             EmopMessage.ObjectIdType.event_log
         )
