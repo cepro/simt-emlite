@@ -4,6 +4,7 @@ from .syncer_csq import SyncerCsq as SyncerCsq
 from .syncer_daylight_savings_enabled import (
     SyncerDaylightSavingsEnabled as SyncerDaylightSavingsEnabled,
 )
+from .syncer_event_log import SyncerEventLog as SyncerEventLog
 from .syncer_firmware_version import SyncerFirmwareVersion as SyncerFirmwareVersion
 from .syncer_hardware import SyncerHardware as SyncerHardware
 from .syncer_prepay_balance import SyncerPrepayBalance as SyncerPrepayBalance
