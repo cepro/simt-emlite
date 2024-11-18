@@ -30,7 +30,7 @@ class SyncerEventLog(SyncerBase):
 
         result = (
             self.supabase.table("meter_event_log")
-            .select("timestamp,event_type,event_seq")
+            .select("timestamp,event_type,event_set")
             .eq("id", self.meter_id)
             .order(desc=True)
             .limit(10)
