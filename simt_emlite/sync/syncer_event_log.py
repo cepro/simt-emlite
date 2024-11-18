@@ -26,7 +26,9 @@ def event_rec_to_table_row(
     return {
         "meter_id": meter_id,
         "timestamp": event.timestamp,
-        "event_type": event.event_id.value,
+        "event_type": event.event_id
+        if isinstance(event.event_id, int)
+        else event.event_id.value,
         "event_set": event.event_set,
     }
 
@@ -56,7 +58,7 @@ class SyncerEventLog(SyncerBase):
         unseen_events: List[EmopMessage.EventLogRec] = self._fetch_unseen(
             last_seen_event=last_seen_event
         )
-        logger.info("unseen events", unseen_events=unseen_events)
+        logger.info("unseen events count", unseen_event_count=len(unseen_events))
 
         insert_recs = list(
             map(
@@ -64,8 +66,10 @@ class SyncerEventLog(SyncerBase):
                 unseen_events,
             )
         )
+        logger.info("records to insert", insert_recs=insert_recs)
+
         response = self.supabase.table("meter_event_log").insert(insert_recs).execute()
-        print(response)
+        logger.info("supabase insert response", response=response)
 
         return UpdatesTuple(None, None)
 
