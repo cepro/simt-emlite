@@ -41,7 +41,9 @@ class SyncerEventLog(SyncerBase):
         )
         logger.info("last seen event", last_seen_event=last_seen_event)
 
-        unseen_events: List[EmopMessage.EventLogRec] = self.fetch_unseen()
+        unseen_events: List[EmopMessage.EventLogRec] = self._fetch_unseen(
+            last_seen_event=last_seen_event
+        )
         logger.info("unseen events", unseen_events=unseen_events)
 
         return UpdatesTuple(None, None)
