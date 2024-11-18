@@ -3,7 +3,10 @@ from typing import List
 
 from emop_frame_protocol.emop_message import EmopMessage
 
-from simt_emlite.sync.syncer_event_log import event_rec_to_table_row
+from simt_emlite.sync.syncer_event_log import (
+    event_rec_to_table_row,
+    event_table_row_to_rec,
+)
 
 EventIdType = EmopMessage.EventIdType
 EventRec = EmopMessage.EventRec
@@ -39,3 +42,18 @@ class TestSyncerEventLog(unittest.TestCase):
             },
             event_rec_to_table_row(METER_ID, EVENTS[0]),
         )
+
+    def test_event_table_row_to_rec(self):
+        event = EVENTS[0]
+        event_from_row = event_table_row_to_rec(
+            {
+                "event_set": event.event_set,
+                "event_type": event.event_id.value,
+                "meter_id": METER_ID,
+                "timestamp": "2024-11-11T00:00:00+00:00",
+            }
+        )
+
+        self.assertEqual(event.event_id.value, event_from_row.event_id)
+        self.assertEqual(event.event_set, event_from_row.event_set)
+        self.assertEqual(event.timestamp, event_from_row.timestamp)

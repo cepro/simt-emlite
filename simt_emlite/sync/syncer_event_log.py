@@ -1,7 +1,11 @@
+from datetime import datetime
 from typing import List
 
 from emop_frame_protocol.emop_message import EmopMessage
-from emop_frame_protocol.util import emop_epoch_seconds_to_datetime
+from emop_frame_protocol.util import (
+    emop_datetime_to_epoch_seconds,
+    emop_epoch_seconds_to_datetime,
+)
 from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
@@ -34,6 +38,18 @@ def event_rec_to_table_row(
     }
 
 
+def event_table_row_to_rec(
+    row,
+) -> EmopMessage.EventRec:
+    event = EmopMessage.EventRec()
+    event.timestamp = emop_datetime_to_epoch_seconds(
+        datetime.fromisoformat(row["timestamp"])
+    )
+    event.event_id = row["event_type"]
+    event.event_set = row["event_set"]
+    return event
+
+
 class SyncerEventLog(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
@@ -51,13 +67,12 @@ class SyncerEventLog(SyncerBase):
             .limit(10)
             .execute()
         )
-        last_seen_event: EmopMessage.EventLogRec = (
-            result.data[0] if len(result.data) > 0 else None
-        )
-        logger.info("last seen event", last_seen_event=last_seen_event)
+
+        last_seen_event_row = result.data[0] if len(result.data) > 0 else None
+        logger.info("last seen event", last_seen_event=last_seen_event_row)
 
         unseen_events: List[EmopMessage.EventLogRec] = self._fetch_unseen(
-            last_seen_event=last_seen_event
+            last_seen_event=event_table_row_to_rec(last_seen_event_row)
         )
         logger.info("unseen events count", unseen_event_count=len(unseen_events))
 
@@ -75,7 +90,7 @@ class SyncerEventLog(SyncerBase):
         return UpdatesTuple(None, None)
 
     def _fetch_unseen(
-        self, last_seen_event: EmopMessage.EventLogRec
+        self, last_seen_event: EmopMessage.EventRec
     ) -> List[EmopMessage.EventRec]:
         unseen_events_all = []
 
