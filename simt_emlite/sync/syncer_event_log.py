@@ -1,6 +1,7 @@
 from typing import List
 
 from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.util import emop_epoch_seconds_to_datetime
 from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
@@ -25,7 +26,7 @@ def event_rec_to_table_row(
 ):
     return {
         "meter_id": meter_id,
-        "timestamp": event.timestamp,
+        "timestamp": emop_epoch_seconds_to_datetime(event.timestamp),
         "event_type": event.event_id
         if isinstance(event.event_id, int)
         else event.event_id.value,

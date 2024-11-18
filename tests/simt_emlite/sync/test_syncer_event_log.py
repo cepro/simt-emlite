@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 from typing import List
 
 from emop_frame_protocol.emop_message import EmopMessage
@@ -35,7 +36,7 @@ class TestSyncerEventLog(unittest.TestCase):
                 "event_set": event.event_set,
                 "event_type": event.event_id.value,
                 "meter_id": METER_ID,
-                "timestamp": event.timestamp,
+                "timestamp": datetime(2024, 11, 11, 0, 0, 0),
             },
             event_rec_to_table_row(METER_ID, EVENTS[0]),
         )
