@@ -1,5 +1,4 @@
 import unittest
-from datetime import datetime
 from typing import List
 
 from emop_frame_protocol.emop_message import EmopMessage
