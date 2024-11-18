@@ -19,6 +19,18 @@ def filter_event_log_for_unseen_events(
     return list(filter(lambda e: e.timestamp > latest_event_in_db.timestamp, events))
 
 
+def event_rec_to_table_row(
+    meter_id: str,
+    event: EmopMessage.EventRec,
+):
+    return {
+        "meter_id": meter_id,
+        "timestamp": event.timestamp,
+        "event_type": event.event_id.value,
+        "event_set": event.event_set,
+    }
+
+
 class SyncerEventLog(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
@@ -45,6 +57,10 @@ class SyncerEventLog(SyncerBase):
             last_seen_event=last_seen_event
         )
         logger.info("unseen events", unseen_events=unseen_events)
+
+        insert_recs = list(map(lambda e: event_rec_to_table_row(e)))
+        response = self.supabase.table("meter_event_log").insert(insert_recs).execute()
+        print(response)
 
         return UpdatesTuple(None, None)
 
