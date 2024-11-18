@@ -26,7 +26,7 @@ def event_rec_to_table_row(
 ):
     return {
         "meter_id": meter_id,
-        "timestamp": emop_epoch_seconds_to_datetime(event.timestamp),
+        "timestamp": emop_epoch_seconds_to_datetime(event.timestamp).isoformat(),
         "event_type": event.event_id
         if isinstance(event.event_id, int)
         else event.event_id.value,

@@ -36,7 +36,7 @@ class TestSyncerEventLog(unittest.TestCase):
                 "event_set": event.event_set,
                 "event_type": event.event_id.value,
                 "meter_id": METER_ID,
-                "timestamp": datetime(2024, 11, 11, 0, 0, 0),
+                "timestamp": "2024-11-11T00:00:00+00:00",
             },
             event_rec_to_table_row(METER_ID, EVENTS[0]),
         )
