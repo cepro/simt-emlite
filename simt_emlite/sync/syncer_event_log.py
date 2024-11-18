@@ -58,7 +58,12 @@ class SyncerEventLog(SyncerBase):
         )
         logger.info("unseen events", unseen_events=unseen_events)
 
-        insert_recs = list(map(lambda e: event_rec_to_table_row(e), unseen_events))
+        insert_recs = list(
+            map(
+                lambda e: event_rec_to_table_row(meter_id=self.meter_id, event=e),
+                unseen_events,
+            )
+        )
         response = self.supabase.table("meter_event_log").insert(insert_recs).execute()
         print(response)
 
