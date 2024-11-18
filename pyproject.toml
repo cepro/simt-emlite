@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "simt-emlite"
-version = "0.15.9-qa-test-2"
+version = "0.15.9"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = ["Chris Hatch <chris@cepro.energy>"]
 readme = "README.pypi.md"
