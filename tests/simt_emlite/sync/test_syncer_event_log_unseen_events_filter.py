@@ -1,4 +1,3 @@
-import inspect
 import unittest
 from typing import List
 
@@ -10,7 +9,7 @@ EventIdType = EmopMessage.EventIdType
 EventRec = EmopMessage.EventRec
 
 
-ONE_DAY_SECONDS = 1440
+ONE_DAY_SECONDS = 24 * 60 * 60
 
 START_TIME_SECONDS = 784598400  # 11/11/2024 0:00 in seconds since 01/01/2000
 
@@ -28,9 +27,9 @@ def event(ts: int, id: EventIdType, set: int) -> EventRec:
 
 
 EVENTS: List[EventRec] = [
-    event(add_days(START_TIME_SECONDS, 1), EventIdType.daily_log_snapshot, set=4),
-    event(add_days(START_TIME_SECONDS, 1), 52, set=0),
-    event(add_days(START_TIME_SECONDS, 1), EventIdType.billing_log_snapshot, set=6),
+    event(START_TIME_SECONDS, EventIdType.daily_log_snapshot, set=4),
+    event(START_TIME_SECONDS, 52, set=0),
+    event(START_TIME_SECONDS, EventIdType.billing_log_snapshot, set=6),
     event(
         # 20:00 on the 11/11/2024
         START_TIME_SECONDS + 20 * 60 * 60,
@@ -53,9 +52,20 @@ class TestSyncerEventLogUnseenEventsFilter(unittest.TestCase):
             [],
         )
 
-    def test_one_new_event(self):
-        last_seen_event = EVENTS[8]
+    def test_first_sync_returns_all(self):
+        self.assertEqual(
+            filter_event_log_for_unseen_events(EVENTS, None),
+            EVENTS,
+        )
+
+    def test_next_days_events(self):
+        last_seen_event = EVENTS[6]  # last record on 12/11/2024
 
         unseen = filter_event_log_for_unseen_events(EVENTS, last_seen_event)
-        self.assertEqual(1, len(unseen))
-        self.assertEqual(EVENTS[9], unseen[0])  # identity same
+
+        # 3 events on 13/11/2024
+        self.assertEqual(3, len(unseen))
+
+        self.assertEqual(EVENTS[7], unseen[0])
+        self.assertEqual(EVENTS[8], unseen[1])
+        self.assertEqual(EVENTS[9], unseen[2])

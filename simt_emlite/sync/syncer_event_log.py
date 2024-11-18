@@ -4,7 +4,9 @@ from emop_frame_protocol.emop_message import EmopMessage
 from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
-from simt_emlite.util.meters import is_three_phase_lookup
+from simt_emlite.util.logging import get_logger
+
+logger = get_logger(__name__, __file__)
 
 
 def filter_event_log_for_unseen_events(
@@ -12,6 +14,8 @@ def filter_event_log_for_unseen_events(
     events: List[EmopMessage.EventRec],
     latest_event_in_db,
 ) -> List[EmopMessage.EventRec]:
+    if latest_event_in_db is None:
+        return events
     return list(filter(lambda e: e.timestamp > latest_event_in_db.timestamp, events))
 
 
@@ -32,19 +36,37 @@ class SyncerEventLog(SyncerBase):
             .limit(10)
             .execute()
         )
-        most_recent_entry = result.data[0]
+        last_seen_event: EmopMessage.EventLogRec = (
+            result.data[0] if len(result.data) > 0 else None
+        )
+        logger.info("last seen event", last_seen_event=last_seen_event)
 
-        print(f"most_recent_entry = {most_recent_entry}")
-
-        sync_more = True
-        while sync_more:
-            log = self.emlite_client.event_log()
-
-            unseen_events = []
-
-            print(f"new_events = [{unseen_events}]")
-
-            # sync more if all 10 fetched events were new events
-            sync_more = len(unseen_events) == 10
+        unseen_events: List[EmopMessage.EventLogRec] = self.fetch_unseen()
+        logger.info("unseen events", unseen_events=unseen_events)
 
         return UpdatesTuple(None, None)
+
+    def _fetch_unseen(
+        self, last_seen_event: EmopMessage.EventLogRec
+    ) -> List[EmopMessage.EventRec]:
+        unseen_events_all = []
+
+        sync_more = True
+        log_idx = 0
+        while sync_more:
+            log = self.emlite_client.event_log(log_idx)
+            unseen_events = filter_event_log_for_unseen_events(
+                log.events, last_seen_event
+            )
+            logger.info(
+                "unseen in current fetched logs", unseen_in_fetched=unseen_events
+            )
+            unseen_events_all.extend(unseen_events)
+
+            # if all 10 fetched events were new events then we need to look back further
+            # TODO: change log_idx restriction to 10 (one above the the maximum)
+            #   using 3 for now just to limit how far we go back in this test phase
+            log_idx += 1
+            sync_more = len(unseen_events) == 10 and log_idx < 3
+
+        return unseen_events_all
