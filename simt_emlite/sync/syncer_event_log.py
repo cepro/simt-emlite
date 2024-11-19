@@ -10,6 +10,7 @@ from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.meters import is_three_phase_lookup
 
 logger = get_logger(__name__, __file__)
 
@@ -53,11 +54,9 @@ def event_table_row_to_rec(
 class SyncerEventLog(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
-        # TODO: most likely we need the following but lets try against 3p meters first:
-
-        # is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
-        # if is_3p:
-        #     return
+        is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
+        if is_3p:
+            return
 
         result = (
             self.supabase.table("meter_event_log")
@@ -76,16 +75,19 @@ class SyncerEventLog(SyncerBase):
         )
         logger.info("unseen events count", unseen_event_count=len(unseen_events))
 
-        insert_recs = list(
-            map(
-                lambda e: event_rec_to_table_row(meter_id=self.meter_id, event=e),
-                unseen_events,
+        if len(unseen_events) > 0:
+            insert_recs = list(
+                map(
+                    lambda e: event_rec_to_table_row(meter_id=self.meter_id, event=e),
+                    unseen_events,
+                )
             )
-        )
-        logger.info("records to insert", insert_recs=insert_recs)
+            logger.info("records to insert", insert_recs=insert_recs)
 
-        response = self.supabase.table("meter_event_log").insert(insert_recs).execute()
-        logger.info("supabase insert response", response=response)
+            response = (
+                self.supabase.table("meter_event_log").insert(insert_recs).execute()
+            )
+            logger.info("supabase insert response", response=response)
 
         return UpdatesTuple(None, None)
 
@@ -107,9 +109,7 @@ class SyncerEventLog(SyncerBase):
             unseen_events_all.extend(unseen_events)
 
             # if all 10 fetched events were new events then we need to look back further
-            # TODO: change log_idx restriction to 10 (one above the the maximum)
-            #   using 3 for now just to limit how far we go back in this test phase
             log_idx += 1
-            sync_more = len(unseen_events) == 10 and log_idx < 3
+            sync_more = len(unseen_events) == 10 and log_idx < 10
 
         return unseen_events_all
