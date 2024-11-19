@@ -63,15 +63,18 @@ class SyncerEventLog(SyncerBase):
             .select("timestamp,event_type,event_set")
             .eq("meter_id", self.meter_id)
             .order(column="timestamp", desc=True)
-            .limit(10)
+            .limit(1)
             .execute()
         )
 
-        last_seen_event_row = result.data[0] if len(result.data) > 0 else None
-        logger.info("last seen event", last_seen_event=last_seen_event_row)
+        last_seen_event_rec = None
+        if len(result.data) > 0:
+            last_seen_event_row = result.data[0]
+            logger.info("last seen event row", last_seen_event=last_seen_event_row)
+            last_seen_event_rec = event_table_row_to_rec(last_seen_event_row)
 
         unseen_events: List[EmopMessage.EventLogRec] = self._fetch_unseen(
-            last_seen_event=event_table_row_to_rec(last_seen_event_row)
+            last_seen_event=last_seen_event_rec
         )
         logger.info("unseen events count", unseen_event_count=len(unseen_events))
 
