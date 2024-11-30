@@ -64,6 +64,9 @@ class FlyAdapter(BaseAdapter):
         status_filter: ContainerState = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
+        if "error" in machines:
+            logger.error(f"failed to get machines {machines}")
+            sys.exit(1)
 
         machines = list(filter(lambda m: m["name"].startswith("mediator-"), machines))
 
