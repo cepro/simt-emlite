@@ -15,6 +15,7 @@ class ContainerState(Enum):
     STARTING = 4
     REMOVING = 5
     CREATED = 6
+    FAILED = 7
 
 
 @dataclass

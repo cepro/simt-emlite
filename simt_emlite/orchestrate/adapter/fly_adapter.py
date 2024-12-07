@@ -21,6 +21,7 @@ FLY_STATUS = {
     ContainerState.STOPPING: "stopping",
     ContainerState.REMOVING: "destroying",
     ContainerState.CREATED: "created",
+    ContainerState.FAILED: "failed",
 }
 
 CONTAINER_STATUS = {
@@ -30,6 +31,7 @@ CONTAINER_STATUS = {
     "starting": ContainerState.STARTING,
     "destroying": ContainerState.REMOVING,
     "created": ContainerState.CREATED,
+    "failed": ContainerState.FAILED,
 }
 
 
