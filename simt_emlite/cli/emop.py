@@ -392,7 +392,7 @@ emop -s EML1411222333 backlight_write normal
 Example usage:
 
 emop -s EML1411222333 tariffs_future_write \\
-        --from-ts "2024-08-21T06:54:00" \\
+        --from-ts "2024-08-21T06:54:00+00" \\
         --unit-rate "0.23812" \\
         --standing-charge "0.6975" \\
         --ecredit-availability "10.0" \\
