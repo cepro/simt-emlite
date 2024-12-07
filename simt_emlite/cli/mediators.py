@@ -388,6 +388,7 @@ def main():
             ContainerState.STARTED.name.lower(),
             ContainerState.STOPPED.name.lower(),
             ContainerState.STOPPING.name.lower(),
+            ContainerState.FAILED.name.lower(),
         ],
     )
 
