@@ -105,11 +105,19 @@ class FlyAdapter(BaseAdapter):
         )
 
     def create(
-        self, cmd: str, meter_id: str, serial: str, ip_address: str, skip_confirm=False
+        self,
+        cmd: str,
+        meter_id: str,
+        serial: str,
+        ip_address: str,
+        port: int = None,
+        skip_confirm=False,
     ) -> str:
         machine_name = f"mediator-{serial}"
         metadata = self._metadata(meter_id, ip_address)
 
+        # TODO: move this in to the CLI
+        #       don't want interactions or sys.exit in this module
         if skip_confirm is not True:
             answer = input(f"""
 Fly App:    {self.fly_app}
@@ -126,6 +134,7 @@ Create machine with these details (y/n): """)
             self.fly_app,
             self.image,
             [cmd],
+            port=port,
             name=machine_name,
             env_vars=self._env_vars(ip_address),
             metadata=metadata,
@@ -148,18 +157,23 @@ Create machine with these details (y/n): """)
     def stop(self, id: str):
         return self.api.stop(self.fly_app, id)
 
-    def destroy(self, id: str):
-        stop_rsp = self.api.stop(self.fly_app, id)
-        print(f"stop_rsp [{id}]: {stop_rsp}")
+    def destroy(self, id: str, force: bool = False):
+        if not force:
+            stop_rsp = self.api.stop(self.fly_app, id)
+            print(f"stop_rsp [{id}]: {stop_rsp}")
 
-        machine = self.api.get(self.fly_app, id)
-        wait_rsp = self.api.wait(
-            self.fly_app, id, machine["instance_id"], FLY_STATUS[ContainerState.STOPPED]
-        )
-        print(f"wait_rsp [{id}]: {wait_rsp}")
+            machine = self.api.get(self.fly_app, id)
+            wait_rsp = self.api.wait(
+                self.fly_app,
+                id,
+                machine["instance_id"],
+                FLY_STATUS[ContainerState.STOPPED],
+            )
+            print(f"wait_rsp [{id}]: {wait_rsp}")
 
-        destroy_rsp = self.api.destroy(self.fly_app, id)
+        destroy_rsp = self.api.destroy(self.fly_app, id, force=force)
         print(f"destroy_rsp [{id}]: {destroy_rsp}")
+        return destroy_rsp
 
     def mediator_address(self, meter_id: str, serial: str):
         machines = self.list(("meter_id", meter_id))

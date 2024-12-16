@@ -25,7 +25,9 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def create(self, cmd: str, meter_id: str, serial: str, ip_address: str) -> str:
+    def create(
+        self, cmd: str, meter_id: str, serial: str, ip_address: str, port: int = None
+    ) -> str:
         pass
 
     @abstractmethod
@@ -37,7 +39,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def destroy(self, id: str):
+    def destroy(self, id: str, force: bool):
         pass
 
     @abstractmethod

@@ -96,10 +96,10 @@ class DockerAdapter(BaseAdapter):
         # killing causes an immediate stop and this is fine for mediators
         container.kill()
 
-    def destroy(self, id: str):
+    def destroy(self, id: str, force: bool = True):
         container = self.docker_client.containers.get(id)
         container.kill()
-        container.remove(force=True)
+        container.remove(force)
 
     def mediator_address(self, meter_id: str, serial: str):
         # update to lookup ip:
