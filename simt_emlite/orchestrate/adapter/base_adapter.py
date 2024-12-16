@@ -1,8 +1,15 @@
+import os
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
 from simt_emlite.orchestrate.adapter.container import Container, ContainerState
-from simt_emlite.util.config import load_config
+
+SOCKS_HOST = os.environ.get("SOCKS_HOST")
+SOCKS_PORT = os.environ.get("SOCKS_PORT")
+SOCKS_USERNAME = os.environ.get("SOCKS_USERNAME")
+SOCKS_PASSWORD = os.environ.get("SOCKS_PASSWORD")
+
+MEDIATOR_INACTIVITY_SECONDS = os.environ.get("MEDIATOR_INACTIVITY_SECONDS")
 
 
 class BaseAdapter(ABC):
@@ -47,25 +54,23 @@ class BaseAdapter(ABC):
         pass
 
     def _env_vars(self, ip_address: str) -> Dict:
-        config = load_config()
-
         env_vars: Dict = {
             "EMLITE_HOST": ip_address,
-            "MEDIATOR_INACTIVITY_SECONDS": config["mediator_inactivity_seconds"],
+            "MEDIATOR_INACTIVITY_SECONDS": MEDIATOR_INACTIVITY_SECONDS,
         }
 
-        socks_dict: Dict = self._socks_dict(config)
+        socks_dict: Dict = self._socks_dict()
         if socks_dict is not None:
             env_vars.update(socks_dict)
 
         return env_vars
 
-    def _socks_dict(self, config) -> Dict:
+    def _socks_dict(self) -> Dict:
         socks_dict = {
-            "SOCKS_HOST": config["socks_host"],
-            "SOCKS_PORT": config["socks_port"],
-            "SOCKS_USERNAME": config["socks_username"],
-            "SOCKS_PASSWORD": config["socks_password"],
+            "SOCKS_HOST": SOCKS_HOST,
+            "SOCKS_PORT": SOCKS_PORT,
+            "SOCKS_USERNAME": SOCKS_USERNAME,
+            "SOCKS_PASSWORD": SOCKS_PASSWORD,
         }
 
         use_socks = all(

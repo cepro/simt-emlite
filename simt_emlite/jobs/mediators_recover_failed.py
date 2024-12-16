@@ -45,21 +45,22 @@ class MediatorsRecoverFailedJob:
     def run(self):
         self.log.info("starting ...")
 
-        machines1 = self.containers.api.list(app=f"mediators-{self.esco}")
+        machines = self.containers.api.list(app=f"mediators-{self.esco}")
         machines = list(
             filter(
                 lambda m: m["state"] is not None
                 and m["state"] == FLY_STATUS[ContainerState.FAILED],
-                machines1,
+                machines,
             )
         )
         self.log.info(f"{len(machines)} machines in failed state")
-        # if len(machines) == 0:
-        #     sys.exit()
+        if len(machines) == 0:
+            sys.exit()
 
-        # for m in machines:
-        # self.recover_mediator(m)
-        self.recover_mediator(machines1[0])
+        # TODO: for now just loop instead of parallel
+        # - lost logging locally and just go slow until happy the script works well
+        for m in machines:
+            self.recover_mediator(m)
 
         # with concurrent.futures.ThreadPoolExecutor(
         #     max_workers=max_parallel_jobs
