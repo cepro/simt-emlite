@@ -18,6 +18,14 @@ supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
 
+"""
+    Run simt-emlite job mediators_recover_failed to recreated any failed state 
+    mediator machines.
+ 
+    See this Notion task for some background:
+    https://www.notion.so/Mediator-fly-machines-in-failed-state-15560033463e808cb863de7178275f2b
+"""
+
 
 class MediatorsRecoverFailedJob:
     def __init__(
