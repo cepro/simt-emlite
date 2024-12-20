@@ -4,13 +4,6 @@ from typing import Dict, List
 
 from simt_emlite.orchestrate.adapter.container import Container, ContainerState
 
-SOCKS_HOST = os.environ.get("SOCKS_HOST")
-SOCKS_PORT = os.environ.get("SOCKS_PORT")
-SOCKS_USERNAME = os.environ.get("SOCKS_USERNAME")
-SOCKS_PASSWORD = os.environ.get("SOCKS_PASSWORD")
-
-MEDIATOR_INACTIVITY_SECONDS = os.environ.get("MEDIATOR_INACTIVITY_SECONDS")
-
 
 class BaseAdapter(ABC):
     def __init__(self):
@@ -54,6 +47,8 @@ class BaseAdapter(ABC):
         pass
 
     def _env_vars(self, ip_address: str) -> Dict:
+        MEDIATOR_INACTIVITY_SECONDS = os.environ.get("MEDIATOR_INACTIVITY_SECONDS")
+
         env_vars: Dict = {
             "EMLITE_HOST": ip_address,
             "MEDIATOR_INACTIVITY_SECONDS": MEDIATOR_INACTIVITY_SECONDS,
@@ -66,6 +61,11 @@ class BaseAdapter(ABC):
         return env_vars
 
     def _socks_dict(self) -> Dict:
+        SOCKS_HOST = os.environ.get("SOCKS_HOST")
+        SOCKS_PORT = os.environ.get("SOCKS_PORT")
+        SOCKS_USERNAME = os.environ.get("SOCKS_USERNAME")
+        SOCKS_PASSWORD = os.environ.get("SOCKS_PASSWORD")
+
         socks_dict = {
             "SOCKS_HOST": SOCKS_HOST,
             "SOCKS_PORT": SOCKS_PORT,
