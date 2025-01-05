@@ -2,9 +2,10 @@ import argparse
 import datetime
 import importlib
 import logging
+import os
 import sys
 from decimal import Decimal
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage
@@ -54,8 +55,9 @@ class EMOPCLI(EmliteMediatorClient):
                 .execute()
             )
             if len(result.data) == 0:
-                print(f"meter {serial} not found")
-                sys.exit(10)
+                err_msg = f"meter {serial} not found"
+                print(err_msg)
+                raise Exception(err_msg)
 
             meter_id = result.data[0]["id"]
             esco_id = result.data[0]["esco"]
@@ -92,8 +94,9 @@ class EMOPCLI(EmliteMediatorClient):
             .execute()
         )
         if len(result.data) == 0:
-            print(f"meter {serial} not found")
-            sys.exit()
+            msg = f"meter {serial} not found"
+            print(msg)
+            raise Exception(msg)
 
         print(result.data[0]["name"])
 
@@ -224,7 +227,12 @@ def args_parser():
     parser.add_argument("-s", help="Serial", required=False)
     parser.add_argument(
         "--serials",
-        help="Run command for all given serials",
+        help="Run command for all serials in given comma delimited list",
+        required=False,
+    )
+    parser.add_argument(
+        "--serials-file",
+        help="Run command for all serials in given file that has a serial per line.",
         required=False,
     )
 
@@ -448,7 +456,13 @@ emop -s EML1411222333 tariffs_future_write \\
     return parser
 
 
-def run_command(cli: EMOPCLI, command: str, kwargs: Dict[str, Any]):
+def run_command(serial: str, command: str, kwargs: Dict[str, Any]):
+    try:
+        cli = EMOPCLI(serial=serial)
+    except Exception:
+        # just return - we assume the error was logged by the constructor
+        return
+
     method = getattr(cli, command)
     try:
         method(**kwargs)
@@ -457,6 +471,14 @@ def run_command(cli: EMOPCLI, command: str, kwargs: Dict[str, Any]):
             logging.error("Failed to connect to meter")
         else:
             logging.error(f"Failure [{e}]")
+
+
+def run_command_for_serials(
+    serial_list: List[str], command: str, kwargs: Dict[str, Any]
+):
+    for serial in serial_list:
+        logging.info(f"\nrunning '{command}' for meter {serial} ...\n")
+        run_command(serial, command, kwargs)
 
 
 def main():
@@ -479,27 +501,34 @@ def main():
 
     # cli works on a given serial or list of serials.
     #
-    # there are 3 ways to specify:
+    # there are 4 ways to specify serials:
     #  * emop -s <serial> csq
     #  * emop csq <serial>
     #  * emop --serials <serial1,serial2,...> csq
-
-    # we pop off all possibilities so they are removed from kwargs.
-    # then use first seen in order '-s', the positional argument or finally --serials.
+    #  * emop --serials-file serials.txt csq
+    #
+    # pop off all serial argument possibilities so they are removed from
+    # kwargs. then use first seen in the order documented above.
     arg_s = kwargs.pop("s", None)
     arg_serial = kwargs.pop("serial", None)
     arg_serials = kwargs.pop("serials", None)
+    arg_serials_file = kwargs.pop("serials_file", None)
 
     serial = arg_s or arg_serial
     if serial or command in ["env_set", "env_show", "version"]:
-        cli = EMOPCLI(serial=serial)
-        run_command(cli, command, kwargs)
+        run_command(serial, command, kwargs)
     elif arg_serials:
         serial_list = arg_serials.split(",")
-        for serial in serial_list:
-            logging.info(f"\nrunning '{command}' for meter {serial} ...\n")
-            cli = EMOPCLI(serial=serial)
-            run_command(cli, command, kwargs)
+        run_command_for_serials(serial_list, command, kwargs)
+    elif arg_serials_file:
+        if not os.path.exists(arg_serials_file):
+            logging.error(f"ERROR: serials file {arg_serials_file} does not exist")
+            sys.exit(2)
+
+        with open(arg_serials_file, "r") as f:
+            serial_list = [line.strip() for line in f]
+
+        run_command_for_serials(serial_list, command, kwargs)
     else:
         parser.print_help()
         exit(-1)
