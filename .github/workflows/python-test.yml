@@ -11,9 +11,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12.3"]
+        python-version: ["3.12.8"]
         # macos-latest disabled - hanging on the 'install dependencies' step for unknown reasons
-        os: [ubuntu-latest] 
+        os: [ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
