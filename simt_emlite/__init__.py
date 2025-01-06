@@ -12,6 +12,4 @@ def run_tests():
 def run_linter():
     import subprocess
 
-    completed_process = subprocess.run(["ruff", "check", "."], check=True, text=True)
-    print(f"stderr [{completed_process.stderr}")
-    print(f"stdout [{completed_process.stdout}")
+    subprocess.run(["ruff", "check", "."], check=True)

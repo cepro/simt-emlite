@@ -1,54 +1,53 @@
-[tool.poetry]
+[project]
 name = "simt-emlite"
 version = "0.15.19"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
-authors = ["Chris Hatch <chris@cepro.energy>"]
+authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
+requires-python = ">=3.12,<4.0"
 readme = "README.pypi.md"
-packages = [{ include = "simt_emlite" }]
-exclude = [
-    "tests",
-    "*.env",
-
-    # the following are not added anyway as they are not under the package
-    # folder but mentioning that behavior here so it's understood:
-
-    # "infra/local-stack",
-    # "infra/systemd",
-    # "infra/monitoring",
+dependencies = [
+    "grpcio==1.64.1",
+    "tenacity==8.5.0",
+    "supabase==2.5.3",
+    "crcmod==1.7",
+    "structlog==24.4.0",
+    "docker==7.1.0",
+    "protobuf==5.27.2",
+    "python-dotenv==1.0.1",
+    "python-socks==2.5.0",
+    "rich==13.7.1",
+    "dnspython==2.6.1",
+    "httpx==0.27.0",
+    "argcomplete>=3.4.0",
+    # testpypi deps - see additional metadata under 'tool.poetry.dependencies' 
+    "emop-frame-protocol==0.2.7",
+    "simt-fly-machines==0.1.10",
 ]
 
-[tool.poetry.scripts]
+[project.scripts]
 test = "simt_emlite:run_tests"
 lint = "simt_emlite:run_linter"
 emop = "simt_emlite.cli.emop:main"
 mediators = "simt_emlite.cli.mediators:main"
 
-[tool.poetry.dependencies]
-python = ">=3.12,<4.0"
-grpcio = "1.64.1"
-tenacity = "8.5.0"
-supabase = "2.5.3"
-crcmod = "1.7"
-emop-frame-protocol = { version = "0.2.7", source = "testpypi" }
-simt-fly-machines = { version = "0.1.10", source = "testpypi" }
-structlog = "24.4.0"
-docker = "7.1.0"
-protobuf = "5.27.2"
-python-dotenv = "1.0.1"
-python-socks = "2.5.0"
-rich = "13.7.1"
-dnspython = "2.6.1"
-httpx = "0.27.0"
-argcomplete = "^3.4.0"
-
-[tool.poetry.group.dev.dependencies]
-ruff = "0.4.10"
-grpcio-tools = "1.64.1"
+[tool.poetry]
+# Keeping Poetry-specific configurations
+packages = [{ include = "simt_emlite" }]
+exclude = ["tests", "*.env"]
+# Dependencies that require alternative sources
 
 [[tool.poetry.source]]
 name = "testpypi"
 url = "https://test.pypi.org/simple/"
 priority = "explicit"
+
+[tool.poetry.dependencies]
+emop-frame-protocol = { source = "testpypi" }
+simt-fly-machines = { source = "testpypi" }
+
+[tool.poetry.group.dev.dependencies]
+ruff = "0.4.10"
+grpcio-tools = "1.64.1"
 
 [build-system]
 requires = ["poetry-core"]
