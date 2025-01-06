@@ -79,7 +79,7 @@ class MediatorsRecoverFailedJob:
         self.log.info(f"recover_mediator {machine_id} {meter_serial}")
 
         try:
-            # self._destroy_failed_mediator(machine_id)
+            self._destroy_failed_mediator(machine_id)
             self._recreate_failed_mediator(
                 meter_serial,
                 machine_rec["config"]["metadata"]["emlite_host"],
@@ -94,7 +94,7 @@ class MediatorsRecoverFailedJob:
                 exception=traceback.format_exception(e),
             )
 
-    @retry(stop=stop_after_attempt(3), wait=wait_fixed(3))
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(10))
     def _destroy_failed_mediator(self, machine_id):
         destroy_rsp = self.containers.destroy(id=machine_id, force=True)
         if (
@@ -110,8 +110,9 @@ class MediatorsRecoverFailedJob:
                 attempt=self._destroy_failed_mediator.statistics["attempt_number"],
             )
 
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(10))
     def _recreate_failed_mediator(self, meter_serial, ip_address, meter_id, port):
-        self.containers.create(
+        create_rsp = self.containers.create(
             cmd="simt_emlite.mediator.grpc.server",
             serial=meter_serial,
             ip_address=ip_address,
@@ -119,6 +120,14 @@ class MediatorsRecoverFailedJob:
             port=port,
             skip_confirm=True,
         )
+        if create_rsp is not None and "ok" in create_rsp and create_rsp["ok"] is True:
+            self.log.info("recreated mediator success", serial=meter_serial)
+        else:
+            raise Exception(
+                "destroy failed (possibly failed if no repsonse)",
+                serial=meter_serial,
+                attempt=self._recreate_failed_mediator.statistics["attempt_number"],
+            )
 
     def _check_environment(self):
         if not supabase_url or not supabase_key:
