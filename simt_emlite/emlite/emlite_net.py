@@ -36,7 +36,7 @@ class EmliteNET:
         global logger
         logger = logger.bind(host=host)
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(3))
+    @retry(stop=stop_after_attempt(5), wait=wait_fixed(7))
     def send_message(self, req_bytes: bytes):
         sock = self._open_socket(self.send_message.statistics["attempt_number"])
         try:
@@ -103,7 +103,11 @@ class EmliteNET:
             # raise again will be caught by @retry
             raise e
         except ProxyConnectionError as e:
-            logger.error(f"socks proxy connection failure [{e}]")
+            # log as info as this occurs often and is usually handled via the @retry further up the stack
+            #
+            # generally this occurs because the emnify-gateway is being restarted which is unfortunately
+            # a number of times a day
+            logger.info(f"socks proxy connection failure [{e}]")
             sock.close()
             sock = None
             # raise again will be caught by @retry
