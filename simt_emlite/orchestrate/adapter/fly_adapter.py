@@ -139,10 +139,10 @@ Create machine with these details (y/n): """)
             env_vars=self._env_vars(ip_address),
             metadata=metadata,
         )
-        logger.info(f"created machine {create_response}")
+        logger.info(f"create machine response {create_response}")
 
         if "error" in create_response:
-            logger.error(f'create machine failed {create_response['error']}')
+            logger.error(f'create machine failed [{create_response['error']}]')
             sys.exit(1)
 
         logger.info(

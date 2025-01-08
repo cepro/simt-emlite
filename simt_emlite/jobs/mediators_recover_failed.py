@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import time
 import traceback
 
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -53,6 +54,7 @@ class MediatorsRecoverFailedJob:
                 machines,
             )
         )
+        self.log.info(f"failed state machine records [{machines}]")
         self.log.info(f"{len(machines)} machines in failed state")
         if len(machines) == 0:
             sys.exit()
@@ -80,6 +82,10 @@ class MediatorsRecoverFailedJob:
 
         try:
             self._destroy_failed_mediator(machine_id)
+
+            # wait 20 seconds for fly to clean up the machine
+            time.sleep(20)
+
             self._recreate_failed_mediator(
                 meter_serial,
                 machine_rec["config"]["metadata"]["emlite_host"],
