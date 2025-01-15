@@ -92,6 +92,20 @@ class EmliteMediatorGrpcClient:
                         )
                     else:
                         raise e
+                elif e.code() == grpc.StatusCode.UNAVAILABLE:
+                    # we get a lot of these for instantaneous_voltage for reasons unknown
+                    # they can be tolerated as we still get a number of successful calls as well
+                    log_level: str = (
+                        "warning"
+                        if object_id == ObjectIdEnum.instantaneous_voltage
+                        else "error"
+                    )
+                    getattr(self.log, log_level)(
+                        "readElement failed",
+                        details=e.details(),
+                        code=e.code(),
+                        object_id=object_id.name,
+                    )
                 else:
                     self.log.error(
                         "readElement failed",
