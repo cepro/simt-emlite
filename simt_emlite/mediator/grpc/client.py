@@ -98,6 +98,8 @@ class EmliteMediatorGrpcClient:
                     log_level: str = (
                         "warning"
                         if object_id == ObjectIdEnum.instantaneous_voltage
+                        or object_id
+                        == ObjectIdEnum.three_phase_instantaneous_voltage_l1
                         else "error"
                     )
                     getattr(self.log, log_level)(
