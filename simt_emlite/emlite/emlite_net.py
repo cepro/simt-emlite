@@ -21,6 +21,8 @@ use_socks = all(
     v is not None for v in [socks_host, socks_port, socks_username, socks_password]
 )
 
+num_retries_send_message = 5
+
 """
     Class responsible for talking to meters via TCP/IP.
 
@@ -36,7 +38,7 @@ class EmliteNET:
         global logger
         logger = logger.bind(host=host)
 
-    @retry(stop=stop_after_attempt(5), wait=wait_fixed(7))
+    @retry(stop=stop_after_attempt(num_retries_send_message), wait=wait_fixed(7))
     def send_message(self, req_bytes: bytes):
         sock = self._open_socket(self.send_message.statistics["attempt_number"])
         try:
@@ -97,7 +99,13 @@ class EmliteNET:
                 # very common so log at debug level
                 logger.debug(err_str)
             else:
-                logger.error(f"ProxyError: {err_str}")
+                attempt_num = self.send_message.statistics["attempt_number"]
+                log_level = (
+                    "error" if attempt_num == num_retries_send_message else "warn"
+                )
+                getattr(logger, log_level)(
+                    f"ProxyError: {err_str}", attempt=attempt_num
+                )
             sock.close()
             sock = None
             # raise again will be caught by @retry
