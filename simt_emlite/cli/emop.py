@@ -258,6 +258,7 @@ def args_parser():
         ("serial", "Meter serial"),
         ("clock_time_read", "Current clock time on the meter"),
         ("instantaneous_voltage", "Current voltage"),
+        ("instantaneous_active_power", "Current active power"),
         ("read_element_a", "Current read on element A"),
         ("read_element_b", "Current read on element B"),
         ("backlight", "Backlight setting"),

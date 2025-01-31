@@ -182,6 +182,12 @@ class EmliteMediatorClient(object):
         self.log.info("received instantaneous voltage", voltage=data.voltage)
         return data.voltage
 
+    def instantaneous_active_power(self) -> float:
+        data = self._read_element(ObjectIdEnum.instantaneous_active_power)
+        power_kwh = data.power / 1000
+        self.log.info("received instantaneous active power", power_kwh=power_kwh)
+        return power_kwh
+
     def read_element_a(self) -> EmopMessage.ReadingRec:
         data = self._read_element(ObjectIdEnum.read_element_a)
         self.log.info(
