@@ -281,6 +281,12 @@ class EmliteMediatorClient(object):
         return enabled
 
     def prepay_enabled_write(self, enabled: bool):
+        if enabled:
+            balance_gbp = self.prepay_balance()
+            if balance_gbp < 10.0:
+                raise Exception(
+                    f"balance {balance_gbp} too low to enable prepay mode (< 10.0). add more credit and try again."
+                )
         flag_bytes = bytes.fromhex("01" if enabled else "00")
         self._write_element(ObjectIdEnum.prepay_enabled_flag, flag_bytes)
 
