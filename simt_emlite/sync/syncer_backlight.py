@@ -13,9 +13,7 @@ class SyncerBacklight(SyncerBase):
         setting = self.emlite_client.backlight()
 
         if not isinstance(setting, EmopMessage.BacklightSettingType):
-            logger.warn(
-                "skipping because the backlight value is not of type BacklightSettingType - likely a three phase meter"
-            )
+            logger.warn("skipping because the backlight value is unknown")
             return
 
         return UpdatesTuple({"backlight": setting.name}, None)
