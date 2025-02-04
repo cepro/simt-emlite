@@ -205,15 +205,21 @@ def valid_switch(bool_str: str) -> bool:
 
 
 def valid_backlight_setting(setting: str) -> EmopMessage.BacklightSettingType:
-    if setting == "normal":
-        return EmopMessage.BacklightSettingType.normal
-    elif setting == "always_on":
-        return EmopMessage.BacklightSettingType.always_on
-    elif setting == "always_off":
-        return EmopMessage.BacklightSettingType.always_off
+    if setting == "normal_sp" or setting == "always_off_3p":
+        return EmopMessage.BacklightSettingType.normal_sp_or_always_off_3p
+    elif setting == "always_on_sp":
+        return EmopMessage.BacklightSettingType.always_on_sp
+    elif setting == "always_off_sp":
+        return EmopMessage.BacklightSettingType.always_off_sp
+    elif setting == "always_on_3p":
+        return EmopMessage.BacklightSettingType.always_on_3p
+    elif setting == "always_off_3p":
+        return EmopMessage.BacklightSettingType.always_off_3p
+    elif setting == "30_seconds_turn_off_3p":
+        return EmopMessage.BacklightSettingType.n30_seconds_turn_off_3p
     else:
         raise argparse.ArgumentTypeError(
-            f"Invalid backlight setting string '{setting}'. Can be one of ('normal', 'always_on', 'always_off')"
+            f"Invalid or unsupported backlight setting string '{setting}'. See choices with -h."
         )
 
 
@@ -375,14 +381,23 @@ Example usage:
     backlight_write_parser = subparsers.add_parser(
         "backlight_write",
         help="Write backlight setting to meter",
-        description="""Setting choices:
-  normal = off until button pressed on meter
-  always_on = light always on (lcd burnout!)
-  always_off = light never on
+        description="""Supported settings:
+
+  Single Phase Meters:
+  
+    normal_sp = off until button pressed on meter
+    always_on_sp = light always on (lcd burnout!)
+    always_off_sp = light never on
+
+  Three Phase Meters:
+  
+    30_seconds_turn_off_3p = turn off after 30 seconds
+    always_on_3p = light always on (lcd burnout!)
+    always_off_3p = light never on
 
 Example usage:
 
-emop -s EML1411222333 backlight_write normal
+emop -s EML1411222333 backlight_write normal_sp
 """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
