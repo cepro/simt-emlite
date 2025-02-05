@@ -252,6 +252,15 @@ class EmliteMediatorClient(object):
         setting_bytes = bytes([setting.value])
         self._write_element(ObjectIdEnum.backlight, setting_bytes)
 
+    def load_switch(self) -> EmopMessage.LoadSwitchSettingType:
+        data = self._read_element(ObjectIdEnum.load_switch)
+        self.log.info("received load switch setting", load_switch_setting=data.setting)
+        return data.setting
+
+    def load_switch_write(self, setting: EmopMessage.LoadSwitchSettingType):
+        setting_bytes = bytes([setting.value])
+        self._write_element(ObjectIdEnum.load_switch, setting_bytes)
+
     def prepay_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1

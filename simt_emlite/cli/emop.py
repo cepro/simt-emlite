@@ -223,6 +223,21 @@ def valid_backlight_setting(setting: str) -> EmopMessage.BacklightSettingType:
         )
 
 
+def valid_load_switch_setting(setting: str) -> EmopMessage.LoadSwitchSettingType:
+    if setting == "never_button_required":
+        return EmopMessage.LoadSwitchSettingType.never_button_required
+    elif setting == "normal_button_always":
+        return EmopMessage.LoadSwitchSettingType.normal_button_always
+    elif setting == "no_button_prepay_mode":
+        return EmopMessage.BacklightSettingType.no_button_prepay_mode
+    elif setting == "no_button_credit_mode":
+        return EmopMessage.BacklightSettingType.no_button_credit_mode
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Invalid or unsupported load switch setting string '{setting}'. See choices with -h."
+        )
+
+
 def add_arg_serial(parser):
     """Adds optional positional argument serial"""
     parser.add_argument("serial", help="meter serial", nargs="?")
@@ -270,6 +285,7 @@ def args_parser():
         ("read_element_a", "Current read on element A"),
         ("read_element_b", "Current read on element B"),
         ("backlight", "Backlight setting"),
+        ("load_switch", "Load switch setting"),
         ("prepay_enabled", "Is prepay mode enabled?"),
         (
             "daylight_savings_correction_enabled",
@@ -406,6 +422,28 @@ emop -s EML1411222333 backlight_write normal_sp
         "setting",
         help="new backlight setting",
         type=valid_backlight_setting,
+    )
+
+    load_switch_write_parser = subparsers.add_parser(
+        "load_switch_write",
+        help="Write load_switch setting to meter",
+        description="""Supported settings:
+    normal_button_always
+    no_button_prepay_mode
+    no_button_credit_mode
+    never_button_required
+
+Example usage:
+
+emop -s EML1411222333 load_switch_write never_button_required
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_arg_serial(load_switch_write_parser)
+    load_switch_write_parser.add_argument(
+        "setting",
+        help="new load_switch setting",
+        type=valid_load_switch_setting,
     )
 
     # ===========      Tariff Writes    ==========
