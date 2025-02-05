@@ -28,4 +28,4 @@ class SyncerBacklight(SyncerBase):
             is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
             setting_name = "always_off_3p" if is_3p else "normal_sp"
 
-        return UpdatesTuple({"backlight": setting.name}, None)
+        return UpdatesTuple({"backlight": setting_name}, None)
