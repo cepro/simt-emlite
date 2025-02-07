@@ -184,12 +184,20 @@ def valid_decimal(rate: str):
 
 
 def valid_rate(rate: str):
-    rate_dec = valid_decimal(rate)
-    if rate_dec > 1.0:
+    rate_decimal = valid_decimal(rate)
+
+    if rate_decimal > 1.0:
         raise argparse.ArgumentTypeError(
             f"Invalid rate {rate}. Can't be greater than 1 GBP."
         )
-    return rate_dec
+
+    decimal_places = abs(rate_decimal.as_tuple().exponent)
+    if decimal_places > 5:
+        raise argparse.ArgumentTypeError(
+            f"Invalid rate {rate}. Emlite meters can only store up to 5 decimal places."
+        )
+
+    return rate_decimal
 
 
 def valid_switch(bool_str: str) -> bool:
