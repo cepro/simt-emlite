@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import importlib
+import json
 import logging
 import os
 import sys
@@ -36,6 +37,8 @@ FLY_API_TOKEN = config["fly_api_token"]
 
 class EMOPCLI(EmliteMediatorClient):
     def __init__(self, serial=None, emnify_id=None):
+        self.serial = serial
+
         # TODO: necessary for meters that have not yet had a serial read
         #       they will be in the registry but with a NULL serial
         if emnify_id is not None:
@@ -99,6 +102,29 @@ class EMOPCLI(EmliteMediatorClient):
             raise Exception(msg)
 
         print(result.data[0]["name"])
+
+    def info(self):
+        result = (
+            self.supabase.table("meter_registry")
+            .select("*")
+            .eq("serial", self.serial)
+            .execute()
+        )
+        if len(result.data) == 0:
+            msg = f"meter {self.serial} not found"
+            print(msg)
+            raise Exception(msg)
+        registry_rec = result.data[0]
+
+        result = (
+            self.supabase.table("meter_shadows")
+            .select("*")
+            .eq("id", registry_rec["id"])
+            .execute()
+        )
+        shadow_rec = result.data[0]
+
+        print(json.dumps({"registry": registry_rec, "shadow": shadow_rec}, indent=2))
 
     # =================================
     #   Tool related
@@ -517,6 +543,13 @@ emop -s EML1411222333 tariffs_future_write \\
         type=valid_decimal,
     )
 
+    # ===========    Supabase lookups    ==========
+
+    info_parser = subparsers.add_parser(
+        "info", help="metadata and shadows data for a meter"
+    )
+    add_arg_serial(info_parser)
+
     return parser
 
 
@@ -579,7 +612,7 @@ def main():
     arg_serials_file = kwargs.pop("serials_file", None)
 
     serial = arg_s or arg_serial
-    if serial or command in ["env_set", "env_show", "version"]:
+    if serial or command in ["env_set", "env_show", "version", "info"]:
         run_command(serial, command, kwargs)
     elif arg_serials:
         serial_list = arg_serials.split(",")
