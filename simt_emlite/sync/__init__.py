@@ -7,6 +7,7 @@ from .syncer_daylight_savings_enabled import (
 from .syncer_event_log import SyncerEventLog as SyncerEventLog
 from .syncer_firmware_version import SyncerFirmwareVersion as SyncerFirmwareVersion
 from .syncer_hardware import SyncerHardware as SyncerHardware
+from .syncer_load_switch import SyncerLoadSwitch as SyncerLoadSwitch
 from .syncer_prepay_balance import SyncerPrepayBalance as SyncerPrepayBalance
 from .syncer_prepay_enabled import SyncerPrepayEnabled as SyncerPrepayEnabled
 from .syncer_reads import SyncerReads as SyncerReads
