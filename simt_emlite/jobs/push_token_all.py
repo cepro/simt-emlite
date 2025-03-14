@@ -110,7 +110,7 @@ class PushTokenAllJob:
     def run(self):
         self.log.info("Starting token push job...")
 
-        # First query for topups with wait_token_push status
+        # query for topups with wait_token_push status
         if self.esco:
             # Get ESCO ID from name
             escos = (
@@ -122,16 +122,26 @@ class PushTokenAllJob:
             if len(escos.data) == 0:
                 self.log.error("No esco found for " + self.esco)
                 sys.exit(10)
-
             esco_id = list(escos.data)[0]["id"]
 
-            # Query for topups at this ESCO with wait_token_push status with join to meters table
+            # all supply meters filtered by ESCO
+            supply_meters_result = (
+                self.backend_supabase.table("properties")
+                .select("supply_meter")
+                .eq("esco", esco_id)
+                .execute()
+            )
+            supply_meters_for_esco = list(
+                map(lambda m: m["supply_meter"], supply_meters_result.data)
+            )
+
+            # topups in wait_token_push status for supply meters in esco
             topups_result = (
                 self.backend_supabase.table("topups")
                 .select("id, meter, token, status, meters(serial)")
-                .eq("esco", esco_id)
                 .eq("status", "wait_token_push")
                 .is_("used_at", "null")
+                .in_("meter", supply_meters_for_esco)
                 .execute()
             )
         else:
