@@ -48,7 +48,7 @@ class PushTokenAllJob:
             self.flows_supabase.table("meter_registry")
             .select("*")
             .eq("serial", serial)
-            .eq("active", True)
+            .eq("mode", "active")
             .execute()
         )
 
@@ -161,7 +161,7 @@ class PushTokenAllJob:
                 self.flows_supabase.table("meter_registry")
                 .select("id, serial")
                 .eq("serial", serial)
-                .eq("active", True)
+                .eq("mode", "active")
                 .execute()
             )
             if len(meter_result.data) > 0:
@@ -174,8 +174,9 @@ class PushTokenAllJob:
             if serial not in active_meters_by_serial:
                 missing_serials.add(serial)
                 self.log.warn(
-                    f"Topup {topup['id']} has no active meter in meter_registry",
+                    f"Topup {topup['id']} has no active meter {serial} in meter_registry",
                     serial=serial,
+                    topup=topup["id"],
                 )
 
         if missing_serials:
@@ -185,7 +186,9 @@ class PushTokenAllJob:
 
         # Filter topups to only those with active meters
         valid_topups = [
-            topup for topup in topups if topup["meters"]["serial"] in active_meters_by_serial
+            topup
+            for topup in topups
+            if topup["meters"]["serial"] in active_meters_by_serial
         ]
 
         if len(valid_topups) == 0:

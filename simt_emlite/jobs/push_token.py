@@ -36,9 +36,7 @@ class PushTokenJob:
 
         global logger
         self.log = logger.bind(
-            topup_id=topup_id,
-            meter_id=meter_id,
-            mediator_address=mediator_address
+            topup_id=topup_id, meter_id=meter_id, mediator_address=mediator_address
         )
 
     def push(self) -> bool:
@@ -46,11 +44,14 @@ class PushTokenJob:
         Push a token to a meter and verify balance increase.
         Returns True if successful, False if failed.
         """
+
         try:
             # Check initial balance
             initial_balance = self._check_balance()
             if initial_balance is None:
-                return self._update_status("failed_token_push", "Failed to check initial balance")
+                return self._update_status(
+                    "failed_token_push", "Failed to check initial balance"
+                )
 
             self.log.info("Initial balance checked", balance=initial_balance)
 
@@ -61,22 +62,24 @@ class PushTokenJob:
             # Check balance after token push
             updated_balance = self._check_balance()
             if updated_balance is None:
-                return self._update_status("failed_token_push", "Failed to check updated balance")
+                return self._update_status(
+                    "failed_token_push", "Failed to check updated balance"
+                )
 
             self.log.info("Updated balance checked", balance=updated_balance)
 
             # Verify balance increased
             if updated_balance <= initial_balance:
                 return self._update_status(
-                    "failed_token_push", 
-                    f"Balance did not increase: {initial_balance} -> {updated_balance}"
+                    "failed_token_push",
+                    f"Balance did not increase: {initial_balance} -> {updated_balance}",
                 )
 
             # Success - update topup as used
             return self._update_status(
-                "token_pushed", 
+                "completed",
                 f"Balance increased: {initial_balance} -> {updated_balance}",
-                True
+                True,
             )
 
         except MediatorClientException as e:
@@ -85,7 +88,9 @@ class PushTokenJob:
                 error=e,
                 exception=traceback.format_exception(e),
             )
-            return self._update_status("failed_token_push", f"Mediator error: {e.message}")
+            return self._update_status(
+                "failed_token_push", f"Mediator error: {e.message}"
+            )
         except Exception as e:
             self.log.error(
                 "Unknown failure during token push",
@@ -121,12 +126,14 @@ class PushTokenJob:
                 "notes": notes,
                 "updated_at": datetime.datetime.now().isoformat(),
             }
-            
+
             if mark_used:
                 update_data["used_at"] = datetime.datetime.now().isoformat()
 
-            self.supabase.table("topups").update(update_data).eq("id", self.topup_id).execute()
-            
+            self.supabase.table("topups").update(update_data).eq(
+                "id", self.topup_id
+            ).execute()
+
             self.log.info(
                 "Updated topup status",
                 topup_id=self.topup_id,
