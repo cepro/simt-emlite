@@ -14,7 +14,7 @@ logger = get_logger(__name__, __file__)
 supabase_url: str = os.environ.get("SUPABASE_URL")
 supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
-backend_user_role_key: str = os.environ.get("BACKEND_USER_ROLE_KEY")
+public_backend_role_key: str = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
 
 
@@ -34,7 +34,7 @@ class PushTokenAllJob:
         self.containers = get_instance(esco)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.backend_supabase = supa_client(
-            supabase_url, supabase_key, backend_user_role_key, schema="public"
+            supabase_url, supabase_key, public_backend_role_key, schema="public"
         )
 
     def run_job(self, topup):
@@ -221,8 +221,8 @@ class PushTokenAllJob:
             self.log.error("Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)
 
-        if not backend_user_role_key:
-            self.log.error("Environment variable BACKEND_USER_ROLE_KEY not set.")
+        if not public_backend_role_key:
+            self.log.error("Environment variable PUBLIC_BACKEND_ROLE_KEY not set.")
             sys.exit(4)
 
 
