@@ -1,8 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, Mock, patch
-import os
-import sys
-from typing import Dict, List, Any
+from unittest.mock import MagicMock, patch
 
 from simt_emlite.jobs.push_token_all import PushTokenAllJob
 
