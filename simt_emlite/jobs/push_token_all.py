@@ -155,7 +155,7 @@ class PushTokenAllJob:
             )
 
         if len(topups_result.data) == 0:
-            self.log.info("No pending topups found requiring token push")
+            self.log.info("No topups in status wait_token_push")
             return
 
         topups = topups_result.data

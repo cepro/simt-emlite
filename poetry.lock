@@ -926,14 +926,14 @@ type = ["importlib_metadata (>=7.0.2)", "jaraco.develop (>=7.21)", "mypy (==1.14
 
 [[package]]
 name = "simt-fly-machines"
-version = "0.1.10"
+version = "0.1.11"
 description = "A python API to start, stop and list Fly.io machines"
 optional = false
 python-versions = ">=3.12,<4.0"
 groups = ["main"]
 files = [
-    {file = "simt_fly_machines-0.1.10-py3-none-any.whl", hash = "sha256:ca14a0797acec50b3ed3619b3d40d221aba51d236614fed921ec7afe25e33d1b"},
-    {file = "simt_fly_machines-0.1.10.tar.gz", hash = "sha256:12479cdaa3e1124654dad24daed5afe41e64d3a06545f8ddced8b6cfab6bac18"},
+    {file = "simt_fly_machines-0.1.11-py3-none-any.whl", hash = "sha256:58d35c5d4599b8fca04a7d2dcde081ab66fe36212a466268fce7fe8be281fa62"},
+    {file = "simt_fly_machines-0.1.11.tar.gz", hash = "sha256:546208cbc40b36aed144fd00eca2c669e139dbd4da85ddbb1816b49493861417"},
 ]
 
 [package.dependencies]
@@ -1188,4 +1188,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "565db7b4cbaa0109fc1e147a76873c2603c1383f7f61d52191c4b5a840badd9e"
+content-hash = "444016f9e0842f3bd8b07c0b2a809ad3e97095db5a06f2413f2bd4ecfd4df1a8"
