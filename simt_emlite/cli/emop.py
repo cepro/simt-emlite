@@ -334,7 +334,10 @@ def args_parser():
             "Is no standing charge when power fail enabled?",
         ),
         ("prepay_balance", "Current prepay balance (if in prepay mode)"),
-        ("prepay_transaction_count", "Count of prepay transactions"),
+        (
+            "prepay_transaction_count",
+            "Count of prepay transactions (0 indexed so is num tx - 1)",
+        ),
         ("three_phase_serial", "Three phase meter serial"),
         (
             "three_phase_instantaneous_voltage",
