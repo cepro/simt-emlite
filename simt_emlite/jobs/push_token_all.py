@@ -39,11 +39,10 @@ class PushTokenAllJob:
 
     def run_job(self, topup):
         topup_id = topup["id"]
-        meter_id = topup["meter"]
         token = topup["token"]
         serial = topup["meters"]["serial"]  # Serial is in the nested meters object
 
-        # Get meter details from meter_registry to find active meters
+        # look up meter in the flows meter_registry checking it's active
         meter_query = (
             self.flows_supabase.table("meter_registry")
             .select("*")
@@ -66,6 +65,8 @@ class PushTokenAllJob:
             ).eq("id", topup_id).execute()
 
             return False
+
+        meter_id = meter_query.data[0]["id"]
 
         mediator_address = self.containers.mediator_address(meter_id, serial)
         if mediator_address is None:
