@@ -128,7 +128,7 @@ class EmliteMediatorClient(object):
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
         self.log.debug("EmliteMediatorClient init")
 
-    def serial(self) -> str:
+    def serial_read(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
         serial = data.serial.strip()
         self.log.info("received serial", serial=serial)

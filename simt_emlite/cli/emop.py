@@ -310,7 +310,7 @@ def args_parser():
         ("csq", "Signal quality"),
         ("hardware", "Hardware code"),
         ("firmware_version", "Firmware version code"),
-        ("serial", "Meter serial"),
+        ("serial_read", "Meter serial"),
         ("clock_time_read", "Current clock time on the meter"),
         ("instantaneous_voltage", "Current voltage"),
         ("instantaneous_active_power", "Current active power (single or combined)"),
