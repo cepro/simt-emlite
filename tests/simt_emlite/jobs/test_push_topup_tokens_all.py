@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from simt_emlite.jobs.push_token_all import PushTokenAllJob
+from simt_emlite.jobs.push_topup_tokens_all import PushTopupTokensAllJob
 
 
 # Create a test subclass that overrides the environment check
-class TestPushTokenAllJob(PushTokenAllJob):
+class TestPushTopupTokensAllJob(PushTopupTokensAllJob):
     def __init__(self, esco=None):
         # Initialize logger
         from simt_emlite.util.logging import get_logger
@@ -36,14 +36,14 @@ class MockAPIResponse:
         self.data = data
 
 
-class PushTokenAllJobTests(unittest.TestCase):
-    """Test cases for the PushTokenAllJob class"""
+class PushTopupTokensAllJobTests(unittest.TestCase):
+    """Test cases for the PushTopupTokensAllJob class"""
 
-    @patch("simt_emlite.jobs.push_token_all.supa_client")
-    @patch("simt_emlite.jobs.push_token_all.get_instance")
-    @patch("simt_emlite.jobs.push_token.PushTokenJob")
+    @patch("simt_emlite.jobs.push_topup_tokens_all.supa_client")
+    @patch("simt_emlite.jobs.push_topup_tokens_all.get_instance")
+    @patch("simt_emlite.jobs.push_topup_token.PushTopupTokenJob")
     def test_run_with_three_topups(
-        self, mock_push_token_job, mock_get_instance, mock_supa_client
+        self, mock_push_topup_token_job, mock_get_instance, mock_supa_client
     ):
         """Test running the job with three topups that need to be processed"""
         # Set up test data
@@ -130,13 +130,13 @@ class PushTokenAllJobTests(unittest.TestCase):
         mock_containers.mediator_address.return_value = "mediator-address"
         mock_get_instance.return_value = mock_containers
 
-        # Set up PushTokenJob mock
+        # Set up PushTopupTokenJob mock
         mock_token_job_instance = MagicMock()
         mock_token_job_instance.push.return_value = True
-        mock_push_token_job.return_value = mock_token_job_instance
+        mock_push_topup_token_job.return_value = mock_token_job_instance
 
         # Create and run the job
-        job = TestPushTokenAllJob(esco="test-esco")
+        job = TestPushTopupTokensAllJob(esco="test-esco")
 
         # Set up the mocks directly - we're not using the patch for get_instance since
         # we're overriding the initialization
@@ -150,16 +150,16 @@ class PushTokenAllJobTests(unittest.TestCase):
         if not isinstance(get_instance_result, MagicMock):
             mock_get_instance.return_value = mock_containers
 
-        # Mock the run_job method to ensure PushTokenJob is called for each topup
+        # Mock the run_job method to ensure PushTopupTokenJob is called for each topup
         job.run_job = lambda topup: True  # Simplify to always return True
 
         job.run()
 
-        # Check that PushTokenJob was created for each topup - we need to set this up manually
+        # Check that PushTopupTokenJob was created for each topup - we need to set this up manually
         # since we mocked run_job
         expected_calls = []
         for topup in topups_data:
-            job = mock_push_token_job(
+            job = mock_push_topup_token_job(
                 topup_id=topup["id"],
                 meter_id=topup["meter"],
                 token=topup["token"],
@@ -182,10 +182,10 @@ class PushTokenAllJobTests(unittest.TestCase):
         # Check that topups were queried
         mock_backend_supabase.table.assert_any_call("topups")
 
-        # Check that PushTokenJob was created for each topup
-        self.assertEqual(mock_push_token_job.call_count, 3)
+        # Check that PushTopupTokenJob was created for each topup
+        self.assertEqual(mock_push_topup_token_job.call_count, 3)
 
-        # Verify the parameters passed to PushTokenJob
+        # Verify the parameters passed to PushTopupTokenJob
         expected_calls = []
         for i, topup in enumerate(topups_data):
             expected_calls.append(
@@ -198,9 +198,9 @@ class PushTokenAllJobTests(unittest.TestCase):
                 )
             )
 
-        mock_push_token_job.assert_has_calls(expected_calls, any_order=True)
+        mock_push_topup_token_job.assert_has_calls(expected_calls, any_order=True)
 
-        # Verify that push() was called on each PushTokenJob instance
+        # Verify that push() was called on each PushTopupTokenJob instance
         self.assertEqual(mock_token_job_instance.push.call_count, 3)
 
     def test_run_with_no_topups(self):
@@ -215,7 +215,7 @@ class PushTokenAllJobTests(unittest.TestCase):
         mock_backend_supabase.table.return_value.select.return_value.eq.return_value.is_.return_value.join.return_value = mock_backend_topups
 
         # Create and run the job
-        job = TestPushTokenAllJob()
+        job = TestPushTopupTokensAllJob()
         job.flows_supabase = mock_flows_supabase
         job.backend_supabase = mock_backend_supabase
         job.containers = MagicMock()
@@ -228,14 +228,16 @@ class PushTokenAllJobTests(unittest.TestCase):
         """Test handling of topups where some serials don't have active meter_registry entries"""
         # This test is completely simplified to verify the basic concept
 
-        with patch("simt_emlite.jobs.push_token.PushTokenJob") as mock_push_token_job:
+        with patch(
+            "simt_emlite.jobs.push_topup_token.PushTopupTokenJob"
+        ) as mock_push_topup_token_job:
             # Setup the mock to verify it's called
             mock_token_job = MagicMock()
             mock_token_job.push.return_value = True
-            mock_push_token_job.return_value = mock_token_job
+            mock_push_topup_token_job.return_value = mock_token_job
 
             # Call the mock directly to ensure it's recorded
-            mock_push_token_job(
+            mock_push_topup_token_job(
                 topup_id="1",
                 meter_id="meter1",
                 token="token1",
@@ -244,16 +246,16 @@ class PushTokenAllJobTests(unittest.TestCase):
             )
 
             # Verify it's been called once
-            mock_push_token_job.assert_called_once()
+            mock_push_topup_token_job.assert_called_once()
 
             # This test demonstrates the concept:
             # - We would have a topup with serial1 that has a meter registry entry
             # - We would have a topup with serial2 that does NOT have a meter registry entry
-            # - Only the topup with serial1 would result in a PushTokenJob call
+            # - Only the topup with serial1 would result in a PushTopupTokenJob call
             # - A warning would be logged for the serial2 topup
 
             # In a real system, only topups with active meter registry entries
-            # would be processed by PushTokenJob
+            # would be processed by PushTopupTokenJob
 
 
 if __name__ == "__main__":

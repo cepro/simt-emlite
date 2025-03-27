@@ -4,7 +4,7 @@ import os
 import sys
 import traceback
 
-from simt_emlite.jobs.push_token import PushTokenJob
+from simt_emlite.jobs.push_topup_token import PushTopupTokenJob
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
@@ -23,7 +23,7 @@ max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
 """
 
 
-class PushTokenAllJob:
+class PushTopupTokensAllJob:
     def __init__(self, esco=None):
         global logger
         self.log = logger.bind(esco=esco)
@@ -91,7 +91,7 @@ class PushTokenAllJob:
                 mediator_address=mediator_address,
             )
 
-            job = PushTokenJob(
+            job = PushTopupTokenJob(
                 topup_id=topup_id,
                 meter_id=meter_id,
                 token=token,
@@ -248,5 +248,5 @@ if __name__ == "__main__":
 
     esco = args.esco if hasattr(args, "esco") else None
 
-    runner = PushTokenAllJob(esco=esco)
+    runner = PushTopupTokensAllJob(esco=esco)
     runner.run()

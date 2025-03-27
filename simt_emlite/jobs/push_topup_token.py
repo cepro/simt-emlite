@@ -13,7 +13,7 @@ from simt_emlite.util.supabase import Client as SupabaseClient
 logger = get_logger(__name__, __file__)
 
 
-class PushTokenJob:
+class PushTopupTokenJob:
     def __init__(
         self,
         *,
