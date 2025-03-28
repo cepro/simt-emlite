@@ -1,5 +1,5 @@
 import traceback
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
@@ -41,7 +41,9 @@ class FutureTariffsUpdateJob:
 
         try:
             self.emlite_client.tariffs_future_write(
-                datetime.strptime(self.tariff["tariff_period_start"], "%Y-%m-%d"),
+                datetime.strptime(
+                    self.tariff["tariff_period_start"], "%Y-%m-%d"
+                ).replace(tzinfo=timezone.utc),
                 Decimal(self.tariff["customer_standing_charge"]),
                 Decimal(self.tariff["customer_unit_rate"]),
                 Decimal(self.tariff["emergency_credit"]),
