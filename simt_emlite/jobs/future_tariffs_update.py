@@ -1,4 +1,6 @@
+import datetime
 import traceback
+from decimal import Decimal
 
 from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
 from simt_emlite.util.logging import get_logger
@@ -39,12 +41,12 @@ class FutureTariffsUpdateJob:
 
         try:
             self.emlite_client.tariffs_future_write(
-                self.tariff["tariff_period_start"],
-                self.tariff["customer_standing_charge"],
-                self.tariff["customer_unit_rate"],
-                self.tariff["emergency_credit"],
-                self.tariff["ecredit_button_threshold"],
-                self.tariff["debt_recovery_rate"],
+                datetime.strptime(self.tariff["tariff_period_start"], "%Y-%m-%d"),
+                Decimal(self.tariff["customer_standing_charge"]),
+                Decimal(self.tariff["customer_unit_rate"]),
+                Decimal(self.tariff["emergency_credit"]),
+                Decimal(self.tariff["ecredit_button_threshold"]),
+                Decimal(self.tariff["debt_recovery_rate"]),
             )
             self.log.info("future tariff set")
             return True
