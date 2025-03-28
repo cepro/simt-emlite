@@ -43,7 +43,7 @@ class FutureTariffsUpdateJob:
                 self.tariff["customer_standing_charge"],
                 self.tariff["customer_unit_rate"],
                 self.tariff["emergency_credit"],
-                self.tariff["ecredit_availability"],
+                self.tariff["ecredit_button_threshold"],
                 self.tariff["debt_recovery_rate"],
             )
             self.log.info("future tariff set")
