@@ -121,7 +121,7 @@ class FutureTariffsUpdateAllJob:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max_parallel_jobs
         ) as executor:
-            futures = [executor.submit(self.run_job, tariff) for tariff in tariffs.data]
+            futures = [executor.submit(self.run_job, tariff) for tariff in tariffs]
 
         results = concurrent.futures.wait(futures)
 
