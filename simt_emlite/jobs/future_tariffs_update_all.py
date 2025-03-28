@@ -39,10 +39,27 @@ class FutureTariffsUpdateAllJob:
             supabase_url, supabase_key, public_backend_role_key, schema="public"
         )
 
+        # {
+        #     "serial": "EML2244826972",
+        #     "meter_id": "b1b8ccaf-930f-4e35-a016-95d677ded96b",
+        #     "customer_id": "2bf6e3d4-d41d-4982-9b7a-6957a4f549bc",
+        #     "customer_email": "plot11-qa@waterlilies.energy",
+        #     "esco_code": "lab",
+        #     "tariff_period_start": "2025-04-01",
+        #     "customer_unit_rate": 0.17782,
+        #     "customer_standing_charge": 0.51082,
+        #     "emergency_credit": null,
+        #     "debt_recovery_rate": null,
+        #     "ecredit_button_threshold": null,
+        #     "current_future_standing_charge": null,
+        #     "current_future_unit_rate_a": null,
+        #     "current_future_unit_rate_b": null,
+        #     "current_future_activation_datetime": null
+        # }
+
     def run_job(self, tariff):
-        topup_id = tariff["id"]
-        token = tariff["token"]
-        serial = tariff["meters"]["serial"]  # Serial is in the nested meters object
+        meter_id = tariff["meter_id"]
+        serial = tariff["serial"]
 
         # look up meter in the flows meter_registry checking it's active
         meter_query = (
@@ -57,51 +74,30 @@ class FutureTariffsUpdateAllJob:
             self.log.error(
                 f"No active meter found in meter_registry with serial {serial}"
             )
-
-            # Update topup status to failed
-            self.backend_supabase.table("topups").update(
-                {
-                    "status": "failed_token_push",
-                    "notes": "No active meter found in meter_registry",
-                }
-            ).eq("id", topup_id).execute()
-
             return False
 
         meter_id = meter_query.data[0]["id"]
 
         mediator_address = self.containers.mediator_address(meter_id, serial)
         if mediator_address is None:
-            self.log.warn(f"No mediator container exists for meter {serial}")
-
-            # Update topup status to failed
-            self.backend_supabase.table("topups").update(
-                {
-                    "status": "failed_token_push",
-                    "notes": "No mediator container available",
-                }
-            ).eq("id", topup_id).execute()
-
+            self.log.error(f"No mediator container exists for meter {serial}")
             return False
 
         try:
             self.log.info(
                 "run_job",
-                topup_id=topup_id,
                 meter_id=meter_id,
                 serial=serial,
                 mediator_address=mediator_address,
             )
 
             job = FutureTariffsUpdateJob(
-                topup_id=topup_id,
-                meter_id=meter_id,
-                token=token,
+                tariff=tariff,
                 mediator_address=mediator_address,
                 supabase=self.backend_supabase,
             )
 
-            return job.push()
+            return job.update()
         except Exception as e:
             self.log.error(
                 "Failure occurred pushing token",
@@ -116,13 +112,11 @@ class FutureTariffsUpdateAllJob:
         tariffs = self.future_tariffs_to_update(self.esco)
         self.log.info(f"response JSON [{tariffs}]")
 
-        sys.exit(0)
-
-        if len(tariffs.data) == 0:
+        if len(tariffs) == 0:
             self.log.error("No tariffs to update for " + self.esco)
             sys.exit(10)
 
-        self.log.info(f"Processing {len(tariffs.data)} future tariff updates")
+        self.log.info(f"Processing {len(tariffs)} future tariff updates")
 
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max_parallel_jobs
@@ -134,7 +128,7 @@ class FutureTariffsUpdateAllJob:
         success_count = sum(1 for future in results.done if future.result())
 
         self.log.info(
-            f"Finished tariffs update al job. Success: {success_count}/{len(tariffs.data)}"
+            f"Finished tariffs update al job. Success: {success_count}/{len(tariffs)}"
         )
 
     def future_tariffs_to_update(self, esco: str):
