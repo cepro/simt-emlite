@@ -1,5 +1,5 @@
-import datetime
 import traceback
+from datetime import datetime
 from decimal import Decimal
 
 from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
