@@ -3,6 +3,7 @@ import concurrent.futures
 import os
 import sys
 import traceback
+from decimal import Decimal
 
 import requests
 
@@ -128,7 +129,7 @@ class FutureTariffsUpdateAllJob:
         success_count = sum(1 for future in results.done if future.result())
 
         self.log.info(
-            f"Finished tariffs update al job. Success: {success_count}/{len(tariffs)}"
+            f"Finished tariffs update all job. Success: {success_count}/{len(tariffs)}"
         )
 
     def future_tariffs_to_update(self, esco: str):
@@ -151,7 +152,11 @@ class FutureTariffsUpdateAllJob:
         )
         self.log.info(f"{name} response [{response}]")
 
-        return response.json()
+        return {
+            # convert any floats to string then Decimal so we don't get floating point rounding issues
+            k: (Decimal(str(v)) if isinstance(v, float) else v)
+            for k, v in response.json().items()
+        }
 
     def _check_environment(self):
         if not supabase_url or not supabase_key:

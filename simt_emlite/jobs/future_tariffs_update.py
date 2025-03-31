@@ -44,11 +44,13 @@ class FutureTariffsUpdateJob:
                 datetime.strptime(
                     self.tariff["tariff_period_start"], "%Y-%m-%d"
                 ).replace(tzinfo=timezone.utc),
-                Decimal(self.tariff["customer_standing_charge"]),
-                Decimal(self.tariff["customer_unit_rate"]),
-                Decimal(self.tariff["emergency_credit"]),
-                Decimal(self.tariff["ecredit_button_threshold"]),
-                Decimal(self.tariff["debt_recovery_rate"]),
+                # should be Decimals already but lets convert to be sure
+                # important to wrap in str() first to avoid floating point rounding issues
+                Decimal(str(self.tariff["customer_standing_charge"])),
+                Decimal(str(self.tariff["customer_unit_rate"])),
+                Decimal(str(self.tariff["emergency_credit"])),
+                Decimal(str(self.tariff["ecredit_button_threshold"])),
+                Decimal(str(self.tariff["debt_recovery_rate"])),
             )
             self.log.info("future tariff set")
             return True
