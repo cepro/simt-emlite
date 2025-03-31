@@ -152,11 +152,16 @@ class FutureTariffsUpdateAllJob:
         )
         self.log.info(f"{name} response [{response}]")
 
-        return {
-            # convert any floats to string then Decimal so we don't get floating point rounding issues
-            k: (Decimal(str(v)) if isinstance(v, float) else v)
-            for k, v in response.json().items()
-        }
+        return self._convert_floats_to_decimal(response.json())
+
+    def _convert_floats_to_decimal(self, data_list):
+        return [
+            {
+                k: (Decimal(str(v)) if isinstance(v, float) else v)
+                for k, v in item.items()
+            }
+            for item in data_list
+        ]
 
     def _check_environment(self):
         if not supabase_url or not supabase_key:
