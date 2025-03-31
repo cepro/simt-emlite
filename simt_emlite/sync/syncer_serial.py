@@ -22,7 +22,7 @@ class SyncerSerial(SyncerBase):
         serial = (
             self.emlite_client.three_phase_serial()
             if is_3p
-            else self.emlite_client.serial()
+            else self.emlite_client.serial_read()
         )
 
         # no change
