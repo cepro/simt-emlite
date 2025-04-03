@@ -114,7 +114,7 @@ class FutureTariffsUpdateAllJob:
         self.log.info(f"response JSON [{tariffs}]")
 
         if len(tariffs) == 0:
-            self.log.error("No tariffs to update for " + self.esco)
+            self.log.info("No tariffs to update for " + self.esco)
             sys.exit(10)
 
         self.log.info(f"Processing {len(tariffs)} future tariff updates")
