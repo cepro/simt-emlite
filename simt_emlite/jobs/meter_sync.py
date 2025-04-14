@@ -97,10 +97,11 @@ if __name__ == "__main__":
         logger.error("Environment variable RUN_FREQUENCY not set.")
         sys.exit(10)
 
+    mediator_address: str = f"{mediator_host}:{mediator_port}"
     try:
         job = MeterSyncJob(
             meter_id=meter_id,
-            mediator_address=f"{mediator_host}:{mediator_port}",
+            mediator_address=mediator_address,
             supabase_url=supabase_url,
             supabase_key=supabase_key,
             flows_role_key=flows_role_key,
@@ -109,7 +110,7 @@ if __name__ == "__main__":
         job.sync()
     except Exception as e:
         logger.error(
-            "failure occured syncing",
+            f"failure occured syncing meter {meter_id} at {mediator_address}",
             error=e,
             exception=traceback.format_exception(e),
         )
