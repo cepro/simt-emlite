@@ -69,7 +69,7 @@ class MeterSyncAllJob:
             job.sync()
         except Exception as e:
             self.log.error(
-                "failure occured syncing",
+                f"failure occured syncing meter {meter_id} at {mediator_address}",
                 error=e,
                 exception=traceback.format_exception(e),
             )
