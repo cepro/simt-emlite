@@ -1,3 +1,4 @@
+import time
 from typing import List
 
 import docker
@@ -81,6 +82,8 @@ class DockerAdapter(BaseAdapter):
             environment=self._env_vars(ip_address),
             network_mode="host",
             restart_policy={"Name": "always"},
+            # use ports if switching from host mode to a separate network
+            # ports={"50051/tcp": None},
             labels=self._metadata(meter_id, ip_address),
             detach=True,
         )
@@ -99,9 +102,12 @@ class DockerAdapter(BaseAdapter):
     def destroy(self, id: str, force: bool = True):
         container = self.docker_client.containers.get(id)
         container.kill()
+        time.sleep(5)
         container.remove(force)
 
     def mediator_address(self, meter_id: str, serial: str):
-        # update to lookup ip:
         # return "172.19.0.4:50051"
-        return f"mediator-{serial}:50051"
+        # return f"mediator-{serial}:50051"
+
+        # host mode so only one mediator at a time and it listens on default:
+        return "0.0.0.0:50051"
