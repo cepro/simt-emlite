@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
 from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_epoch_seconds_to_datetime,
@@ -17,9 +17,9 @@ logger = get_logger(__name__, __file__)
 
 def filter_event_log_for_unseen_events(
     # events must be in timestamp descending order
-    events: List[EmopMessage.EventRec],
+    events: List[EmopEventLogResponse.EventRec],
     latest_event_in_db,
-) -> List[EmopMessage.EventRec]:
+) -> List[EmopEventLogResponse.EventRec]:
     if latest_event_in_db is None:
         return events
     return list(filter(lambda e: e.timestamp > latest_event_in_db.timestamp, events))
@@ -27,7 +27,7 @@ def filter_event_log_for_unseen_events(
 
 def event_rec_to_table_row(
     meter_id: str,
-    event: EmopMessage.EventRec,
+    event: EmopEventLogResponse.EventRec,
 ):
     return {
         "meter_id": meter_id,
@@ -41,8 +41,8 @@ def event_rec_to_table_row(
 
 def event_table_row_to_rec(
     row,
-) -> EmopMessage.EventRec:
-    event = EmopMessage.EventRec()
+) -> EmopEventLogResponse.EventRec:
+    event = EmopEventLogResponse.EventRec()
     event.timestamp = emop_datetime_to_epoch_seconds(
         datetime.fromisoformat(row["timestamp"])
     )
@@ -73,7 +73,7 @@ class SyncerEventLog(SyncerBase):
             logger.info("last seen event row", last_seen_event=last_seen_event_row)
             last_seen_event_rec = event_table_row_to_rec(last_seen_event_row)
 
-        unseen_events: List[EmopMessage.EventLogRec] = self._fetch_unseen(
+        unseen_events: List[EmopEventLogResponse.EventRec] = self._fetch_unseen(
             last_seen_event=last_seen_event_rec
         )
         logger.info("unseen events count", unseen_event_count=len(unseen_events))
@@ -95,8 +95,8 @@ class SyncerEventLog(SyncerBase):
         return UpdatesTuple(None, None)
 
     def _fetch_unseen(
-        self, last_seen_event: EmopMessage.EventRec
-    ) -> List[EmopMessage.EventRec]:
+        self, last_seen_event: EmopEventLogResponse.EventRec
+    ) -> List[EmopEventLogResponse.EventRec]:
         unseen_events_all = []
 
         sync_more = True

@@ -4,6 +4,10 @@ import crcmod.predefined
 from emop_frame_protocol.emop_data import EmopData
 from emop_frame_protocol.emop_frame import EmopFrame
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
+from emop_frame_protocol.generated.emop_default_request_response import (
+    EmopDefaultRequestResponse,
+)
+from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
 from emop_frame_protocol.util import emop_encode_u3be
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
 
@@ -52,16 +56,7 @@ class EmliteAPI:
 
         self.last_request_datetime = datetime.now()
 
-        data_field = frame.data
-
-        if data_field.format in [
-            EmopData.RecordFormat.default,
-            EmopData.RecordFormat.event_log,
-        ]:
-            return frame.data.message.payload
-        else:
-            # assume profile log message - no others handled as yet
-            return frame.data.message.response_payload
+        return frame.data.message
 
     def read_element(self, object_id: bytearray):
         data_field = self._build_data_field(object_id)
@@ -71,7 +66,7 @@ class EmliteAPI:
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
         data_field = self._build_data_field(
             object_id,
-            read_write_flag=EmopData.ReadWriteFlags.write,
+            read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.write,
             payload=payload,
         )
 
@@ -84,12 +79,12 @@ class EmliteAPI:
     def _build_data_field(
         self,
         object_id: bytearray,
-        read_write_flag=EmopData.ReadWriteFlags.read,
+        read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.read,
         payload=bytes(),
     ) -> EmopData:
         len_data = len(payload)
 
-        message_field = EmopData.DefaultRec(len_data)
+        message_field = EmopDefaultRequestResponse(len_data)
         message_field.object_id = object_id
         message_field.read_write = read_write_flag
         message_field.payload = payload
@@ -118,24 +113,8 @@ class EmliteAPI:
         # bytes excluding the Frame Delimiter."
         #
         # which is 12 bytes (length 1, control 1, destination 4, source 4, crc 2)
-        #   plus data field length which depends on format and payload
-        frame_length = 12
-
-        if data_field.format in [
-            EmopData.RecordFormat.default,
-            EmopData.RecordFormat.event_log,
-        ]:
-            # 5 (format 1, object id 3, rw flag 1) plus payload length
-            frame_length = frame_length + 5 + len(data_field.message.payload)
-        else:
-            # assume profile log message - no others handled as yet
-            # 5 (format 1, timestamp 4)
-            is_request = not hasattr(data_field.message, "response_payload")
-            frame_length += 5 + (
-                0 if is_request else len(data_field.message.response_payload)
-            )
-
-        req_frame.frame_length = frame_length
+        #   plus data field length
+        req_frame.frame_length = 12 + len(data_field.message)
 
         # len of frame including delimeter
         frame_bytes_len = req_frame.frame_length + 1

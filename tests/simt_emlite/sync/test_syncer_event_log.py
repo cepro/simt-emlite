@@ -1,15 +1,15 @@
 import unittest
 from typing import List
 
-from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
 
 from simt_emlite.sync.syncer_event_log import (
     event_rec_to_table_row,
     event_table_row_to_rec,
 )
 
-EventIdType = EmopMessage.EventIdType
-EventRec = EmopMessage.EventRec
+EventIdType = EmopEventLogResponse.EventIdType
+EventRec = EmopEventLogResponse.EventRec
 
 
 START_TIME_SECONDS = 784598400  # 11/11/2024 0:00 in seconds since 01/01/2000

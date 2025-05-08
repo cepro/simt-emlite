@@ -12,6 +12,9 @@ from emop_frame_protocol.emop_profile_log_1_response import (
 from emop_frame_protocol.emop_profile_log_2_response import (
     emop_decode_profile_log_2_response,
 )
+from emop_frame_protocol.generated.emop_event_log_request import EmopEventLogRequest
+from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
+from emop_frame_protocol.generated.emop_profile_log_request import EmopProfileLogRequest
 from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
@@ -369,14 +372,18 @@ class EmliteMediatorClient(object):
         return log_decoded
 
     def _profile_log(self, timestamp: datetime, format: EmopData.RecordFormat):
-        message_len = 5  # profile log request - format (1) + timestamp (4)
+        message_len = 4  # profile log request - timestamp (4)
 
-        message_field = EmopData.ProfileLogRec(message_len)
+        message_field = EmopProfileLogRequest(message_len)
         message_field.timestamp = emop_datetime_to_epoch_seconds(timestamp)
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        message_field._write(_io)
+        message_field_bytes = _io.to_byte_array()
 
         data_field = EmopData(None)
         data_field.format = format
-        data_field.message = message_field
+        data_field.message = message_field_bytes
 
         _io = KaitaiStream(BytesIO(bytearray(message_len)))
         data_field._write(_io)
@@ -387,19 +394,23 @@ class EmliteMediatorClient(object):
 
         return response_bytes
 
-    def event_log(self, log_idx: int) -> EmopMessage.EventLogRec:
-        message_len = 5  # object id (3) + format (1) + log_idx (1)
+    def event_log(self, log_idx: int) -> EmopEventLogResponse.EventRec:
+        message_len = 4  # object id (3) + log_idx (1)
 
-        message_field = EmopData.EventLogRec(message_len)
+        message_field = EmopEventLogRequest(message_len)
         message_field.object_id = emop_encode_object_id(
             EmopMessage.ObjectIdType.event_log
         )
         message_field.log_idx = log_idx
         message_field.payload = bytes()
 
+        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        message_field._write(_io)
+        message_field_bytes = _io.to_byte_array()
+
         data_field = EmopData(None)
         data_field.format = EmopData.RecordFormat.event_log
-        data_field.message = message_field
+        data_field.message = message_field_bytes
 
         _io = KaitaiStream(BytesIO(bytearray(message_len)))
         data_field._write(_io)
@@ -409,7 +420,7 @@ class EmliteMediatorClient(object):
         response_bytes = self._send_message(data_field_bytes)
         self.log.info(f"event log response [{response_bytes.hex()}]")
 
-        data = EmopMessage.EventLogRec(KaitaiStream(BytesIO(response_bytes)))
+        data = EmopEventLogResponse.EventRec(KaitaiStream(BytesIO(response_bytes)))
         data._read()
         self.log.info(f"event logs [{data}]")
 

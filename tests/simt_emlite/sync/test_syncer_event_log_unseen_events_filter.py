@@ -1,12 +1,12 @@
 import unittest
 from typing import List
 
-from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
 
 from simt_emlite.sync.syncer_event_log import filter_event_log_for_unseen_events
 
-EventIdType = EmopMessage.EventIdType
-EventRec = EmopMessage.EventRec
+EventIdType = EmopEventLogResponse.EventIdType
+EventRec = EmopEventLogResponse.EventRec
 
 
 ONE_DAY_SECONDS = 24 * 60 * 60
