@@ -7,7 +7,6 @@ from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.generated.emop_default_request_response import (
     EmopDefaultRequestResponse,
 )
-from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
 from emop_frame_protocol.util import emop_encode_u3be
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
 
@@ -82,16 +81,21 @@ class EmliteAPI:
         read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.read,
         payload=bytes(),
     ) -> EmopData:
-        len_data = len(payload)
+        # 4 = length of EmopDefaultRequestResponse static fields
+        len_message = 4 + len(payload)
 
-        message_field = EmopDefaultRequestResponse(len_data)
+        message_field = EmopDefaultRequestResponse(len_message)
         message_field.object_id = object_id
         message_field.read_write = read_write_flag
         message_field.payload = payload
 
-        data_field = EmopData(5 + len(payload))
+        kt_stream = KaitaiStream(BytesIO(bytearray(len_message)))
+        message_field._write(kt_stream)
+        message_field_bytes = kt_stream.to_byte_array()
+
+        data_field = EmopData(len_message)
         data_field.format = EmopData.RecordFormat.default
-        data_field.message = message_field
+        data_field.message = message_field_bytes
 
         return data_field
 
@@ -114,7 +118,7 @@ class EmliteAPI:
         #
         # which is 12 bytes (length 1, control 1, destination 4, source 4, crc 2)
         #   plus data field length
-        req_frame.frame_length = 12 + len(data_field.message)
+        req_frame.frame_length = 12 + len(data_field.message) + 1
 
         # len of frame including delimeter
         frame_bytes_len = req_frame.frame_length + 1

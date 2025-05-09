@@ -118,7 +118,9 @@ class EmliteMediatorGrpcClient:
                 raise e
 
         payload_bytes = rsp_obj.response
-        self.log.info("response received", response_payload=payload_bytes.hex())
+        self.log.info(
+            "read_element response received", response_payload=payload_bytes.hex()
+        )
 
         emlite_rsp = EmopMessage(
             len(payload_bytes), object_id, KaitaiStream(BytesIO(payload_bytes))
@@ -178,7 +180,9 @@ class EmliteMediatorGrpcClient:
                 raise e
 
         payload_bytes = rsp_obj.response
-        self.log.info("response received", response_payload=payload_bytes.hex())
+        self.log.info(
+            "send_message response received", response_payload=payload_bytes.hex()
+        )
         return payload_bytes
 
     # Uncomment if using the mediator proxy (https://github.com/cepro/simt-mediator-gateway) and secure channels:

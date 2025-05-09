@@ -372,20 +372,20 @@ class EmliteMediatorClient(object):
         return log_decoded
 
     def _profile_log(self, timestamp: datetime, format: EmopData.RecordFormat):
-        message_len = 4  # profile log request - timestamp (4)
+        message_len = 4  # profile log request: timestamp (4)
 
-        message_field = EmopProfileLogRequest(message_len)
+        message_field = EmopProfileLogRequest()
         message_field.timestamp = emop_datetime_to_epoch_seconds(timestamp)
 
         _io = KaitaiStream(BytesIO(bytearray(message_len)))
         message_field._write(_io)
         message_field_bytes = _io.to_byte_array()
 
-        data_field = EmopData(None)
+        data_field = EmopData(message_len)
         data_field.format = format
         data_field.message = message_field_bytes
 
-        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        _io = KaitaiStream(BytesIO(bytearray(message_len + 1)))
         data_field._write(_io)
         data_field_bytes = _io.to_byte_array()
 
@@ -397,22 +397,21 @@ class EmliteMediatorClient(object):
     def event_log(self, log_idx: int) -> EmopEventLogResponse.EventRec:
         message_len = 4  # object id (3) + log_idx (1)
 
-        message_field = EmopEventLogRequest(message_len)
+        message_field = EmopEventLogRequest()
         message_field.object_id = emop_encode_object_id(
             EmopMessage.ObjectIdType.event_log
         )
         message_field.log_idx = log_idx
-        message_field.payload = bytes()
 
         _io = KaitaiStream(BytesIO(bytearray(message_len)))
         message_field._write(_io)
         message_field_bytes = _io.to_byte_array()
 
-        data_field = EmopData(None)
+        data_field = EmopData(message_len)
         data_field.format = EmopData.RecordFormat.event_log
         data_field.message = message_field_bytes
 
-        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        _io = KaitaiStream(BytesIO(bytearray(message_len + 1)))
         data_field._write(_io)
         data_field_bytes = _io.to_byte_array()
 

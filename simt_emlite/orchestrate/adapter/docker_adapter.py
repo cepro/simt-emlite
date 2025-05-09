@@ -103,7 +103,7 @@ class DockerAdapter(BaseAdapter):
         container = self.docker_client.containers.get(id)
         container.kill()
         time.sleep(5)
-        container.remove(force)
+        container.remove(force=force)
 
     def mediator_address(self, meter_id: str, serial: str):
         # return "172.19.0.4:50051"
