@@ -123,7 +123,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         self.log.info(
             "writeElement request",
             object_id=object_id_bytes.hex(),
-            payload=request.payload,
+            payload=request.payload.hex(),
         )
         self._space_out_requests()
         try:

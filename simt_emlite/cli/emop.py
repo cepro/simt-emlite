@@ -394,6 +394,32 @@ Example usage:
             type=valid_iso_datetime,
         )
 
+    # ===========    Three phase intervals (half hourly intervals)    ==========
+
+    three_phase_intervals_parser = subparsers.add_parser(
+        "three_phase_intervals",
+        description=f"""Fetch three phase intervals for given time range.
+
+Example usage:
+
+emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" --end-time "2025-02-21T00:00+00"
+""",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    add_arg_serial(three_phase_intervals_parser)
+    three_phase_intervals_parser.add_argument(
+        "--start-time",
+        help="Start date time for intervals range.",
+        required=True,
+        type=valid_iso_datetime,
+    )
+    three_phase_intervals_parser.add_argument(
+        "--end-time",
+        help="End date time for intervals range.",
+        required=True,
+        type=valid_iso_datetime,
+    )
+
     # ===========    Writes    ==========
 
     clock_write_parser = subparsers.add_parser(

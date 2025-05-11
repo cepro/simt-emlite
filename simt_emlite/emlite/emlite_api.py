@@ -60,7 +60,11 @@ class EmliteAPI:
     def read_element(self, object_id: bytearray):
         data_field = self._build_data_field(object_id)
         payload_bytes = self.send_message_with_data_instance(data_field)
-        return payload_bytes
+        rec = EmopDefaultRequestResponse(
+            len(payload_bytes), KaitaiStream(BytesIO(payload_bytes))
+        )
+        rec._read()
+        return rec.payload
 
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
         data_field = self._build_data_field(
