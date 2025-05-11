@@ -4,6 +4,7 @@ from typing import List, TypedDict
 
 import grpc
 from emop_frame_protocol.emop_data import EmopData
+from emop_frame_protocol.emop_event_log_response import EmopEventLogResponse
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.emop_profile_log_1_response import (
@@ -12,9 +13,13 @@ from emop_frame_protocol.emop_profile_log_1_response import (
 from emop_frame_protocol.emop_profile_log_2_response import (
     emop_decode_profile_log_2_response,
 )
-from emop_frame_protocol.generated.emop_event_log_request import EmopEventLogRequest
-from emop_frame_protocol.generated.emop_event_log_response import EmopEventLogResponse
+from emop_frame_protocol.generated.emop_event_log_request import (
+    EmopEventLogRequest,
+)
 from emop_frame_protocol.generated.emop_profile_log_request import EmopProfileLogRequest
+from emop_frame_protocol.generated.emop_profile_three_phase_intervals_request import (
+    EmopProfileThreePhaseIntervalsRequest,
+)
 from emop_frame_protocol.util import (
     emop_datetime_to_epoch_seconds,
     emop_encode_amount_as_u4le_rec,
@@ -394,7 +399,37 @@ class EmliteMediatorClient(object):
 
         return response_bytes
 
-    def event_log(self, log_idx: int) -> EmopEventLogResponse.EventRec:
+    def three_phase_intervals(self, start_time: datetime, end_time: datetime):
+        message_len = 9  # 2 x 4 byte timestamp + 1 profile number)
+
+        message_field = EmopProfileThreePhaseIntervalsRequest()
+        message_field.profile_number = 0
+        message_field.start_time = emop_datetime_to_epoch_seconds(start_time)
+        message_field.end_time = emop_datetime_to_epoch_seconds(end_time)
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        message_field._write(_io)
+        message_field_bytes = _io.to_byte_array()
+
+        data_field = EmopData(message_len)
+        data_field.format = EmopData.RecordFormat.event_log
+        data_field.message = message_field_bytes
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len + 1)))
+        data_field._write(_io)
+        data_field_bytes = _io.to_byte_array()
+
+        self.log.info(f"three phase intervals request [{data_field_bytes.hex()}]")
+        response_bytes = self._send_message(data_field_bytes)
+        self.log.info(f"three phase intervals response [{response_bytes.hex()}]")
+
+        data = EmopEventLogResponse.EventRec(KaitaiStream(BytesIO(response_bytes)))
+        data._read()
+        self.log.info(f"three phase intervals [{data}]")
+
+        return data
+
+    def event_log(self, log_idx: int) -> EmopEventLogResponse:
         message_len = 4  # object id (3) + log_idx (1)
 
         message_field = EmopEventLogRequest()
@@ -419,7 +454,7 @@ class EmliteMediatorClient(object):
         response_bytes = self._send_message(data_field_bytes)
         self.log.info(f"event log response [{response_bytes.hex()}]")
 
-        data = EmopEventLogResponse.EventRec(KaitaiStream(BytesIO(response_bytes)))
+        data = EmopEventLogResponse(KaitaiStream(BytesIO(response_bytes)))
         data._read()
         self.log.info(f"event logs [{data}]")
 
