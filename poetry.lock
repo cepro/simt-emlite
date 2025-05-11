@@ -235,14 +235,14 @@ websockets = ["websocket-client (>=1.3.0)"]
 
 [[package]]
 name = "emop-frame-protocol"
-version = "0.3.3"
+version = "0.3.4"
 description = "EMOP Frame Protocol messages defined with kaitai"
 optional = false
 python-versions = ">=3.12,<4.0"
 groups = ["main"]
 files = [
-    {file = "emop_frame_protocol-0.3.3-py3-none-any.whl", hash = "sha256:a71daaa642c62eac11c771c2e7ba00bfc05f769ce0f3201ad38b5c3f05047146"},
-    {file = "emop_frame_protocol-0.3.3.tar.gz", hash = "sha256:2d43978e2493c253364c49cf5f24d3270e2299be83bd0e7f0d64dc5d78768ba0"},
+    {file = "emop_frame_protocol-0.3.4-py3-none-any.whl", hash = "sha256:7027b58108094797101ff7271adf0273d27d626063cfe9dfb6839f7f8c73a3bb"},
+    {file = "emop_frame_protocol-0.3.4.tar.gz", hash = "sha256:28fdf784c25a09ab6540d0172475336ca5fb05c801a47d1e81977417154822b6"},
 ]
 
 [package.dependencies]
@@ -1189,4 +1189,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "19776bf7e12043c8dca76507932f5ec56f31814ee8c1f61fb57301658af1f6c8"
+content-hash = "7e2d5acb9cb4418497b97942c0ca3a7eb7ae2372ed68322e4e8b1e1a32d5ca75"

@@ -357,6 +357,13 @@ class EmliteMediatorClient(object):
             None if vl3 is None else vl3.voltage / 10,
         )
 
+    def three_phase_hardware_configuration(
+        self,
+    ) -> EmopMessage.ThreePhaseHardwareConfigurationRec:
+        data = self._read_element(ObjectIdEnum.three_phase_hardware_configuration)
+        self.log.debug("three phase hardware configuration", value=str(data))
+        return data
+
     def profile_log_1(self, timestamp: datetime):
         log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_1)
         log_decoded = emop_decode_profile_log_1_response(log_rsp)

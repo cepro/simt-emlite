@@ -344,6 +344,7 @@ def args_parser():
             "Current three phase voltage (if three phase meter)",
         ),
         ("three_phase_read", "Three phase reading"),
+        ("three_phase_hardware_configuration", "Three phase hardware configuration"),
         ("tariffs_active_read", "Current tariff settings"),
         ("tariffs_future_read", "Future tariff settings"),
         (
