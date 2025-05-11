@@ -398,7 +398,7 @@ Example usage:
 
     three_phase_intervals_parser = subparsers.add_parser(
         "three_phase_intervals",
-        description=f"""Fetch three phase intervals for given time range.
+        description="""Fetch three phase intervals for given time range.
 
 Example usage:
 
