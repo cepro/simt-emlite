@@ -13,6 +13,9 @@ from emop_frame_protocol.emop_profile_log_1_response import (
 from emop_frame_protocol.emop_profile_log_2_response import (
     emop_decode_profile_log_2_response,
 )
+from emop_frame_protocol.emop_profile_three_phase_intervals_response_frame import (
+    EmopProfileThreePhaseIntervalsResponseFrame,
+)
 from emop_frame_protocol.generated.emop_event_log_request import (
     EmopEventLogRequest,
 )
@@ -406,35 +409,53 @@ class EmliteMediatorClient(object):
 
         return response_bytes
 
-    def three_phase_intervals(self, start_time: datetime, end_time: datetime):
-        message_len = 9  # 2 x 4 byte timestamp + 1 profile number)
+    """
+        See Section 1 of the EMP1 ax and cx Communication Protocol Specification v1_0.pdf.
 
-        message_field = EmopProfileThreePhaseIntervalsRequest()
-        message_field.profile_number = 0
-        message_field.start_time = emop_datetime_to_epoch_seconds(start_time)
-        message_field.end_time = emop_datetime_to_epoch_seconds(end_time)
+        NOTE: If the start & end times are both earlier than the first available record,
+              only the first record will be returned. 
+              If the start & end times are both later than the last record, only the last
+              record will be returned.
+    """
 
-        _io = KaitaiStream(BytesIO(bytearray(message_len)))
-        message_field._write(_io)
-        message_field_bytes = _io.to_byte_array()
+    def three_phase_intervals(
+        self, start_time: datetime, end_time: datetime
+    ) -> List[EmopProfileThreePhaseIntervalsResponseFrame]:
+        if start_time >= end_time:
+            raise Exception("start_time must come before end_time")
 
-        data_field = EmopData(message_len)
-        data_field.format = EmopData.RecordFormat.event_log
-        data_field.message = message_field_bytes
+        if end_time > start_time + datetime.timedelta(hours=24):
+            raise Exception("max range between start_time and end_time is 24 hours")
 
-        _io = KaitaiStream(BytesIO(bytearray(message_len + 1)))
-        data_field._write(_io)
-        data_field_bytes = _io.to_byte_array()
+        hardware = self.three_phase_hardware_configuration()
+        self.log.info(f"meter type = {hardware.meter_type.name}")
 
-        self.log.info(f"three phase intervals request [{data_field_bytes.hex()}]")
-        response_bytes = self._send_message(data_field_bytes)
-        self.log.info(f"three phase intervals response [{response_bytes.hex()}]")
+        # send a cancel up front for a clean start
 
-        data = EmopEventLogResponse.EventRec(KaitaiStream(BytesIO(response_bytes)))
-        data._read()
-        self.log.info(f"three phase intervals [{data}]")
+        # COMMENT OUT this reset for now as it has seemingliy crashed 2 cx
+        #       meters - no responses after sending this
 
-        return data
+        # self._three_phase_intervals(
+        #     start_time,
+        #     end_time,
+        #     EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset,
+        # )
+
+        # Keep reading until all frames fetched
+        frames = []
+        more_frames = True
+        while more_frames:
+            frame = self._three_phase_intervals(
+                start_time,
+                end_time,
+                EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
+            )
+            if frame is not None:
+                frames.append(frame)
+            else:
+                more_frames = False
+
+        return frames
 
     def event_log(self, log_idx: int) -> EmopEventLogResponse:
         message_len = 4  # object id (3) + log_idx (1)
@@ -836,3 +857,44 @@ class EmliteMediatorClient(object):
 
     def _pluck_keys(self, rec, key_prefix):
         return ({k: v for k, v in vars(rec).items() if k.startswith(key_prefix)},)
+
+    def _three_phase_intervals(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        profile: EmopProfileThreePhaseIntervalsRequest.ProfileNumber,
+    ) -> EmopProfileThreePhaseIntervalsResponseFrame | None:
+        message_len = 13  # profile number + 2 x 4 byte timestamp + 4 bytes fixed)
+
+        message_field = EmopProfileThreePhaseIntervalsRequest()
+        message_field.profile_number = profile
+        message_field.start_time = emop_datetime_to_epoch_seconds(start_time)
+        message_field.end_time = emop_datetime_to_epoch_seconds(end_time)
+        message_field.trailing_fixed = bytearray.fromhex("ffffffff")
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len)))
+        message_field._write(_io)
+        message_field_bytes = _io.to_byte_array()
+
+        data_field = EmopData(message_len)
+        data_field.format = EmopData.RecordFormat.three_phase_profile_intervals
+        data_field.message = message_field_bytes
+
+        _io = KaitaiStream(BytesIO(bytearray(message_len + 1)))
+        data_field._write(_io)
+        data_field_bytes = _io.to_byte_array()
+
+        self.log.info(f"three phase intervals request [{data_field_bytes.hex()}]")
+        response_bytes = self._send_message(data_field_bytes)
+        self.log.info(f"three phase intervals response [{response_bytes.hex()}]")
+
+        if profile != EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset:
+            frame = EmopProfileThreePhaseIntervalsResponseFrame(
+                len(response_bytes), KaitaiStream(BytesIO(response_bytes))
+            )
+            frame._read()
+            self.log.info(f"three phase intervals [{str(frame)}]")
+        else:
+            frame = None
+
+        return frame
