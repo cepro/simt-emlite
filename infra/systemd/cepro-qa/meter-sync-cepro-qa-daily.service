@@ -1,9 +1,0 @@
-[Unit]
-Description=Sync all meter_metrics with run_frequency 'daily'
-
-[Service]
-Type=oneshot
-ExecStart=/home/admin/mediator-cepro-qa/bin/run_meter_syncs --freq daily
-
-[Install]
-WantedBy=multi-user.target

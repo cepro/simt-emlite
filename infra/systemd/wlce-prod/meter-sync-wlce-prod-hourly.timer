@@ -1,9 +1,0 @@
-[Unit]
-Description=Sync all meter_metrics with run_frequency 'hourly'
-
-[Timer]
-OnCalendar=*-*-* *:05:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target
