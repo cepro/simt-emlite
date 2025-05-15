@@ -101,6 +101,9 @@ See the notes on the mediators CLI above for how to list these machines.
 > APP=mediators-$ESCO
 > fly app create $APP --org cepro
 > fly ips allocate-v6 --private -a $APP
+> fly secrets set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
+> fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=0)"
+> fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
 ```
 
 ## Create Mediator Container for meter in ESCO
@@ -125,22 +128,90 @@ cd simt_emlite/mediator/grpc
 python grpc_codegen.py
 ```
 
-# Run mediators and sync locally
+## Authentication
+
+Mediators use TLS certificates for authentication which is configured at the gRPC channel level.
+
+We generate certficates for a CA, server and clients as follows.
+
+This should be done separately for each environment - prod, qa and local.
+
+Generated keys can be found in Lastpass.
+
+### CA Certificate
 
 ```sh
-# ensure docker image built locally
-bin/build-docker.sh
+openssl genrsa -out mediators-ca-private.key 4096
 
-# start local stack with docker
-cd infra/local-stack
-
-# add mediators as needed
-# NOTE: each meter added should have mode=active in flows.meter_registry
-vim docker-compose.yml
-
-# start the emnify vpn gateway and the mediators
-docker compose up
-
-# run a sync (inside the local stack docker network)
-docker run --rm -it --network simt-mediator-local simt-emlite simt_emlite.jobs.meter_sync_all --esco wlce --freq daily
+openssl req -new -x509 \
+  -key mediators-ca-private.key -sha256 \
+  -subj "/C=GB/ST=England/L=Bristol/O=Cepro/CN=cepro-mediators CA" \
+  -days 3650 -out mediators-ca.cert
 ```
+
+### Server Certificate 
+
+```sh
+openssl genrsa -out mediators-server-private.key 4096
+
+openssl req -new \
+  -key mediators-server-private.key \
+  -out mediators-server.csr \
+  -config mediators-server-openssl.cnf
+
+openssl x509 -req -in mediators-server.csr \
+  -CA mediators-ca.cert \
+  -CAkey mediators-ca-private.key \
+  -CAcreateserial \
+  -out mediators-server.cert \
+  -days 365 -sha256 -extensions v3_ext -extfile mediators-server-openssl.cnf
+```
+
+mediators-server-openssl.cnf:
+```ini
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[dn]
+C = GB
+ST = England
+L = Bristol
+O = Cepro
+CN = cepro-mediators
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = cepro-mediators
+
+[v3_ext]
+subjectAltName = @alt_names
+keyUsage = digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+```
+
+### Client Certificates
+
+Generate a separate set for each external party and a set for Cepro for each environment.
+
+```sh
+openssl genrsa -out mediators-client-cepro-private.key 4096
+
+openssl req -new \
+  -key mediators-client-cepro-private.key \
+  -out mediators-client-cepro.csr \
+  -subj "/C=GB/ST=England/L=Bristol/O=Cepro/CN=cepro-mediators"
+
+openssl x509 -req \
+  -in mediators-client-cepro.csr \
+  -CA mediators-ca.cert \
+  -CAkey mediators-ca-private.key \
+  -CAcreateserial \
+  -out mediators-client-cepro.cert -days 365 -sha256
+```
+
