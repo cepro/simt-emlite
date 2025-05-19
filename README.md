@@ -161,7 +161,7 @@ We generate certficates for a CA, server and clients as follows.
 
 This should be done separately for each environment - prod, qa and local.
 
-Generated keys can be found in Lastpass or should be stored in Lastpass when creating new ones.
+Generated keys can be found in Lastpass under "Mediator Mutual TLS Certificates".
 
 ### CA Certificate
 

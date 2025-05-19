@@ -442,8 +442,8 @@ class EmliteMediatorClient(object):
         if end_time > start_time + datetime.timedelta(hours=24):
             raise Exception("max range between start_time and end_time is 24 hours")
 
-        hardware = self.three_phase_hardware_configuration()
-        self.log.info(f"meter type = {hardware.meter_type.name}")
+        # hardware = self.three_phase_hardware_configuration()
+        # self.log.info(f"meter type = {hardware.meter_type.name}")
 
         # COMMENT OUT this reset for now as it crashed 2 cx meters
         #             they need a physical reset to get working again
