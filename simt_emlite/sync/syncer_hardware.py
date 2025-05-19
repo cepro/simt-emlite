@@ -5,12 +5,14 @@ from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-hardware_meter_str_to_registry_str = {
+single_phase_hardware_str_to_registry_str = {
     "6C": "C1.w",
     "6Cw": "C1.w",
     "6Bw": "B1.w",
     "3Aw": "EMA1.w",
 }
+
+three_phase_hardware_known_strings = ["AX", "CX", "THREE_PHASE_UNKNOWN"]
 
 
 class SyncerHardware(SyncerBase):
@@ -26,20 +28,10 @@ class SyncerHardware(SyncerBase):
 
         hardware_rsp = self.emlite_client.hardware()
 
-        # if 3 phase meter hardware fetch will return None
-
-        # see also ticket related to this issue on the EMOP downloader:
-        #   https://cepro.unfuddle.com/a#/projects/13/tickets/by_number/390
-
-        if hardware_rsp == "":
-            hardware = "P1.ax"
-        else:
-            hardware = hardware_meter_str_to_registry_str[hardware_rsp]
+        if hardware_rsp not in three_phase_hardware_known_strings:
+            hardware = single_phase_hardware_str_to_registry_str[hardware_rsp]
             if hardware is None:
-                logger.error(
-                    "unhandled hardware in response: " + hardware_rsp + ". skipping ..."
-                )
-                return UpdatesTuple(None, None)
+                hardware = "SINGLE_PHASE_UNKNOWN"
 
         registry_hardware = meter_registry_entry["hardware"]
         if registry_hardware == hardware:
