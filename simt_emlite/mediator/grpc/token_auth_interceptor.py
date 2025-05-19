@@ -1,5 +1,4 @@
-from concurrent import futures
-from typing import Any, Callable, List
+from typing import Callable, List
 
 import grpc
 
