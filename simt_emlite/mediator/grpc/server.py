@@ -10,7 +10,8 @@ from emop_frame_protocol.util import emop_encode_u3be
 
 import grpc
 from simt_emlite.emlite.emlite_api import EmliteAPI
-from simt_emlite.mediator.grpc.token_auth_interceptor import TokenAuthInterceptor
+
+# from simt_emlite.mediator.grpc.token_auth_interceptor import TokenAuthInterceptor
 from simt_emlite.util.logging import get_logger
 
 from .generated.mediator_pb2 import (
@@ -210,17 +211,18 @@ def serve():
 
     log.info("starting server")
 
-    interceptor = TokenAuthInterceptor(["abc", "xyz"])
+    # interceptor = TokenAuthInterceptor(["abc", "xyz"])
 
     global server
     server = grpc.server(
-        futures.ThreadPoolExecutor(max_workers=max_workers), interceptors=[interceptor]
+        futures.ThreadPoolExecutor(max_workers=max_workers),
+        #  interceptors=[interceptor]
     )
     add_EmliteMediatorServiceServicer_to_server(
         EmliteMediatorServicer(emlite_host, emlite_port), server
     )
 
-    server.add_insecure_port(f"[::]:{listen_port}")
+    server.add_insecure_port(f"0.0.0.0:{listen_port}")
     server.start()
 
     if inactivity_seconds > 0:

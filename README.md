@@ -97,10 +97,16 @@ See the notes on the mediators CLI above for how to list these machines.
 
 ## Create App for ESCO
 ```sh
-> ESCO=wlce
-> APP=mediators-$ESCO
-> fly app create $APP --org cepro
-> fly ips allocate-v6 --private -a $APP
+ESCO=xyz
+
+# copy the template and edit the place holders inside
+cp fly/fly.toml.template fly/fly-$ESCO.toml
+
+# create app by using lunch - no machines created at this point
+fly launch --config fly/fly-$ESCO.toml --no-deploy --org cepro
+
+# allocate a public ip
+fly ips allocate-v6 -a mediators-$ESCO
 ```
 
 ## Create Mediator Container for meter in ESCO
