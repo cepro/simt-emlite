@@ -147,8 +147,20 @@ class EmliteMediatorClient(object):
 
     def hardware(self) -> str:
         data = self._read_element(ObjectIdEnum.hardware_version)
-        hardware = data.hardware.replace("\u0000", "").strip()
-        self.log.info("received hardware", hardware=hardware)
+
+        # if blank then it's a three phase meter
+        if data.hardware == "":
+            config = self.three_phase_hardware_configuration()
+            if config.meter_type == EmopMessage.ThreePhaseMeterType.ax_whole_current:
+                hardware = "AX"
+            elif config.meter_type == EmopMessage.ThreePhaseMeterType.cx_ct_operated:
+                hardware = "CX"
+            else:
+                hardware = "THREE_PHASE_UNKNOWN"
+        else:
+            hardware = data.hardware.replace("\u0000", "").strip()
+
+        self.log.info("hardware", hardware=hardware)
         return hardware
 
     def firmware_version(self) -> str:
