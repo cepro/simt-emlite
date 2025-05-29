@@ -432,7 +432,7 @@ class EmliteMediatorClient(object):
 
     def three_phase_intervals(
         self, start_time: datetime, end_time: datetime
-    ) -> List[EmopProfileThreePhaseIntervalsResponseFrame]:
+    ) -> EmopProfileThreePhaseIntervalsResponseFrame:
         if start_time >= end_time:
             raise Exception("start_time must come before end_time")
 
@@ -454,20 +454,20 @@ class EmliteMediatorClient(object):
         # )
 
         # Keep reading until all frames fetched
-        frames = []
-        more_frames = True
-        while more_frames:
-            frame = self._three_phase_intervals(
-                start_time,
-                end_time,
-                EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
-            )
-            if frame is not None:
-                frames.append(frame)
-            else:
-                more_frames = False
+        # frames = []
+        # more_frames = True
+        # while more_frames:
+        frame = self._three_phase_intervals(
+            start_time,
+            end_time,
+            EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
+        )
+        # if frame is not None:
+        #     frames.append(frame)
+        # else:
+        #     more_frames = False
 
-        return frames
+        return frame
 
     def event_log(self, log_idx: int) -> EmopEventLogResponse:
         message_len = 4  # object id (3) + log_idx (1)
