@@ -95,21 +95,46 @@ In Fly we create one Fly App per ESCO and each app has a mediator machine (conta
 
 See the notes on the mediators CLI above for how to list these machines.
 
-## Create App for ESCO
+## Create App for ESCOs
 ```sh
-> ESCO=wlce
-> APP=mediators-$ESCO
-> fly app create $APP --org cepro
-> fly ips allocate-v6 --private -a $APP
-> fly secrets set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
-> fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=0)"
-> fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
+ESCO=wlce
+APP=mediators-$ESCO
+fly app create $APP --org cepro
+fly ips allocate-v6 --private -a $APP
+"
 ```
 
-## Create Mediator Container for meter in ESCO
+### Create Mediator Container for meter in ESCO
 ```sh
 > mediators create <meter serial>
 ```
+
+## Create App for a single meter with TLS Auth
+An alternative setup that we are trialing to expose access to a single
+meter from outside of the fly cepro vpn involvles deploying a single
+app for a single mediator. For that setup see the section below about creating certificates and then run the following:
+```sh
+SERIAL=EML123456789
+APP=mediator-$SERIAL
+
+# copy the template and edit the place holders inside
+cp fly/fly-tls-auth.toml.template fly/fly-$SERIAL.toml
+
+# create app by using lunch - no machines created at this point
+fly launch --config fly/fly-$SERIAL.toml --no-deploy --org cepro
+
+fly ips allocate-v6 -a $APP
+
+fly secrets set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
+fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=0)"
+fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
+```
+
+### Create Mediator Container for single meter app
+```sh
+> mediators create <meter serial>
+```
+
 
 ## Publish Docker Image to Fly
 
@@ -136,7 +161,7 @@ We generate certficates for a CA, server and clients as follows.
 
 This should be done separately for each environment - prod, qa and local.
 
-Generated keys can be found in Lastpass.
+Generated keys can be found in Lastpass or should be stored in Lastpass when creating new ones.
 
 ### CA Certificate
 

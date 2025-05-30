@@ -112,6 +112,7 @@ class FlyAdapter(BaseAdapter):
         ip_address: str,
         port: int = None,
         skip_confirm=False,
+        use_cert_auth=False,
     ) -> str:
         machine_name = f"mediator-{serial}"
         metadata = self._metadata(meter_id, ip_address)
@@ -136,17 +137,17 @@ Create machine with these details (y/n): """)
             [cmd],
             port=port,
             name=machine_name,
-            env_vars=self._env_vars(ip_address),
+            env_vars=self._env_vars(ip_address, use_cert_auth),
             metadata=metadata,
         )
         logger.info(f"create machine response {create_response}")
 
         if "error" in create_response:
-            logger.error(f'create machine failed [{create_response['error']}]')
+            logger.error(f"create machine failed [{create_response['error']}]")
             sys.exit(1)
 
         logger.info(
-            f"created machine with id {create_response["id"]}",
+            f"created machine with id {create_response['id']}",
             machine_id=create_response["id"],
         )
         return create_response["id"]
