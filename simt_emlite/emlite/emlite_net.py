@@ -44,7 +44,7 @@ class EmliteNET:
         try:
             logger.debug("sending", request_payload=req_bytes.hex())
             self._write_bytes(sock, req_bytes)
-            rsp_bytes = self._read_bytes(sock, 128)
+            rsp_bytes = self._read_bytes(sock, 512)
             sock.close()
         except socket.timeout as e:
             logger.warn("Timeout in send_message")

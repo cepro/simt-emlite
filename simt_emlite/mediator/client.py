@@ -13,6 +13,9 @@ from emop_frame_protocol.emop_profile_log_1_response import (
 from emop_frame_protocol.emop_profile_log_2_response import (
     emop_decode_profile_log_2_response,
 )
+from emop_frame_protocol.emop_profile_three_phase_intervals_response_block import (
+    EmopProfileThreePhaseIntervalsResponseBlock,
+)
 from emop_frame_protocol.emop_profile_three_phase_intervals_response_frame import (
     EmopProfileThreePhaseIntervalsResponseFrame,
 )
@@ -442,10 +445,8 @@ class EmliteMediatorClient(object):
         hardware = self.three_phase_hardware_configuration()
         self.log.info(f"meter type = {hardware.meter_type.name}")
 
-        # send a cancel up front for a clean start
-
-        # COMMENT OUT this reset for now as it has seemingliy crashed 2 cx
-        #       meters - no responses after sending this
+        # COMMENT OUT this reset for now as it crashed 2 cx meters
+        #             they need a physical reset to get working again
 
         # self._three_phase_intervals(
         #     start_time,
@@ -453,19 +454,11 @@ class EmliteMediatorClient(object):
         #     EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset,
         # )
 
-        # Keep reading until all frames fetched
-        # frames = []
-        # more_frames = True
-        # while more_frames:
         frame = self._three_phase_intervals(
             start_time,
             end_time,
             EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
         )
-        # if frame is not None:
-        #     frames.append(frame)
-        # else:
-        #     more_frames = False
 
         return frame
 
@@ -896,17 +889,23 @@ class EmliteMediatorClient(object):
         data_field._write(_io)
         data_field_bytes = _io.to_byte_array()
 
-        self.log.info(f"three phase intervals request [{data_field_bytes.hex()}]")
+        self.log.info(f"three phase intervals frame request [{data_field_bytes.hex()}]")
         response_bytes = self._send_message(data_field_bytes)
-        self.log.info(f"three phase intervals response [{response_bytes.hex()}]")
+        self.log.info(f"three phase intervals frame response [{response_bytes.hex()}]")
 
-        if profile != EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset:
-            frame = EmopProfileThreePhaseIntervalsResponseFrame(
-                len(response_bytes), KaitaiStream(BytesIO(response_bytes))
-            )
-            frame._read()
-            self.log.info(f"three phase intervals [{str(frame)}]")
-        else:
-            frame = None
+        if profile == EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset:
+            return None
+
+        frame = EmopProfileThreePhaseIntervalsResponseFrame(
+            len(response_bytes), KaitaiStream(BytesIO(response_bytes))
+        )
+        frame._read()
+        self.log.info(f"three phase intervals frame [{str(frame)}]")
+
+        block = EmopProfileThreePhaseIntervalsResponseBlock(
+            len(frame.frame_data), KaitaiStream(BytesIO(frame.frame_data))
+        )
+        block._read()
+        self.log.info(f"three phase intevals block [{str(block)}]")
 
         return frame
