@@ -1,3 +1,6 @@
+import base64
+import os
+
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
@@ -9,6 +12,7 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
+from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 
 from .generated.mediator_pb2 import (
@@ -20,9 +24,11 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
 logger = get_logger(__name__, __file__)
 
-# PROXY_HOST = os.environ.get("MEDIATOR_PROXY_HOST")
-# PROXY_CERT = get_cert()
+config = load_config()
 
+client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
+client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
+ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
 
 # timeout considerations:
 # 1) a successful call should take less than 5 seconds
@@ -59,11 +65,12 @@ class EmliteMediatorGrpcClient:
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
-        # secure_channel for when using the mediator proxy (https://github.com/cepro/simt-mediator-gateway)
-        # with grpc.secure_channel(
-        #     self.proxy_address, self._channel_credentials()
-
-        with grpc.insecure_channel(self.mediator_address) as channel:
+        credentials = self._channel_credentials()
+        with grpc.secure_channel(
+            self.mediator_address,
+            credentials,
+            options=(("grpc.ssl_target_name_override", "cepro-mediators"),),
+        ) as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
@@ -185,13 +192,24 @@ class EmliteMediatorGrpcClient:
         )
         return payload_bytes
 
-    # Uncomment if using the mediator proxy (https://github.com/cepro/simt-mediator-gateway) and secure channels:
+    def _decode_b64_secret_to_bytes(self, b64_secret: str) -> bytes:
+        return (
+            base64.b64decode(b64_secret)
+            .decode("utf-8")
+            .replace("\\n", "\n")
+            .encode("utf-8")
+        )
 
-    # def _channel_credentials(self):
-    #     channel_credential = grpc.ssl_channel_credentials(self.proxy_cert)
-    #     call_credentials = grpc.access_token_call_credentials(self.access_token)
-    #     composite_credentials = grpc.composite_channel_credentials(
-    #         channel_credential,
-    #         call_credentials,
-    #     )
-    #     return composite_credentials
+    def _channel_credentials(self):
+        if client_cert_b64 is None or client_key_b64 is None or ca_cert_b64 is None:
+            raise Exception("client credentials not provided")
+
+        client_cert = self._decode_b64_secret_to_bytes(client_cert_b64)
+        client_key = self._decode_b64_secret_to_bytes(client_key_b64)
+        ca_cert = self._decode_b64_secret_to_bytes(ca_cert_b64)
+
+        return grpc.ssl_channel_credentials(
+            root_certificates=ca_cert,
+            private_key=client_key,
+            certificate_chain=client_cert,
+        )

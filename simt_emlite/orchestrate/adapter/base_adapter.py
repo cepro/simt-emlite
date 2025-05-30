@@ -52,6 +52,9 @@ class BaseAdapter(ABC):
         env_vars: Dict = {
             "EMLITE_HOST": ip_address,
             "MEDIATOR_INACTIVITY_SECONDS": MEDIATOR_INACTIVITY_SECONDS,
+            "MEDIATOR_SERVER_CERT": os.environ.get("MEDIATOR_SERVER_CERT"),
+            "MEDIATOR_SERVER_KEY": os.environ.get("MEDIATOR_SERVER_KEY"),
+            "MEDIATOR_CA_CERT": os.environ.get("MEDIATOR_CA_CERT"),
         }
 
         socks_dict: Dict = self._socks_dict()
