@@ -124,7 +124,7 @@ cp fly/fly-tls-auth.toml.template fly/fly-$SERIAL.toml
 # create app by using lunch - no machines created at this point
 fly launch --config fly/fly-$SERIAL.toml --no-deploy --org cepro
 
-fly ips allocate-v6 -a $APP
+fly ips allocate-v4 -a $APP
 
 fly secrets set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
 fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=0)"
@@ -133,7 +133,7 @@ fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
 
 ### Create Mediator Container for single meter app
 ```sh
-> mediators create <meter serial>
+> mediators create --use-cert-auth <meter serial>
 ```
 
 

@@ -252,10 +252,10 @@ def serve():
             require_client_auth=True,
         )
 
-        log.info(f"add_secure_port [{listen_address}")
+        log.info(f"add_secure_port [{listen_address}]")
         server.add_secure_port(listen_address, server_credentials)
     else:
-        log.info(f"add_insecure_port [{listen_address}")
+        log.info(f"add_insecure_port [{listen_address}]")
         server.add_insecure_port(listen_address)
 
     server.start()
