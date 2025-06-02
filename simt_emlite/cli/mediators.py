@@ -148,24 +148,8 @@ class MediatorsCLI:
             meters = list(filter(lambda m: is_three_phase(m["hardware"]), meters))
 
         # add container info
-        escos = set(map(lambda m: m["esco"].lower(), meters))
-
-        for esco_code in escos:
-            containers_api = get_instance(esco_code)
-            containers = containers_api.list()
-
-            esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
-
-            for meter in esco_meters:
-                container_matches = list(
-                    filter(
-                        lambda c: c.metadata["meter_id"] == meter["id"],
-                        containers,
-                    )
-                )
-                meter["container"] = (
-                    container_matches[0] if len(container_matches) != 0 else None
-                )
+        self._add_container_info_to_app_per_esco_meters(meters)
+        self._add_container_info_to_app_per_serial_meters(meters)
 
         if exists is not None:
             meters = list(
@@ -311,6 +295,8 @@ Go ahead and destroy ALL of these? (y/n): """)
             .eq("id", meter["esco"])
             .execute()
         )
+        print(f"esco_result {esco_result}")
+
         meter["esco"] = esco_result.data[0]["code"]
 
         return meter
@@ -331,6 +317,49 @@ Go ahead and destroy ALL of these? (y/n): """)
             sys.exit(1)
 
         return containers_api, container
+
+    def _add_container_info_to_app_per_esco_meters(self, meters):
+        escos = set(
+            map(
+                lambda m: m["esco"].lower(),
+                list(filter(lambda m: m["esco"] is not None, meters)),
+            )
+        )
+
+        # we get info an 'app' at a time because fly machines api works per app
+        # not across apps. there for first add info to all per-esco apps then
+        # any per-serial apps (single meter per app)
+        for esco_code in escos:
+            containers_api = get_instance(esco=esco_code)
+            containers = containers_api.list()
+
+            esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
+
+            for meter in esco_meters:
+                container_matches = list(
+                    filter(
+                        lambda c: c.metadata["meter_id"] == meter["id"],
+                        containers,
+                    )
+                )
+                meter["container"] = (
+                    container_matches[0] if len(container_matches) != 0 else None
+                )
+
+    def _add_container_info_to_app_per_serial_meters(self, meters):
+        single_app_meters = list(filter(lambda m: m["esco"] is None, meters))
+        for meter in single_app_meters:
+            containers_api = get_instance(serial=meter["serial"])
+            containers = containers_api.list()
+            container_matches = list(
+                filter(
+                    lambda c: c.metadata["meter_id"] == meter["id"],
+                    containers,
+                )
+            )
+            meter["container"] = (
+                container_matches[0] if len(container_matches) != 0 else None
+            )
 
 
 ESCO_FILTER_HELP = "Filter by ESCO code [eg. wlce, hmce, lab]"

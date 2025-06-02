@@ -51,14 +51,19 @@ class FlyAdapter(BaseAdapter):
         api_token: str,
         dns_server: str,
         image: str,
-        esco: str,
+        esco: str = None,
+        serial: str = None,
     ):
         super().__init__()
         self.api = API(api_token)
         self.esco = esco
         self.dns_server = dns_server
-        self.fly_app = f"mediators-{esco}"
         self.image = image
+
+        if esco is None and serial is None:
+            raise Exception("FlyAdapter needs an esco or serial to build an app name")
+
+        self.fly_app = f"mediators-{esco if esco else serial}".lower()
 
     def list(
         self,
@@ -66,9 +71,10 @@ class FlyAdapter(BaseAdapter):
         status_filter: ContainerState = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
+
         if "error" in machines:
-            logger.error(f"failed to get machines {machines}")
-            sys.exit(1)
+            logger.warning(f"failed to get machines {machines}", fly_app=self.fly_app)
+            return []
 
         machines = list(filter(lambda m: m["name"].startswith("mediator-"), machines))
 

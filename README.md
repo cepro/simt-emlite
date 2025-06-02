@@ -114,7 +114,8 @@ An alternative setup that we are trialing to expose access to a single
 meter from outside of the fly cepro vpn involvles deploying a single
 app for a single mediator. For that setup see the section below about creating certificates and then run the following:
 ```sh
-SERIAL=EML123456789
+# lowercase letters required therefore 'eml'
+SERIAL=eml123456789
 APP=mediator-$SERIAL
 
 # copy the template and edit the place holders inside
