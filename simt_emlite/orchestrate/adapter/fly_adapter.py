@@ -63,7 +63,9 @@ class FlyAdapter(BaseAdapter):
         if esco is None and serial is None:
             raise Exception("FlyAdapter needs an esco or serial to build an app name")
 
-        self.fly_app = f"mediators-{esco if esco else serial}".lower()
+        self.fly_app = (
+            f"mediators-{esco}".lower() if esco else f"mediator-{serial}".lower()
+        )
 
     def list(
         self,
