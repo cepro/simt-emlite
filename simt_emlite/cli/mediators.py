@@ -173,7 +173,7 @@ class MediatorsCLI:
 
     def create(self, serial: str, skip_confirm=False, use_cert_auth=False):
         meter = self._meter_by_serial(serial)
-        containers_api = get_instance(meter["esco"])
+        containers_api = get_instance(esco=meter["esco"], serial=serial)
         result = containers_api.create(
             "simt_emlite.mediator.grpc.server",
             meter["id"],
@@ -289,15 +289,14 @@ Go ahead and destroy ALL of these? (y/n): """)
 
         meter = meter_result.data[0]
 
-        esco_result = (
-            self.supabase.table("escos")
-            .select("code")
-            .eq("id", meter["esco"])
-            .execute()
-        )
-        print(f"esco_result {esco_result}")
-
-        meter["esco"] = esco_result.data[0]["code"]
+        if meter["esco"] is not None:
+            esco_result = (
+                self.supabase.table("escos")
+                .select("code")
+                .eq("id", meter["esco"])
+                .execute()
+            )
+            meter["esco"] = esco_result.data[0]["code"]
 
         return meter
 
