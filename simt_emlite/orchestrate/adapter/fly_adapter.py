@@ -125,6 +125,13 @@ class FlyAdapter(BaseAdapter):
         machine_name = f"mediator-{serial}"
         metadata = self._metadata(meter_id, ip_address)
 
+        # if cert auth being used assume it's a public single meter per app
+        # setup. in this case port is the default 50051.
+        internal_port = 50051 if port is None and use_cert_auth is True else port
+        print(
+            f"internal_port {internal_port} port {port} use_cert_auth={use_cert_auth}"
+        )
+
         # TODO: move this in to the CLI
         #       don't want interactions or sys.exit in this module
         if skip_confirm is not True:
@@ -143,7 +150,7 @@ Create machine with these details (y/n): """)
             self.fly_app,
             self.image,
             [cmd],
-            port=port,
+            port=internal_port,
             name=machine_name,
             env_vars=self._env_vars(ip_address, use_cert_auth),
             metadata=metadata,
@@ -189,18 +196,33 @@ Create machine with these details (y/n): """)
         if len(machines) == 0:
             print("no match")
             return None
+        return self.get_app_address(machines[0])
 
-        mediator_host = self.get_app_ip(self.esco)
-        mediator_port = machines[0].port
+    def get_app_address(self, machine):
+        if self.esco:
+            return self.get_private_address(machine)
+        else:
+            return self.get_public_address()
 
+    # connect by public address. for single meter per app setup that supports
+    # external access through fly proxy.
+    def get_public_address(self):
+        return f"{self.fly_app}.fly.dev:50051"
+
+    # connect by private address. assumes wireguard running and connects via ip
+    # private to our fly organisation. see fly docs on flycast and private
+    # '6PN' addresses.
+    def get_private_address(self, machine):
+        mediator_host = self.get_private_flycast_ip()
+        mediator_port = machine.port
         # ipv6 so wrap host ip in []'s
         return f"[{mediator_host}]:{mediator_port}"
 
-    def get_app_ip(self, esco: str):
+    def get_private_flycast_ip(self):
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = [self.dns_server]
         try:
-            answers = resolver.resolve(f"mediators-{esco}.flycast", "AAAA")
+            answers = resolver.resolve(f"mediators-{self.esco}.flycast", "AAAA")
             return answers[0].address
         except Exception as e:
             print(f"\nFailed to resolve flycast address [{e}]\n")

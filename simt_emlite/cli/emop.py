@@ -65,17 +65,20 @@ class EMOPCLI(EmliteMediatorClient):
             meter_id = result.data[0]["id"]
             esco_id = result.data[0]["esco"]
 
-            result = (
-                self.supabase.schema("flows")
-                .table("escos")
-                .select("code")
-                .eq("id", esco_id)
-                .execute()
-            )
-            esco_code = result.data[0]["code"]
+            esco_code = None
+            if esco_id is not None:
+                result = (
+                    self.supabase.schema("flows")
+                    .table("escos")
+                    .select("code")
+                    .eq("id", esco_id)
+                    .execute()
+                )
+                esco_code = result.data[0]["code"]
 
-            containers = get_instance(esco_code)
+            containers = get_instance(esco=esco_code, serial=serial)
             mediator_address = containers.mediator_address(meter_id, serial)
+            print(f"mediator_address {mediator_address}")
 
             super().__init__(
                 mediator_address=mediator_address,

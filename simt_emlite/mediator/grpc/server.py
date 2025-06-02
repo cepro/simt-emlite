@@ -238,6 +238,9 @@ def serve():
         EmliteMediatorServicer(emlite_host, emlite_port), server
     )
 
+    # listen_address = f"[::]:{listen_port}"
+    listen_address = f"0.0.0.0:{listen_port}"
+
     if use_cert_auth:
         server_cert = decode_b64_secret_to_bytes(server_cert_b64)
         server_key = decode_b64_secret_to_bytes(server_key_b64)
@@ -249,9 +252,11 @@ def serve():
             require_client_auth=True,
         )
 
-        server.add_secure_port(f"[::]:{listen_port}", server_credentials)
+        log.info(f"add_secure_port [{listen_address}")
+        server.add_secure_port(listen_address, server_credentials)
     else:
-        server.add_insecure_port(f"[::]:{listen_port}")
+        log.info(f"add_insecure_port [{listen_address}")
+        server.add_insecure_port(listen_address)
 
     server.start()
 
