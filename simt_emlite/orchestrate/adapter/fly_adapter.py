@@ -51,14 +51,21 @@ class FlyAdapter(BaseAdapter):
         api_token: str,
         dns_server: str,
         image: str,
-        esco: str,
+        esco: str = None,
+        serial: str = None,
     ):
         super().__init__()
         self.api = API(api_token)
         self.esco = esco
         self.dns_server = dns_server
-        self.fly_app = f"mediators-{esco}"
         self.image = image
+
+        if esco is None and serial is None:
+            raise Exception("FlyAdapter needs an esco or serial to build an app name")
+
+        self.fly_app = (
+            f"mediators-{esco}".lower() if esco else f"mediator-{serial}".lower()
+        )
 
     def list(
         self,
@@ -66,9 +73,10 @@ class FlyAdapter(BaseAdapter):
         status_filter: ContainerState = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
+
         if "error" in machines:
-            logger.error(f"failed to get machines {machines}")
-            sys.exit(1)
+            logger.warning(f"failed to get machines {machines}", fly_app=self.fly_app)
+            return []
 
         machines = list(filter(lambda m: m["name"].startswith("mediator-"), machines))
 
@@ -112,9 +120,14 @@ class FlyAdapter(BaseAdapter):
         ip_address: str,
         port: int = None,
         skip_confirm=False,
+        use_cert_auth=False,
     ) -> str:
         machine_name = f"mediator-{serial}"
         metadata = self._metadata(meter_id, ip_address)
+
+        # if cert auth being used assume it's a public single meter per app
+        # setup. in this case port is the default 50051.
+        internal_port = 50051 if port is None and use_cert_auth is True else port
 
         # TODO: move this in to the CLI
         #       don't want interactions or sys.exit in this module
@@ -134,19 +147,19 @@ Create machine with these details (y/n): """)
             self.fly_app,
             self.image,
             [cmd],
-            port=port,
+            port=internal_port,
             name=machine_name,
-            env_vars=self._env_vars(ip_address),
+            env_vars=self._env_vars(ip_address, use_cert_auth),
             metadata=metadata,
         )
         logger.info(f"create machine response {create_response}")
 
         if "error" in create_response:
-            logger.error(f'create machine failed [{create_response['error']}]')
+            logger.error(f"create machine failed [{create_response['error']}]")
             sys.exit(1)
 
         logger.info(
-            f"created machine with id {create_response["id"]}",
+            f"created machine with id {create_response['id']}",
             machine_id=create_response["id"],
         )
         return create_response["id"]
@@ -180,18 +193,33 @@ Create machine with these details (y/n): """)
         if len(machines) == 0:
             print("no match")
             return None
+        return self.get_app_address(machines[0])
 
-        mediator_host = self.get_app_ip(self.esco)
-        mediator_port = machines[0].port
+    def get_app_address(self, machine):
+        if self.esco:
+            return self.get_private_address(machine)
+        else:
+            return self.get_public_address()
 
+    # connect by public address. for single meter per app setup that supports
+    # external access through fly proxy.
+    def get_public_address(self):
+        return f"{self.fly_app}.fly.dev:50051"
+
+    # connect by private address. assumes wireguard running and connects via ip
+    # private to our fly organisation. see fly docs on flycast and private
+    # '6PN' addresses.
+    def get_private_address(self, machine):
+        mediator_host = self.get_private_flycast_ip()
+        mediator_port = machine.port
         # ipv6 so wrap host ip in []'s
         return f"[{mediator_host}]:{mediator_port}"
 
-    def get_app_ip(self, esco: str):
+    def get_private_flycast_ip(self):
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = [self.dns_server]
         try:
-            answers = resolver.resolve(f"mediators-{esco}.flycast", "AAAA")
+            answers = resolver.resolve(f"mediators-{self.esco}.flycast", "AAAA")
             return answers[0].address
         except Exception as e:
             print(f"\nFailed to resolve flycast address [{e}]\n")

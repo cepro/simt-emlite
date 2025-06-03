@@ -32,6 +32,8 @@ class SyncerHardware(SyncerBase):
             hardware = single_phase_hardware_str_to_registry_str[hardware_rsp]
             if hardware is None:
                 hardware = "SINGLE_PHASE_UNKNOWN"
+        else:
+            hardware = hardware_rsp
 
         registry_hardware = meter_registry_entry["hardware"]
         if registry_hardware == hardware:

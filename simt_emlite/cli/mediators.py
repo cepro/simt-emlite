@@ -148,24 +148,8 @@ class MediatorsCLI:
             meters = list(filter(lambda m: is_three_phase(m["hardware"]), meters))
 
         # add container info
-        escos = set(map(lambda m: m["esco"].lower(), meters))
-
-        for esco_code in escos:
-            containers_api = get_instance(esco_code)
-            containers = containers_api.list()
-
-            esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
-
-            for meter in esco_meters:
-                container_matches = list(
-                    filter(
-                        lambda c: c.metadata["meter_id"] == meter["id"],
-                        containers,
-                    )
-                )
-                meter["container"] = (
-                    container_matches[0] if len(container_matches) != 0 else None
-                )
+        self._add_container_info_to_app_per_esco_meters(meters)
+        self._add_container_info_to_app_per_serial_meters(meters)
 
         if exists is not None:
             meters = list(
@@ -187,19 +171,20 @@ class MediatorsCLI:
 
         return meters
 
-    def create(self, serial: str, skip_confirm=False):
+    def create(self, serial: str, skip_confirm=False, use_cert_auth=False):
         meter = self._meter_by_serial(serial)
-        containers_api = get_instance(meter["esco"])
+        containers_api = get_instance(esco=meter["esco"], serial=serial)
         result = containers_api.create(
             "simt_emlite.mediator.grpc.server",
             meter["id"],
             serial,
             meter["ip_address"],
             skip_confirm=skip_confirm,
+            use_cert_auth=use_cert_auth,
         )
         return result
 
-    def create_all(self, esco: str):
+    def create_all(self, esco: str, use_cert_auth=False):
         if esco is None:
             print("esco mandatory")
             sys.exit(1)
@@ -214,7 +199,7 @@ Go ahead and create ALL of these? (y/n): """)
             sys.exit(1)
 
         for m in mediators:
-            self.create(m["serial"], skip_confirm=True)
+            self.create(m["serial"], skip_confirm=True, use_cert_auth=use_cert_auth)
 
     def start_one(self, serial: str):
         containers_api, container = self._container_by_serial(serial)
@@ -304,13 +289,14 @@ Go ahead and destroy ALL of these? (y/n): """)
 
         meter = meter_result.data[0]
 
-        esco_result = (
-            self.supabase.table("escos")
-            .select("code")
-            .eq("id", meter["esco"])
-            .execute()
-        )
-        meter["esco"] = esco_result.data[0]["code"]
+        if meter["esco"] is not None:
+            esco_result = (
+                self.supabase.table("escos")
+                .select("code")
+                .eq("id", meter["esco"])
+                .execute()
+            )
+            meter["esco"] = esco_result.data[0]["code"]
 
         return meter
 
@@ -323,13 +309,56 @@ Go ahead and destroy ALL of these? (y/n): """)
     def _container_by_serial(self, serial: str):
         meter = self._meter_by_serial(serial)
 
-        containers_api = get_instance(meter["esco"])
+        containers_api = get_instance(esco=meter["esco"], serial=serial)
         container = containers_api.get(meter["id"])
         if container is None:
             print(f"No mediator found for serial {serial}")
             sys.exit(1)
 
         return containers_api, container
+
+    def _add_container_info_to_app_per_esco_meters(self, meters):
+        escos = set(
+            map(
+                lambda m: m["esco"].lower(),
+                list(filter(lambda m: m["esco"] is not None, meters)),
+            )
+        )
+
+        # we get info an 'app' at a time because fly machines api works per app
+        # not across apps. there for first add info to all per-esco apps then
+        # any per-serial apps (single meter per app)
+        for esco_code in escos:
+            containers_api = get_instance(esco=esco_code)
+            containers = containers_api.list()
+
+            esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
+
+            for meter in esco_meters:
+                container_matches = list(
+                    filter(
+                        lambda c: c.metadata["meter_id"] == meter["id"],
+                        containers,
+                    )
+                )
+                meter["container"] = (
+                    container_matches[0] if len(container_matches) != 0 else None
+                )
+
+    def _add_container_info_to_app_per_serial_meters(self, meters):
+        single_app_meters = list(filter(lambda m: m["esco"] is None, meters))
+        for meter in single_app_meters:
+            containers_api = get_instance(serial=meter["serial"])
+            containers = containers_api.list()
+            container_matches = list(
+                filter(
+                    lambda c: c.metadata["meter_id"] == meter["id"],
+                    containers,
+                )
+            )
+            meter["container"] = (
+                container_matches[0] if len(container_matches) != 0 else None
+            )
 
 
 ESCO_FILTER_HELP = "Filter by ESCO code [eg. wlce, hmce, lab]"
@@ -402,11 +431,22 @@ def main():
         action=argparse.BooleanOptionalAction,
         help="Skip interactive confirmation",
     )
+    parser_create.add_argument(
+        "--use-cert-auth",
+        action=argparse.BooleanOptionalAction,
+        help="Use Mutual TLS Certificate Auth",
+    )
 
-    subparsers.add_parser(
+    parser_create_all = subparsers.add_parser(
         "create_all",
         help="Create all mediators for a given ESCO",
-    ).add_argument("esco", help=ESCO_FILTER_HELP)
+    )
+    parser_create_all.add_argument("esco", help=ESCO_FILTER_HELP)
+    parser_create_all.add_argument(
+        "--use-cert-auth",
+        action=argparse.BooleanOptionalAction,
+        help="Use Mutual TLS Certificate Auth",
+    )
 
     subparsers.add_parser(
         "destroy_one",

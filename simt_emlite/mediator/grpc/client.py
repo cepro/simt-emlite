@@ -30,6 +30,12 @@ client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
 client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
 ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
 
+use_cert_auth = (
+    client_cert_b64 is not None
+    and client_key_b64 is not None
+    and ca_cert_b64 is not None
+)
+
 # timeout considerations:
 # 1) a successful call should take less than 5 seconds
 # 2) emlite_net retries 3 times in case of timeouts, timeout is 10 seconds with
@@ -65,12 +71,7 @@ class EmliteMediatorGrpcClient:
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
 
     def read_element(self, object_id: ObjectIdEnum):
-        credentials = self._channel_credentials()
-        with grpc.secure_channel(
-            self.mediator_address,
-            credentials,
-            options=(("grpc.ssl_target_name_override", "cepro-mediators"),),
-        ) as channel:
+        with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
@@ -136,7 +137,7 @@ class EmliteMediatorGrpcClient:
         return emlite_rsp.message
 
     def write_element(self, object_id: ObjectIdEnum, payload: bytes):
-        with grpc.insecure_channel(self.mediator_address) as channel:
+        with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 stub.writeElement(
@@ -175,7 +176,7 @@ class EmliteMediatorGrpcClient:
                 raise e
 
     def send_message(self, message: bytes):
-        with grpc.insecure_channel(self.mediator_address) as channel:
+        with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.sendRawMessage(
@@ -192,13 +193,16 @@ class EmliteMediatorGrpcClient:
         )
         return payload_bytes
 
-    def _decode_b64_secret_to_bytes(self, b64_secret: str) -> bytes:
-        return (
-            base64.b64decode(b64_secret)
-            .decode("utf-8")
-            .replace("\\n", "\n")
-            .encode("utf-8")
-        )
+    def _get_channel(self):
+        if use_cert_auth:
+            credentials = self._channel_credentials()
+            return grpc.secure_channel(
+                self.mediator_address,
+                credentials,
+                options=(("grpc.ssl_target_name_override", "cepro-mediators"),),
+            )
+        else:
+            return grpc.insecure_channel(self.mediator_address)
 
     def _channel_credentials(self):
         if client_cert_b64 is None or client_key_b64 is None or ca_cert_b64 is None:
@@ -212,4 +216,12 @@ class EmliteMediatorGrpcClient:
             root_certificates=ca_cert,
             private_key=client_key,
             certificate_chain=client_cert,
+        )
+
+    def _decode_b64_secret_to_bytes(self, b64_secret: str) -> bytes:
+        return (
+            base64.b64decode(b64_secret)
+            .decode("utf-8")
+            .replace("\\n", "\n")
+            .encode("utf-8")
         )

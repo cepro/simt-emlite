@@ -46,20 +46,22 @@ class BaseAdapter(ABC):
     def mediator_address(self, meter_id: str, serial: str):
         pass
 
-    def _env_vars(self, ip_address: str) -> Dict:
+    def _env_vars(self, ip_address: str, use_cert_auth: bool) -> Dict:
         MEDIATOR_INACTIVITY_SECONDS = os.environ.get("MEDIATOR_INACTIVITY_SECONDS")
 
         env_vars: Dict = {
             "EMLITE_HOST": ip_address,
             "MEDIATOR_INACTIVITY_SECONDS": MEDIATOR_INACTIVITY_SECONDS,
-            "MEDIATOR_SERVER_CERT": os.environ.get("MEDIATOR_SERVER_CERT"),
-            "MEDIATOR_SERVER_KEY": os.environ.get("MEDIATOR_SERVER_KEY"),
-            "MEDIATOR_CA_CERT": os.environ.get("MEDIATOR_CA_CERT"),
         }
 
         socks_dict: Dict = self._socks_dict()
         if socks_dict is not None:
             env_vars.update(socks_dict)
+
+        if use_cert_auth:
+            certs_dict: Dict = self._certificates_dict()
+            if certs_dict is not None:
+                env_vars.update(certs_dict)
 
         return env_vars
 
@@ -87,6 +89,28 @@ class BaseAdapter(ABC):
         )
 
         return socks_dict if use_socks is True else None
+
+    def _certificates_dict(self) -> Dict:
+        MEDIATOR_SERVER_CERT = os.environ.get("MEDIATOR_SERVER_CERT")
+        MEDIATOR_SERVER_KEY = os.environ.get("MEDIATOR_SERVER_KEY")
+        MEDIATOR_CA_CERT = os.environ.get("MEDIATOR_CA_CERT")
+
+        have_certs = (
+            MEDIATOR_SERVER_CERT is not None
+            and MEDIATOR_SERVER_KEY is not None
+            and MEDIATOR_CA_CERT is not None
+        )
+
+        if not have_certs:
+            raise Exception(
+                "use_cert_auth is True but certificate environment variables not set"
+            )
+
+        return {
+            "MEDIATOR_SERVER_CERT": MEDIATOR_SERVER_CERT,
+            "MEDIATOR_SERVER_KEY": MEDIATOR_SERVER_KEY,
+            "MEDIATOR_CA_CERT": MEDIATOR_CA_CERT,
+        }
 
     def _metadata(self, meter_id, ip_address: str):
         return {"meter_id": meter_id, "emlite_host": ip_address}

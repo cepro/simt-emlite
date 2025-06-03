@@ -54,6 +54,12 @@ server_cert_b64 = os.environ.get("MEDIATOR_SERVER_CERT")
 server_key_b64 = os.environ.get("MEDIATOR_SERVER_KEY")
 ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
 
+use_cert_auth = (
+    server_cert_b64 is not None
+    and server_key_b64 is not None
+    and ca_cert_b64 is not None
+)
+
 """
     Inactive shutdown properties 
 """
@@ -224,20 +230,6 @@ def serve():
         log.error("EMLITE_HOST environment variable not set")
         return
 
-    if server_cert_b64 is None or server_key_b64 is None or ca_cert_b64 is None:
-        log.error("certificates and credentials environment variables not set")
-        return
-
-    server_cert = decode_b64_secret_to_bytes(server_cert_b64)
-    server_key = decode_b64_secret_to_bytes(server_key_b64)
-    ca_cert = decode_b64_secret_to_bytes(ca_cert_b64)
-
-    server_credentials = grpc.ssl_server_credentials(
-        [(server_key, server_cert)],
-        root_certificates=ca_cert,
-        require_client_auth=True,
-    )
-
     log.info("starting server")
 
     global server
@@ -246,7 +238,26 @@ def serve():
         EmliteMediatorServicer(emlite_host, emlite_port), server
     )
 
-    server.add_secure_port(f"[::]:{listen_port}", server_credentials)
+    # listen_address = f"[::]:{listen_port}"
+    listen_address = f"0.0.0.0:{listen_port}"
+
+    if use_cert_auth:
+        server_cert = decode_b64_secret_to_bytes(server_cert_b64)
+        server_key = decode_b64_secret_to_bytes(server_key_b64)
+        ca_cert = decode_b64_secret_to_bytes(ca_cert_b64)
+
+        server_credentials = grpc.ssl_server_credentials(
+            [(server_key, server_cert)],
+            root_certificates=ca_cert,
+            require_client_auth=True,
+        )
+
+        log.info(f"add_secure_port [{listen_address}]")
+        server.add_secure_port(listen_address, server_credentials)
+    else:
+        log.info(f"add_insecure_port [{listen_address}]")
+        server.add_insecure_port(listen_address)
+
     server.start()
 
     if inactivity_seconds > 0:
