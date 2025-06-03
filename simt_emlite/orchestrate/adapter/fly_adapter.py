@@ -128,9 +128,6 @@ class FlyAdapter(BaseAdapter):
         # if cert auth being used assume it's a public single meter per app
         # setup. in this case port is the default 50051.
         internal_port = 50051 if port is None and use_cert_auth is True else port
-        print(
-            f"internal_port {internal_port} port {port} use_cert_auth={use_cert_auth}"
-        )
 
         # TODO: move this in to the CLI
         #       don't want interactions or sys.exit in this module
