@@ -101,7 +101,6 @@ ESCO=wlce
 APP=mediators-$ESCO
 fly app create $APP --org cepro
 fly ips allocate-v6 --private -a $APP
-"
 ```
 
 ### Create Mediator Container for meter in ESCO
@@ -111,7 +110,7 @@ fly ips allocate-v6 --private -a $APP
 
 ## Create App for a single meter with TLS Auth
 An alternative setup that we are trialing to expose access to a single
-meter from outside of the fly cepro vpn involvles deploying a single
+meter from outside of the fly cepro vpn involves deploying a single
 app for a single mediator. For that setup see the section below about creating certificates and then run the following:
 ```sh
 # lowercase letters required therefore 'eml'
@@ -122,7 +121,7 @@ APP=mediator-$SERIAL
 cp fly/fly-tls-auth.toml.template fly/fly-$SERIAL.toml
 
 # create app by using lunch - no machines created at this point
-fly launch --config fly/fly-$SERIAL.toml --no-deploy --org cepro
+fly launch --config fly/fly-$SERIAL.toml --image hello-world --no-deploy --org cepro
 
 fly ips allocate-v4 -a $APP
 

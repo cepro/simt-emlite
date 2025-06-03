@@ -22,11 +22,6 @@ SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
 SUPABASE_ANON_KEY = config["supabase_anon_key"]
 SUPABASE_URL = config["supabase_url"]
 
-# Not using proxy currently:
-
-# PROXY_HOST = config["mediator_proxy_host"]
-# PROXY_CERT = get_cert()
-
 FLY_API_TOKEN = config["fly_api_token"]
 
 
@@ -78,15 +73,8 @@ class EMOPCLI(EmliteMediatorClient):
 
             containers = get_instance(esco=esco_code, serial=serial)
             mediator_address = containers.mediator_address(meter_id, serial)
-            print(f"mediator_address {mediator_address}")
 
-            super().__init__(
-                mediator_address=mediator_address,
-                meter_id=meter_id,
-                # access_token=SUPABASE_ACCESS_TOKEN,
-                # proxy_host_override=PROXY_HOST,
-                # proxy_cert_override=PROXY_CERT,
-            )
+            super().__init__(mediator_address=mediator_address, meter_id=meter_id)
 
     # =================================
     #   Supabase Commands
