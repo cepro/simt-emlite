@@ -38,6 +38,7 @@ from emop_frame_protocol.util import (
 )
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
 
+from simt_emlite.dto.three_phase_intervals import ThreePhaseIntervals
 from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
@@ -435,10 +436,18 @@ class EmliteMediatorClient(object):
 
     def three_phase_intervals(
         self, start_time: datetime, end_time: datetime
-    ) -> EmopProfileThreePhaseIntervalsResponseFrame:
+    ) -> ThreePhaseIntervals:
         if start_time >= end_time:
             raise Exception("start_time must come before end_time")
 
+        # The meter can do up to 24 hours but we limit to 8 hours which fits in
+        # 512 bytes that emlite_net reads from the response.
+        #
+        # There is no reason this can't be lifted to support 24 hours although
+        # it hasn't been tried.
+        #
+        # For now it's up to the caller of this function to get and assemble 8
+        # hour chunks at a time.
         if end_time > start_time + datetime.timedelta(hours=24):
             raise Exception("max range between start_time and end_time is 24 hours")
 
@@ -454,13 +463,34 @@ class EmliteMediatorClient(object):
         #     EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset,
         # )
 
-        frame = self._three_phase_intervals(
-            start_time,
-            end_time,
-            EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
-        )
+        # If the range is 8 hours or less, make a single call
+        if end_time <= start_time + datetime.timedelta(hours=8):
+            block = self._three_phase_intervals(
+                start_time,
+                end_time,
+                EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
+            )
+            return self._blocks_to_intervals_rec([block])
 
-        return frame
+        # For ranges > 8 hours, make multiple calls
+        blocks = []
+        current_start = start_time
+
+        while current_start < end_time:
+            # Calculate the end time for this chunk (max 8 hours)
+            current_end = min(current_start + datetime.timedelta(hours=8), end_time)
+
+            block = self._three_phase_intervals(
+                current_start,
+                current_end,
+                EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
+            )
+            blocks.append(block)
+
+            # Move to the next chunk
+            current_start = current_end
+
+        return self._blocks_to_intervals_rec(blocks)
 
     def event_log(self, log_idx: int) -> EmopEventLogResponse:
         message_len = 4  # object id (3) + log_idx (1)
@@ -868,7 +898,7 @@ class EmliteMediatorClient(object):
         start_time: datetime,
         end_time: datetime,
         profile: EmopProfileThreePhaseIntervalsRequest.ProfileNumber,
-    ) -> EmopProfileThreePhaseIntervalsResponseFrame | None:
+    ) -> EmopProfileThreePhaseIntervalsResponseBlock | None:
         message_len = 13  # profile number + 2 x 4 byte timestamp + 4 bytes fixed)
 
         message_field = EmopProfileThreePhaseIntervalsRequest()
@@ -906,6 +936,27 @@ class EmliteMediatorClient(object):
             len(frame.frame_data), KaitaiStream(BytesIO(frame.frame_data))
         )
         block._read()
-        self.log.info(f"three phase intevals block [{str(block)}]")
+        self.log.info(f"three phase intervals block [{str(block)}]")
 
-        return frame
+        return block
+
+    def _blocks_to_intervals_rec(
+        self,
+        blocks: [EmopProfileThreePhaseIntervalsResponseBlock],
+    ) -> ThreePhaseIntervals:
+        # use the first block header which has the first start time
+        # all other fields will be the same for each block
+        block_header = blocks[0].block_header
+
+        # accumulate intervals accross all blocks
+        intervals = []
+        for block in blocks:
+            intervals.extend(block.intervals)
+
+        return ThreePhaseIntervals(
+            block_start_time=block_header.block_start_time,
+            interval_duration=block_header.interval_duration,
+            num_channel_ids=block_header.num_channel_ids,
+            channel_ids=block_header.channel_ids,
+            intervals=intervals,
+        )
