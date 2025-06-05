@@ -171,8 +171,13 @@ class MediatorsCLI:
 
         return meters
 
-    def create(self, serial: str, skip_confirm=False, use_cert_auth=False):
+    def create(self, serial: str, skip_confirm=False):
         meter = self._meter_by_serial(serial)
+
+        # single meter per app always listen on default
+        # None means a random port will be allocated
+        internal_port = 50051 if meter["single_meter_app"] else None
+
         containers_api = get_instance(
             is_single_meter_app=meter["single_meter_app"],
             esco=meter["esco"],
@@ -183,12 +188,13 @@ class MediatorsCLI:
             meter["id"],
             serial,
             meter["ip_address"],
+            port=internal_port,
             skip_confirm=skip_confirm,
-            use_cert_auth=use_cert_auth,
+            use_cert_auth=meter["single_meter_app"],
         )
         return result
 
-    def create_all(self, esco: str, use_cert_auth=False):
+    def create_all(self, esco: str):
         if esco is None:
             print("esco mandatory")
             sys.exit(1)
@@ -203,7 +209,7 @@ Go ahead and create ALL of these? (y/n): """)
             sys.exit(1)
 
         for m in mediators:
-            self.create(m["serial"], skip_confirm=True, use_cert_auth=use_cert_auth)
+            self.create(m["serial"], skip_confirm=True)
 
     def start_one(self, serial: str):
         containers_api, container = self._container_by_serial(serial)
@@ -439,22 +445,12 @@ def main():
         action=argparse.BooleanOptionalAction,
         help="Skip interactive confirmation",
     )
-    parser_create.add_argument(
-        "--use-cert-auth",
-        action=argparse.BooleanOptionalAction,
-        help="Use Mutual TLS Certificate Auth",
-    )
 
     parser_create_all = subparsers.add_parser(
         "create_all",
         help="Create all mediators for a given ESCO",
     )
     parser_create_all.add_argument("esco", help=ESCO_FILTER_HELP)
-    parser_create_all.add_argument(
-        "--use-cert-auth",
-        action=argparse.BooleanOptionalAction,
-        help="Use Mutual TLS Certificate Auth",
-    )
 
     subparsers.add_parser(
         "destroy_one",

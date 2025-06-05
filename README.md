@@ -103,11 +103,6 @@ fly app create $APP --org cepro
 fly ips allocate-v6 --private -a $APP
 ```
 
-### Create Mediator Container for meter in ESCO
-```sh
-> mediators create <meter serial>
-```
-
 ## Create App for a single meter with TLS Auth
 An alternative setup that we are trialing to expose access to a single
 meter from outside of the fly cepro vpn involves deploying a single
@@ -130,9 +125,9 @@ fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=
 fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
 ```
 
-### Create Mediator Container for single meter app
+### Create Mediator Container for either type of app
 ```sh
-> mediators create --use-cert-auth <meter serial>
+> mediators create <meter serial>
 ```
 
 

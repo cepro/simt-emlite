@@ -57,9 +57,11 @@ class FlyAdapter(BaseAdapter):
     ):
         super().__init__()
         self.api = API(api_token)
-        self.esco = esco
         self.dns_server = dns_server
         self.image = image
+        self.is_single_meter_app = is_single_meter_app
+        self.esco = esco
+        self.serial = serial
 
         if is_single_meter_app and serial is None:
             raise Exception("FlyAdapter needs a serial to work with a single meter app")
@@ -70,7 +72,9 @@ class FlyAdapter(BaseAdapter):
             )
 
         self.fly_app = (
-            f"mediators-{esco}".lower() if esco else f"mediator-{serial}".lower()
+            f"mediator-{serial}".lower()
+            if is_single_meter_app
+            else f"mediators-{esco}".lower()
         )
 
     def list(
@@ -131,10 +135,6 @@ class FlyAdapter(BaseAdapter):
         machine_name = f"mediator-{serial}"
         metadata = self._metadata(meter_id, ip_address)
 
-        # if cert auth being used assume it's a public single meter per app
-        # setup. in this case port is the default 50051.
-        internal_port = 50051 if port is None and use_cert_auth is True else port
-
         # TODO: move this in to the CLI
         #       don't want interactions or sys.exit in this module
         if skip_confirm is not True:
@@ -153,7 +153,7 @@ Create machine with these details (y/n): """)
             self.fly_app,
             self.image,
             [cmd],
-            port=internal_port,
+            port=port,
             name=machine_name,
             env_vars=self._env_vars(ip_address, use_cert_auth),
             metadata=metadata,
@@ -202,15 +202,22 @@ Create machine with these details (y/n): """)
         return self.get_app_address(machines[0])
 
     def get_app_address(self, machine):
-        if self.esco:
-            return self.get_private_address(machine)
-        else:
+        if self.is_single_meter_app:
             return self.get_public_address()
+        else:
+            return self.get_private_address(machine)
 
     # connect by public address. for single meter per app setup that supports
     # external access through fly proxy.
     def get_public_address(self):
-        return f"{self.fly_app}.fly.dev:50051"
+        resolver = dns.resolver.Resolver(configure=False)
+        resolver.nameservers = ["1.1.1.1"]
+        try:
+            answers = resolver.resolve(f"mediator-{self.serial}.fly.dev", "A")
+            return f"{answers[0].address}:50051"
+        except Exception as e:
+            print(f"\nFailed to resolve address [{e}]\n")
+            sys.exit(11)
 
     # connect by private address. assumes wireguard running and connects via ip
     # private to our fly organisation. see fly docs on flycast and private
