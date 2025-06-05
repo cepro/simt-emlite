@@ -43,7 +43,7 @@ class MeterSyncAllJob:
         self.filter_fn = filter_fn
         self.run_frequency = run_frequency
 
-        self.containers = get_instance(esco)
+        self.containers = get_instance(esco=esco)
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run_job(self, meter_id, serial):

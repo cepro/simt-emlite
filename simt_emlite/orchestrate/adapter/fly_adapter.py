@@ -51,6 +51,7 @@ class FlyAdapter(BaseAdapter):
         api_token: str,
         dns_server: str,
         image: str,
+        is_single_meter_app: bool = False,
         esco: str = None,
         serial: str = None,
     ):
@@ -60,8 +61,13 @@ class FlyAdapter(BaseAdapter):
         self.dns_server = dns_server
         self.image = image
 
-        if esco is None and serial is None:
-            raise Exception("FlyAdapter needs an esco or serial to build an app name")
+        if is_single_meter_app and serial is None:
+            raise Exception("FlyAdapter needs a serial to work with a single meter app")
+
+        if not is_single_meter_app and esco is None:
+            raise Exception(
+                "FlyAdapter needs an esco to work with a non single meter app"
+            )
 
         self.fly_app = (
             f"mediators-{esco}".lower() if esco else f"mediator-{serial}".lower()

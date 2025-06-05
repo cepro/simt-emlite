@@ -173,7 +173,11 @@ class MediatorsCLI:
 
     def create(self, serial: str, skip_confirm=False, use_cert_auth=False):
         meter = self._meter_by_serial(serial)
-        containers_api = get_instance(esco=meter["esco"], serial=serial)
+        containers_api = get_instance(
+            is_single_meter_app=meter["single_meter_app"],
+            esco=meter["esco"],
+            serial=serial,
+        )
         result = containers_api.create(
             "simt_emlite.mediator.grpc.server",
             meter["id"],
@@ -279,7 +283,7 @@ Go ahead and destroy ALL of these? (y/n): """)
     def _meter_by_serial(self, serial) -> str:
         meter_result = (
             self.supabase.table("meter_registry")
-            .select("id,ip_address,esco")
+            .select("id,ip_address,esco,single_meter_app")
             .eq("serial", serial)
             .execute()
         )
@@ -309,7 +313,11 @@ Go ahead and destroy ALL of these? (y/n): """)
     def _container_by_serial(self, serial: str):
         meter = self._meter_by_serial(serial)
 
-        containers_api = get_instance(esco=meter["esco"], serial=serial)
+        containers_api = get_instance(
+            is_single_meter_app=meter["single_meter_app"],
+            esco=meter["esco"],
+            serial=serial,
+        )
         container = containers_api.get(meter["id"])
         if container is None:
             print(f"No mediator found for serial {serial}")

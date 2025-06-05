@@ -48,7 +48,7 @@ class EMOPCLI(EmliteMediatorClient):
         if serial is not None:
             result = (
                 self.supabase.table("meter_registry")
-                .select("id,esco")
+                .select("id,esco,single_meter_app")
                 .eq("serial", serial)
                 .execute()
             )
@@ -57,8 +57,10 @@ class EMOPCLI(EmliteMediatorClient):
                 print(err_msg)
                 raise Exception(err_msg)
 
-            meter_id = result.data[0]["id"]
-            esco_id = result.data[0]["esco"]
+            meter = result.data[0]
+            meter_id = meter["id"]
+            esco_id = meter["esco"]
+            is_single_meter_app = meter["single_meter_app"]
 
             esco_code = None
             if esco_id is not None:
@@ -71,7 +73,11 @@ class EMOPCLI(EmliteMediatorClient):
                 )
                 esco_code = result.data[0]["code"]
 
-            containers = get_instance(esco=esco_code, serial=serial)
+            containers = get_instance(
+                is_single_meter_app=is_single_meter_app,
+                esco=esco_code,
+                serial=serial,
+            )
             mediator_address = containers.mediator_address(meter_id, serial)
 
             super().__init__(mediator_address=mediator_address, meter_id=meter_id)

@@ -4,7 +4,9 @@ from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
 from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
 
 
-def get_instance(esco: str = None, serial: str = None):
+def get_instance(
+    is_single_meter_app: bool = False, esco: str = None, serial: str = None
+):
     # ideally load these outside the function however due to the way we load
     # the env variables in the cli tool (in the body and not before the script
     # is invoked) this module gets executed before env loading as imports are
@@ -16,7 +18,12 @@ def get_instance(esco: str = None, serial: str = None):
 
     if fly_api_token is not None:
         adapter = FlyAdapter(
-            fly_api_token, fly_dns_server, mediator_image, esco, serial
+            fly_api_token,
+            fly_dns_server,
+            mediator_image,
+            is_single_meter_app,
+            esco,
+            serial,
         )
     else:
         adapter = DockerAdapter(mediator_image)

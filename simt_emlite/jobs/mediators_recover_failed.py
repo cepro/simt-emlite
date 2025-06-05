@@ -40,7 +40,7 @@ class MediatorsRecoverFailedJob:
 
         self.esco = esco
 
-        self.containers = get_instance(esco)
+        self.containers = get_instance(esco=esco)
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run(self):
