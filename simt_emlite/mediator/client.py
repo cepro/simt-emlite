@@ -494,7 +494,7 @@ class EmliteMediatorClient(object):
                 # Move to the next chunk
                 current_start = current_end
 
-            all_intervals = self._blocks_to_intervals_rec([block])
+            all_intervals = self._blocks_to_intervals_rec(blocks)
 
         export_three_phase_intervals_to_csv(all_intervals, csv, include_statuses)
 
