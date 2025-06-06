@@ -3,6 +3,24 @@ from datetime import timedelta
 
 from simt_emlite.dto.three_phase_intervals import ThreePhaseIntervals
 
+channel_id_to_name = {
+    "d79600": "active_import_demand",
+    "d79601": "active_export_demand",
+    "d79602": "reactive_import_demand",
+    "d79603": "reactive_export_demand",
+    "d79604": "reactive_energy_quadrant_1_demand",
+    "d79605": "reactive_energy_quadrant_2_demand",
+    "d79606": "reactive_energy_quadrant_3_demand",
+    "d79607": "reactive_energy_quadrant_4_demand",
+    # Total energy registers
+    "010800": "total_active_energy_import",
+    "020800": "total_active_energy_export",
+    "030800": "total_reactive_energy_import",
+    "040800": "total_reactive_energy_export",
+    "090800": "total_apparent_energy_import",
+    "100800": "total_apparent_energy_export",
+}
+
 
 def export_three_phase_intervals_to_csv(
     record: ThreePhaseIntervals, csv_file_path: str, include_statuses: bool = False
@@ -32,7 +50,7 @@ def export_three_phase_intervals_to_csv(
             channel_header = (
                 channel_id.hex() if hasattr(channel_id, "hex") else str(channel_id)
             )
-        channel_headers.append(channel_header)
+        channel_headers.append(channel_id_to_name[channel_header])
 
     headers.extend(channel_headers)
 

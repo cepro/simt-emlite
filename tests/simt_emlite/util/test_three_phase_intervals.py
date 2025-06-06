@@ -79,7 +79,7 @@ class TestThreePhaseIntervalsCSVExport(unittest.TestCase):
 
             # Expected content
             expected_lines = [
-                "created_at,010800,020800,030800,040800",
+                "created_at,total_active_energy_import,total_active_energy_export,total_reactive_energy_import,total_reactive_energy_export",
                 "2025-06-02T20:00:00,4053,1179,2780,149",
                 "2025-06-02T20:30:00,4053,1179,2780,149",
                 "2025-06-02T21:00:00,4053,1179,2780,149",
@@ -114,7 +114,7 @@ class TestThreePhaseIntervalsCSVExport(unittest.TestCase):
                 lines = f.read().strip().split("\n")
 
             # Expected header
-            expected_header = "created_at,010800,020800,030800,040800,valid_data,power_fail,phase_1_voltage_failure,phase_2_voltage_failure,phase_3_voltage_failure,security_access,md_reset,time_update,log_reset"
+            expected_header = "created_at,total_active_energy_import,total_active_energy_export,total_reactive_energy_import,total_reactive_energy_export,valid_data,power_fail,phase_1_voltage_failure,phase_2_voltage_failure,phase_3_voltage_failure,security_access,md_reset,time_update,log_reset"
 
             # Expected data rows
             expected_data_row = "2025-06-02T20:00:00,4053,1179,2780,149,True,False,True,True,False,False,False,False,False"
