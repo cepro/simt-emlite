@@ -1,5 +1,11 @@
 import csv
 from datetime import timedelta
+from typing import List
+
+from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.emop_profile_three_phase_intervals_response_block import (
+    EmopProfileThreePhaseIntervalsResponseBlock,
+)
 
 from simt_emlite.dto.three_phase_intervals import ThreePhaseIntervals
 
@@ -22,8 +28,32 @@ channel_id_to_name = {
 }
 
 
+def blocks_to_intervals_rec(
+    blocks: [EmopProfileThreePhaseIntervalsResponseBlock],
+) -> ThreePhaseIntervals:
+    # use the first block header which has the first start time
+    # all other fields will be the same for each block
+    block_header = blocks[0].block_header
+
+    # accumulate intervals accross all blocks
+    intervals = []
+    for block in blocks:
+        intervals.extend(block.intervals)
+
+    return ThreePhaseIntervals(
+        block_start_time=block_header.block_start_time,
+        interval_duration=block_header.interval_duration,
+        num_channel_ids=block_header.num_channel_ids,
+        channel_ids=block_header.channel_ids,
+        intervals=intervals,
+    )
+
+
 def export_three_phase_intervals_to_csv(
-    record: ThreePhaseIntervals, csv_file_path: str, include_statuses: bool = False
+    record: ThreePhaseIntervals,
+    csv_file_path: str,
+    meter_type: EmopMessage.ThreePhaseMeterType,
+    include_statuses: bool = False,
 ) -> None:
     """
     Export ThreePhaseIntervals record to CSV file.
@@ -34,24 +64,19 @@ def export_three_phase_intervals_to_csv(
         include_statuses: If True, include status columns in the output
     """
 
+    if (
+        meter_type != EmopMessage.ThreePhaseMeterType.ax_whole_current
+        and meter_type != EmopMessage.ThreePhaseMeterType.cx_ct_operated
+    ):
+        raise Exception(f"meter_type {meter_type.name} not handled")
+
     start_time = record.block_start_time
 
     # Prepare column headers
     headers = ["created_at"]
 
     # Add channel ID columns (convert hex IDs to strings for column names)
-    channel_headers = []
-    for channel_id in record.channel_ids:
-        if isinstance(channel_id, int):
-            # Convert integer to hex string
-            channel_header = f"{channel_id:06x}"
-        else:
-            # Assume it's already a hex string or bytes
-            channel_header = (
-                channel_id.hex() if hasattr(channel_id, "hex") else str(channel_id)
-            )
-        channel_headers.append(channel_id_to_name[channel_header])
-
+    channel_headers = _channel_ids_to_header_names(record.channel_ids)
     headers.extend(channel_headers)
 
     # Add status columns if requested
@@ -89,7 +114,19 @@ def export_three_phase_intervals_to_csv(
                     f"and number of channels ({len(channel_headers)})"
                 )
 
-            row.extend(interval.channel_data)
+            # channel data adjusted from W (ax) or 0.1W (cx) to kW
+            factor = (
+                1_000
+                if meter_type == EmopMessage.ThreePhaseMeterType.ax_whole_current
+                else 10_000
+            )
+            adjusted_channel_data = list(
+                map(
+                    lambda value: 0 if value == 0 else value / factor,
+                    interval.channel_data,
+                )
+            )
+            row.extend(adjusted_channel_data)
 
             # Add status values if requested
             if include_statuses:
@@ -100,3 +137,20 @@ def export_three_phase_intervals_to_csv(
                 row.extend(status_values)
 
             writer.writerow(row)
+
+
+def _channel_ids_to_header_names(channel_ids: List[int]):
+    channel_headers = []
+
+    for channel_id in channel_ids:
+        if isinstance(channel_id, int):
+            # Convert integer to hex string
+            channel_header = f"{channel_id:06x}"
+        else:
+            # Assume it's already a hex string or bytes
+            channel_header = (
+                channel_id.hex() if hasattr(channel_id, "hex") else str(channel_id)
+            )
+        channel_headers.append(channel_id_to_name[channel_header])
+
+    return channel_headers

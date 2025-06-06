@@ -46,7 +46,10 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.three_phase_intervals import export_three_phase_intervals_to_csv
+from simt_emlite.util.three_phase_intervals import (
+    blocks_to_intervals_rec,
+    export_three_phase_intervals_to_csv,
+)
 
 from .grpc.client import EmliteMediatorGrpcClient
 
@@ -465,8 +468,8 @@ class EmliteMediatorClient(object):
             if end_time > start_time + datetime.timedelta(hours=24):
                 raise Exception("max range between start_time and end_time is 24 hours")
 
-        # hardware = self.three_phase_hardware_configuration()
-        # self.log.info(f"meter type = {hardware.meter_type.name}")
+        hardware = self.three_phase_hardware_configuration()
+        self.log.info(f"meter type = {hardware.meter_type.name}")
 
         # COMMENT OUT this reset for now as it crashed 2 cx meters
         #             they need a physical reset to get working again
@@ -481,12 +484,12 @@ class EmliteMediatorClient(object):
 
         # If the range is 8 hours or less, make a single call
         if end_time <= start_time + datetime.timedelta(hours=hours_per_frame):
-            block = self._three_phase_intervals(
+            block = self._three_phase_intervals_read(
                 start_time,
                 end_time,
                 EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
             )
-            all_intervals = self._blocks_to_intervals_rec([block])
+            all_intervals = blocks_to_intervals_rec([block])
         else:
             # For ranges > 4 hours, make multiple calls
             blocks = []
@@ -498,7 +501,7 @@ class EmliteMediatorClient(object):
                     current_start + datetime.timedelta(hours=hours_per_frame), end_time
                 )
 
-                block = self._three_phase_intervals(
+                block = self._three_phase_intervals_read(
                     current_start,
                     current_end,
                     EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
@@ -508,9 +511,11 @@ class EmliteMediatorClient(object):
                 # Move to the next chunk
                 current_start = current_end
 
-            all_intervals = self._blocks_to_intervals_rec(blocks)
+            all_intervals = blocks_to_intervals_rec(blocks)
 
-        export_three_phase_intervals_to_csv(all_intervals, csv, include_statuses)
+        export_three_phase_intervals_to_csv(
+            all_intervals, csv, hardware.meter_type, include_statuses
+        )
 
         return all_intervals
 
@@ -915,7 +920,7 @@ class EmliteMediatorClient(object):
     def _pluck_keys(self, rec, key_prefix):
         return ({k: v for k, v in vars(rec).items() if k.startswith(key_prefix)},)
 
-    def _three_phase_intervals(
+    def _three_phase_intervals_read(
         self,
         start_time: datetime,
         end_time: datetime,
@@ -961,27 +966,3 @@ class EmliteMediatorClient(object):
         self.log.info(f"three phase intervals block [{str(block)}]")
 
         return block
-
-    def _blocks_to_intervals_rec(
-        self,
-        blocks: [EmopProfileThreePhaseIntervalsResponseBlock],
-    ) -> ThreePhaseIntervals:
-        # use the first block header which has the first start time
-        # all other fields will be the same for each block
-        block_header = blocks[0].block_header
-
-        # accumulate intervals accross all blocks
-        intervals = []
-        for block in blocks:
-            intervals.extend(block.intervals)
-            print(
-                f"intervals len = {len(intervals)} block intervals {len(block.intervals)}"
-            )
-
-        return ThreePhaseIntervals(
-            block_start_time=block_header.block_start_time,
-            interval_duration=block_header.interval_duration,
-            num_channel_ids=block_header.num_channel_ids,
-            channel_ids=block_header.channel_ids,
-            intervals=intervals,
-        )

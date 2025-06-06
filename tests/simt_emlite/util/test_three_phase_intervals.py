@@ -3,6 +3,8 @@ import tempfile
 import unittest
 from datetime import datetime
 
+from emop_frame_protocol.emop_message import EmopMessage
+
 from simt_emlite.util.three_phase_intervals import export_three_phase_intervals_to_csv
 
 
@@ -70,7 +72,10 @@ class TestThreePhaseIntervalsCSVExport(unittest.TestCase):
         try:
             # Export the data
             export_three_phase_intervals_to_csv(
-                self.test_record, csv_path, include_statuses=False
+                self.test_record,
+                csv_path,
+                EmopMessage.ThreePhaseMeterType.ax_whole_current,
+                include_statuses=False,
             )
 
             # Read the CSV content
@@ -80,9 +85,9 @@ class TestThreePhaseIntervalsCSVExport(unittest.TestCase):
             # Expected content
             expected_lines = [
                 "created_at,total_active_energy_import,total_active_energy_export,total_reactive_energy_import,total_reactive_energy_export",
-                "2025-06-02T20:00:00,4053,1179,2780,149",
-                "2025-06-02T20:30:00,4053,1179,2780,149",
-                "2025-06-02T21:00:00,4053,1179,2780,149",
+                "2025-06-02T20:00:00,4.053,1.179,2.78,0.149",
+                "2025-06-02T20:30:00,4.053,1.179,2.78,0.149",
+                "2025-06-02T21:00:00,4.053,1.179,2.78,0.149",
             ]
 
             # Assert the content matches
@@ -106,7 +111,10 @@ class TestThreePhaseIntervalsCSVExport(unittest.TestCase):
         try:
             # Export the data with status columns
             export_three_phase_intervals_to_csv(
-                self.test_record, csv_path, include_statuses=True
+                self.test_record,
+                csv_path,
+                EmopMessage.ThreePhaseMeterType.ax_whole_current,
+                include_statuses=True,
             )
 
             # Read the CSV content
@@ -117,12 +125,12 @@ class TestThreePhaseIntervalsCSVExport(unittest.TestCase):
             expected_header = "created_at,total_active_energy_import,total_active_energy_export,total_reactive_energy_import,total_reactive_energy_export,valid_data,power_fail,phase_1_voltage_failure,phase_2_voltage_failure,phase_3_voltage_failure,security_access,md_reset,time_update,log_reset"
 
             # Expected data rows
-            expected_data_row = "2025-06-02T20:00:00,4053,1179,2780,149,True,False,True,True,False,False,False,False,False"
+            expected_data_row = "2025-06-02T20:00:00,4.053,1.179,2.78,0.149,True,False,True,True,False,False,False,False,False"
             expected_lines = [
                 expected_header,
                 expected_data_row,
-                "2025-06-02T20:30:00,4053,1179,2780,149,True,False,True,True,False,False,False,False,False",
-                "2025-06-02T21:00:00,4053,1179,2780,149,True,False,True,True,False,False,False,False,False",
+                "2025-06-02T20:30:00,4.053,1.179,2.78,0.149,True,False,True,True,False,False,False,False,False",
+                "2025-06-02T21:00:00,4.053,1.179,2.78,0.149,True,False,True,True,False,False,False,False,False",
             ]
 
             # Assert the content matches
