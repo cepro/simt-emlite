@@ -30,7 +30,7 @@ client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
 client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
 ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
 
-use_cert_auth = (
+have_certs = (
     client_cert_b64 is not None
     and client_key_b64 is not None
     and ca_cert_b64 is not None
@@ -49,23 +49,14 @@ class EmliteMediatorGrpcClient:
         self,
         mediator_address="0.0.0.0:50051",
         meter_id=None,
-        # access_token=None,
-        # proxy_host_override=None,
-        # proxy_cert_override=None,
+        use_cert_auth=False,
     ):
+        if use_cert_auth and not have_certs:
+            raise Exception("use_cert_auth set but certs not seend")
+
         self.mediator_address = mediator_address
         self.meter_id = meter_id if meter_id is not None else "unknown"
-
-        # For use with mediator proxy (https://github.com/cepro/simt-mediator-gateway):
-
-        # self.access_token = access_token
-        # self.proxy_host = (
-        #     proxy_host_override if proxy_host_override is not None else PROXY_HOST
-        # )
-        # self.proxy_cert = (
-        #     proxy_cert_override if proxy_cert_override is not None else PROXY_CERT
-        # )
-        # self.proxy_address = f"{self.proxy_host}:1443"
+        self.use_cert_auth = use_cert_auth
 
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
@@ -194,7 +185,7 @@ class EmliteMediatorGrpcClient:
         return payload_bytes
 
     def _get_channel(self):
-        if use_cert_auth:
+        if self.use_cert_auth:
             credentials = self._channel_credentials()
             return grpc.secure_channel(
                 self.mediator_address,

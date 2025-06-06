@@ -80,7 +80,11 @@ class EMOPCLI(EmliteMediatorClient):
             )
             mediator_address = containers.mediator_address(meter_id, serial)
 
-            super().__init__(mediator_address=mediator_address, meter_id=meter_id)
+            super().__init__(
+                mediator_address=mediator_address,
+                meter_id=meter_id,
+                use_cert_auth=is_single_meter_app,
+            )
 
     # =================================
     #   Supabase Commands

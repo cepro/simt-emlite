@@ -126,19 +126,12 @@ class TariffsFuture(TypedDict):
 
 class EmliteMediatorClient(object):
     def __init__(
-        self,
-        mediator_address="0.0.0.0:50051",
-        meter_id=None,
-        # access_token=None,
-        # proxy_host_override=None,
-        # proxy_cert_override=None,
+        self, mediator_address="0.0.0.0:50051", meter_id=None, use_cert_auth=False
     ):
         self.grpc_client = EmliteMediatorGrpcClient(
             mediator_address=mediator_address,
             meter_id=meter_id,
-            # access_token=access_token,
-            # proxy_host_override=proxy_host_override,
-            # proxy_cert_override=proxy_cert_override,
+            use_cert_auth=use_cert_auth,
         )
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
@@ -442,11 +435,13 @@ class EmliteMediatorClient(object):
         csv: str,
         include_statuses: bool = False,
     ) -> ThreePhaseIntervals:
+        hours_per_frame = 4
+
         if start_time >= end_time:
             raise Exception("start_time must come before end_time")
 
-        # The meter can do up to 24 hours but we limit to 8 hours which fits in
-        # 512 bytes that emlite_net reads from the response.
+        # The meter can do up to 24 hours but we limit to hours_per_frame hours
+        # which fits in 512 bytes that emlite_net reads from the response.
         #
         # There is no reason this can't be lifted to support 24 hours although
         # it hasn't been tried.
@@ -471,7 +466,7 @@ class EmliteMediatorClient(object):
         all_intervals: ThreePhaseIntervals
 
         # If the range is 8 hours or less, make a single call
-        if end_time <= start_time + datetime.timedelta(hours=8):
+        if end_time <= start_time + datetime.timedelta(hours=hours_per_frame):
             block = self._three_phase_intervals(
                 start_time,
                 end_time,
@@ -479,13 +474,15 @@ class EmliteMediatorClient(object):
             )
             all_intervals = self._blocks_to_intervals_rec([block])
         else:
-            # For ranges > 8 hours, make multiple calls
+            # For ranges > 4 hours, make multiple calls
             blocks = []
             current_start = start_time
 
             while current_start < end_time:
-                # Calculate the end time for this chunk (max 8 hours)
-                current_end = min(current_start + datetime.timedelta(hours=4), end_time)
+                # Calculate the end time for this chunk (max hours_per_frame hours)
+                current_end = min(
+                    current_start + datetime.timedelta(hours=hours_per_frame), end_time
+                )
 
                 block = self._three_phase_intervals(
                     current_start,
@@ -963,6 +960,9 @@ class EmliteMediatorClient(object):
         intervals = []
         for block in blocks:
             intervals.extend(block.intervals)
+            print(
+                f"intervals len = {len(intervals)} block intervals {len(block.intervals)}"
+            )
 
         return ThreePhaseIntervals(
             block_start_time=block_header.block_start_time,
