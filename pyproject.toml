@@ -1,18 +1,18 @@
 [project]
 name = "simt-emlite"
-version = "0.19.3"
+version = "0.20.0"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.12,<4.0"
 readme = "README.pypi.md"
 dependencies = [
-    "grpcio==1.64.1",
+    "grpcio==1.72.1",
     "tenacity==8.5.0",
-    "supabase==2.5.3",
+    "supabase==2.15.2",
     "crcmod==1.7",
     "structlog==24.4.0",
     "docker==7.1.0",
-    "protobuf==5.27.2",
+    "protobuf==5.29.5",
     "python-dotenv==1.0.1",
     "python-socks==2.5.0",
     "rich==13.7.1",

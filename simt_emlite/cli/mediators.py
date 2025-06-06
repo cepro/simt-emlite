@@ -360,9 +360,13 @@ Go ahead and destroy ALL of these? (y/n): """)
                 )
 
     def _add_container_info_to_app_per_serial_meters(self, meters):
-        single_app_meters = list(filter(lambda m: m["esco"] is None, meters))
+        single_app_meters = list(
+            filter(lambda m: m["single_meter_app"] is True, meters)
+        )
         for meter in single_app_meters:
-            containers_api = get_instance(serial=meter["serial"])
+            containers_api = get_instance(
+                is_single_meter_app=True, serial=meter["serial"]
+            )
             containers = containers_api.list()
             container_matches = list(
                 filter(
