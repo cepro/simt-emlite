@@ -1,6 +1,8 @@
 import datetime
+from datetime import time
 from decimal import Decimal
 from typing import List, TypedDict
+from zoneinfo import ZoneInfo
 
 import grpc
 from emop_frame_protocol.emop_data import EmopData
@@ -430,6 +432,7 @@ class EmliteMediatorClient(object):
 
     def three_phase_intervals(
         self,
+        day: datetime,
         start_time: datetime,
         end_time: datetime,
         csv: str,
@@ -437,19 +440,30 @@ class EmliteMediatorClient(object):
     ) -> ThreePhaseIntervals:
         hours_per_frame = 4
 
-        if start_time >= end_time:
-            raise Exception("start_time must come before end_time")
+        #  day given then setup start and end for it
+        if day:
+            start_time = datetime.datetime.combine(
+                day, time(0, 0), tzinfo=ZoneInfo("UTC")
+            )
+            end_time = datetime.datetime.combine(
+                day, time(23, 30), tzinfo=ZoneInfo("UTC")
+            )
 
-        # The meter can do up to 24 hours but we limit to hours_per_frame hours
-        # which fits in 512 bytes that emlite_net reads from the response.
-        #
-        # There is no reason this can't be lifted to support 24 hours although
-        # it hasn't been tried.
-        #
-        # For now it's up to the caller of this function to get and assemble 8
-        # hour chunks at a time.
-        if end_time > start_time + datetime.timedelta(hours=24):
-            raise Exception("max range between start_time and end_time is 24 hours")
+        # otherwise check start and end times
+        else:
+            if start_time >= end_time:
+                raise Exception("start_time must come before end_time")
+
+            # The meter can do up to 24 hours but we limit to hours_per_frame hours
+            # which fits in 512 bytes that emlite_net reads from the response.
+            #
+            # There is no reason this can't be lifted to support 24 hours although
+            # it hasn't been tried.
+            #
+            # For now it's up to the caller of this function to get and assemble 8
+            # hour chunks at a time.
+            if end_time > start_time + datetime.timedelta(hours=24):
+                raise Exception("max range between start_time and end_time is 24 hours")
 
         # hardware = self.three_phase_hardware_configuration()
         # self.log.info(f"meter type = {hardware.meter_type.name}")
