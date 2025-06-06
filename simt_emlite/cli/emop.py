@@ -417,6 +417,18 @@ emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" -
         required=True,
         type=valid_iso_datetime,
     )
+    three_phase_intervals_parser.add_argument(
+        "--csv",
+        help="Path to CSV file to output intervals data",
+        required=True,
+        type=str,
+    )
+    three_phase_intervals_parser.add_argument(
+        "--include_statuses",
+        help="Include statuses in the CSV",
+        required=False,
+        action="store_true",
+    )
 
     # ===========    Writes    ==========
 

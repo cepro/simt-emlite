@@ -44,6 +44,7 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.three_phase_intervals import export_three_phase_intervals_to_csv
 
 from .grpc.client import EmliteMediatorGrpcClient
 
@@ -435,7 +436,11 @@ class EmliteMediatorClient(object):
     """
 
     def three_phase_intervals(
-        self, start_time: datetime, end_time: datetime
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        csv: str,
+        include_statuses: bool = False,
     ) -> ThreePhaseIntervals:
         if start_time >= end_time:
             raise Exception("start_time must come before end_time")
@@ -463,6 +468,8 @@ class EmliteMediatorClient(object):
         #     EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset,
         # )
 
+        all_intervals: ThreePhaseIntervals
+
         # If the range is 8 hours or less, make a single call
         if end_time <= start_time + datetime.timedelta(hours=8):
             block = self._three_phase_intervals(
@@ -470,27 +477,31 @@ class EmliteMediatorClient(object):
                 end_time,
                 EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
             )
-            return self._blocks_to_intervals_rec([block])
+            all_intervals = self._blocks_to_intervals_rec([block])
+        else:
+            # For ranges > 8 hours, make multiple calls
+            blocks = []
+            current_start = start_time
 
-        # For ranges > 8 hours, make multiple calls
-        blocks = []
-        current_start = start_time
+            while current_start < end_time:
+                # Calculate the end time for this chunk (max 8 hours)
+                current_end = min(current_start + datetime.timedelta(hours=4), end_time)
 
-        while current_start < end_time:
-            # Calculate the end time for this chunk (max 8 hours)
-            current_end = min(current_start + datetime.timedelta(hours=8), end_time)
+                block = self._three_phase_intervals(
+                    current_start,
+                    current_end,
+                    EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
+                )
+                blocks.append(block)
 
-            block = self._three_phase_intervals(
-                current_start,
-                current_end,
-                EmopProfileThreePhaseIntervalsRequest.ProfileNumber.profile_0,
-            )
-            blocks.append(block)
+                # Move to the next chunk
+                current_start = current_end
 
-            # Move to the next chunk
-            current_start = current_end
+            all_intervals = self._blocks_to_intervals_rec([block])
 
-        return self._blocks_to_intervals_rec(blocks)
+        export_three_phase_intervals_to_csv(all_intervals, csv, include_statuses)
+
+        return all_intervals
 
     def event_log(self, log_idx: int) -> EmopEventLogResponse:
         message_len = 4  # object id (3) + log_idx (1)

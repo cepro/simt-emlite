@@ -20,7 +20,7 @@ class ThreePhaseIntervals:
         channel_ids: List[int],
         intervals: List[EmopProfileThreePhaseIntervalRecord],
     ):
-        self.block_start_time = (emop_epoch_seconds_to_datetime(block_start_time),)
+        self.block_start_time = emop_epoch_seconds_to_datetime(block_start_time)
         self.interval_duration = interval_duration
         self.num_channel_ids = num_channel_ids
         self.channel_ids = channel_ids
