@@ -5,6 +5,13 @@ from pathlib import Path
 
 import structlog
 
+# Configure standard library logging FIRST
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stdout,
+    level=logging.INFO,  # This will now actually work
+)
+
 shared_processors = [
     structlog.contextvars.merge_contextvars,
     structlog.processors.add_log_level,
@@ -21,7 +28,13 @@ else:
         structlog.processors.JSONRenderer(),
     ]
 
-structlog.configure(processors=shared_processors + processors)
+# This is the key change - configure structlog to use stdlib logger
+structlog.configure(
+    processors=shared_processors + processors,
+    logger_factory=structlog.stdlib.LoggerFactory(),  # Use stdlib logger
+    wrapper_class=structlog.stdlib.BoundLogger,       # Use stdlib wrapper
+    cache_logger_on_first_use=True,
+)
 
 
 def path_to_package_and_module(path: str):
@@ -39,22 +52,3 @@ def logger_module_name(name, file=None):
 
 def get_logger(name: str, python_file: str):
     return structlog.get_logger(module=logger_module_name(name, python_file))
-
-
-#
-# Configure 'logging' so that logs from dependencies are somewhat consistent
-# with structlog. Well this simply logs the string message of logging output
-# without any structure at all.
-#
-# This approach is in the structlog docs here:
-#   https://www.structlog.org/en/17.2.0/standard-library.html#rendering-within-structlog
-#
-# NOTE: We may want something better than this eventually and there are other
-# solutions like wiring up logging to use JSON output.
-#
-
-logging.basicConfig(
-    format="%(message)s",
-    stream=sys.stdout,
-    level=logging.INFO,
-)

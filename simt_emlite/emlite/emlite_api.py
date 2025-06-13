@@ -51,7 +51,7 @@ class EmliteAPI:
 
         frame = EmopFrame(KaitaiStream(BytesIO(rsp_bytes)))
         frame._read()
-        logger.info("response frame parsed", frame=str(frame))
+        logger.debug("response frame parsed", frame=str(frame))
 
         self.last_request_datetime = datetime.now()
 

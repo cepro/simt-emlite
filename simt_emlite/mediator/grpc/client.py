@@ -115,7 +115,7 @@ class EmliteMediatorGrpcClient:
                 raise e
 
         payload_bytes = rsp_obj.response
-        self.log.info(
+        self.log.debug(
             "read_element response received", response_payload=payload_bytes.hex()
         )
 

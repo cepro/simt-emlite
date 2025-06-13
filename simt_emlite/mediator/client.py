@@ -1,4 +1,5 @@
 import datetime
+import logging
 from datetime import time
 from decimal import Decimal
 from typing import List, TypedDict
@@ -131,13 +132,21 @@ class TariffsFuture(TypedDict):
 
 class EmliteMediatorClient(object):
     def __init__(
-        self, mediator_address="0.0.0.0:50051", meter_id=None, use_cert_auth=False
+        self,
+        mediator_address="0.0.0.0:50051",
+        meter_id=None,
+        use_cert_auth=False,
+        logging_level=logging.INFO,
     ):
         self.grpc_client = EmliteMediatorGrpcClient(
             mediator_address=mediator_address,
             meter_id=meter_id,
             use_cert_auth=use_cert_auth,
         )
+
+        logging.getLogger().setLevel(logging_level)
+        # logging.getLogger("simt_emlite.mediator.grpc.client").setLevel(logging.WARN)
+
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
         self.log.debug("EmliteMediatorClient init")
@@ -516,6 +525,7 @@ class EmliteMediatorClient(object):
         export_three_phase_intervals_to_csv(
             all_intervals, csv, hardware.meter_type, include_statuses
         )
+        self.log.info(f"wrote intervals to [{csv}]")
 
         return all_intervals
 
@@ -946,9 +956,11 @@ class EmliteMediatorClient(object):
         data_field._write(_io)
         data_field_bytes = _io.to_byte_array()
 
-        self.log.info(f"three phase intervals frame request [{data_field_bytes.hex()}]")
+        self.log.debug(
+            f"three phase intervals frame request [{data_field_bytes.hex()}]"
+        )
         response_bytes = self._send_message(data_field_bytes)
-        self.log.info(f"three phase intervals frame response [{response_bytes.hex()}]")
+        self.log.debug(f"three phase intervals frame response [{response_bytes.hex()}]")
 
         if profile == EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset:
             return None
@@ -957,12 +969,12 @@ class EmliteMediatorClient(object):
             len(response_bytes), KaitaiStream(BytesIO(response_bytes))
         )
         frame._read()
-        self.log.info(f"three phase intervals frame [{str(frame)}]")
+        self.log.debug(f"three phase intervals frame [{str(frame)}]")
 
         block = EmopProfileThreePhaseIntervalsResponseBlock(
             len(frame.frame_data), KaitaiStream(BytesIO(frame.frame_data))
         )
         block._read()
-        self.log.info(f"three phase intervals block [{str(block)}]")
+        self.log.debug(f"three phase intervals block [{str(block)}]")
 
         return block

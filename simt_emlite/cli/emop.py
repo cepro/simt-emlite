@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import sys
+import traceback
 from decimal import Decimal
 from typing import Any, Dict, List
 
@@ -31,7 +32,7 @@ FLY_API_TOKEN = config["fly_api_token"]
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self, serial=None, emnify_id=None):
+    def __init__(self, serial=None, emnify_id=None, logging_level=logging.INFO):
         self.serial = serial
 
         try:
@@ -85,9 +86,10 @@ class EMOPCLI(EmliteMediatorClient):
                     mediator_address=mediator_address,
                     meter_id=meter_id,
                     use_cert_auth=is_single_meter_app,
+                    logging_level=logging_level,
                 )
         except Exception as e:
-            print(f"Failure: [{e}]")
+            print(f"Failure: [{e}], exception [{traceback.format_exception(e)}]")
             raise e
 
     # =================================
@@ -180,6 +182,13 @@ class EMOPCLI(EmliteMediatorClient):
 
     # def _read_tokens(self):
     #     return dotenv_values(SUPABASE_TOKEN_FILE)
+
+
+def valid_log_level(level_str: str):
+    try:
+        return getattr(logging, level_str.upper())
+    except AttributeError:
+        raise argparse.ArgumentTypeError(f"Invalid log level: {level_str}")
 
 
 def valid_iso_datetime(timestamp: str):
@@ -284,6 +293,15 @@ def add_arg_serial(parser):
 
 def args_parser():
     parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--log-level",
+        help="Set logging level [debug, info (default), warning, warn, error, critical]",
+        default=logging.INFO,
+        required=False,
+        type=valid_log_level,
+    )
+
     parser.add_argument("-s", help="Serial", required=False)
     parser.add_argument(
         "--serials",
@@ -607,8 +625,9 @@ emop -s EML1411222333 tariffs_future_write \\
 
 
 def run_command(serial: str, command: str, kwargs: Dict[str, Any]):
+    log_level = kwargs.pop("log_level", None)
     try:
-        cli = EMOPCLI(serial=serial)
+        cli = EMOPCLI(serial=serial, logging_level=log_level)
     except Exception:
         # just return - we assume the error was logged by the constructor
         return
