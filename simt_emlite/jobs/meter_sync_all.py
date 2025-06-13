@@ -35,12 +35,18 @@ class MeterSyncAllJob:
         esco=None,
         serials=None,
     ):
+        self.esco = esco
+
+        # '-public' suffix means sync only public or single_meter_app meters
+        self.single_meter_apps = self.esco.endswith("-public")
+        if self.single_meter_apps:
+            self.esco = self.esco.replace("-public", "")
+
         global logger
-        self.log = logger.bind(esco=esco)
+        self.log = logger.bind(esco=self.esco)
 
         self._check_environment()
 
-        self.esco = esco
         self.serials = serials
         self.filter_fn = filter_fn
         self.run_frequency = run_frequency
@@ -85,11 +91,6 @@ class MeterSyncAllJob:
     def run(self):
         self.log.info("starting ...")
 
-        # '-public' suffix means sync only public or single_meter_app meters
-        single_meter_apps = self.esco.endswith("-public")
-        if single_meter_apps:
-            self.esco = self.esco.replace("-public", "")
-
         escos = (
             self.supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
@@ -104,7 +105,7 @@ class MeterSyncAllJob:
             .select("id,ip_address,serial,hardware")
             # only process meters at the given esco
             .eq("esco", esco_id)
-            .eq("single_meter_app", single_meter_apps)
+            .eq("single_meter_app", self.single_meter_apps)
             # only sync active / real hardware meters
             # passive meters are synced from active meters in
             #   some other database and environment
@@ -128,7 +129,7 @@ class MeterSyncAllJob:
                     self.run_job,
                     meter["id"],
                     meter["serial"],
-                    single_meter_app=single_meter_apps,
+                    single_meter_app=self.single_meter_apps,
                 )
                 for meter in meters
             ]

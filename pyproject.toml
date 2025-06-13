@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.20.2"
+version = "0.20.3"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.12,<4.0"
