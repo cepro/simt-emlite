@@ -12,7 +12,7 @@ single_phase_hardware_str_to_registry_str = {
     "3Aw": "EMA1.w",
 }
 
-three_phase_hardware_known_strings = ["AX", "CX", "THREE_PHASE_UNKNOWN"]
+three_phase_hardware_known_strings = ["P1.ax", "P1.cx", "THREE_PHASE_UNKNOWN"]
 
 
 class SyncerHardware(SyncerBase):

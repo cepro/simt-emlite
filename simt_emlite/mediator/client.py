@@ -155,9 +155,9 @@ class EmliteMediatorClient(object):
         if data.hardware == "":
             config = self.three_phase_hardware_configuration()
             if config.meter_type == EmopMessage.ThreePhaseMeterType.ax_whole_current:
-                hardware = "AX"
+                hardware = "P1.ax"
             elif config.meter_type == EmopMessage.ThreePhaseMeterType.cx_ct_operated:
-                hardware = "CX"
+                hardware = "P1.cx"
             else:
                 hardware = "THREE_PHASE_UNKNOWN"
         else:
