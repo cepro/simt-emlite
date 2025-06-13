@@ -33,6 +33,7 @@ class MeterSyncAllJob:
         filter_fn: Callable[[Any], bool] = None,
         run_frequency=None,
         esco=None,
+        serials=None,
     ):
         global logger
         self.log = logger.bind(esco=esco)
@@ -40,14 +41,13 @@ class MeterSyncAllJob:
         self._check_environment()
 
         self.esco = esco
+        self.serials = serials
         self.filter_fn = filter_fn
         self.run_frequency = run_frequency
 
-        self.containers = get_instance(esco=esco)
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
-    def run_job(self, meter_id, serial):
-        mediator_address = self.containers.mediator_address(meter_id, serial)
+    def run_job(self, meter_id, serial, mediator_address):
         if mediator_address is None:
             self.log.warn(f"no mediator container exists for meter {serial}")
             return
@@ -77,6 +77,18 @@ class MeterSyncAllJob:
     def run(self):
         self.log.info("starting ...")
 
+        # sync all active meters in a given esco
+        if self.esco:
+            self._sync_esco_meters()
+
+        # sync all meters by serial list
+        # NOTE: initially limited to single_meter_app true meters
+        if self.serials:
+            self._sync_serial_meters()
+
+        self.log.info("finished")
+
+    def _sync_esco_meters(self):
         escos = (
             self.supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
@@ -106,17 +118,49 @@ class MeterSyncAllJob:
         if self.filter_fn:
             meters = list(filter(self.filter_fn, meters))
 
+        containers_api = get_instance(esco=esco)
+
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=max_parallel_jobs
         ) as executor:
             futures = [
-                executor.submit(self.run_job, meter["id"], meter["serial"])
+                executor.submit(
+                    self.run_job,
+                    meter["id"],
+                    meter["serial"],
+                    containers_api.mediator_address(meter["id"], meter["serial"]),
+                )
                 for meter in meters
             ]
 
         concurrent.futures.wait(futures)
 
-        self.log.info("finished")
+    def _sync_serial_meters(self):
+        serials = self.serials.split(",")
+        for serial in serials:
+            containers_api = get_instance(
+                is_single_meter_app=True,
+                serial=serial,
+            )
+            containers_api.list()
+
+            registry_result = (
+                self.supabase.table("meter_registry")
+                .select("id,ip_address,serial,hardware")
+                .eq("serial", serial)
+                .eq("mode", "active")
+                .execute()
+            )
+            if len(registry_result.data) == 0:
+                self.log.error(f"meter {serial} record not found")
+                continue
+
+            meter = registry_result.data[0]
+            self.run_job(
+                meter["id"],
+                meter["serial"],
+                containers_api.mediator_address(meter["id"], meter["serial"]),
+            )
 
     def _check_environment(self):
         if not supabase_url or not supabase_key:
@@ -141,14 +185,21 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--esco",
-        required=True,
+        required=False,
         action="store",
         help="Apply sync to meters in this esco only",
+    )
+    parser.add_argument(
+        "--serials",
+        required=False,
+        action="store",
+        help="List of serials delimited by commas",
     )
     args = parser.parse_args()
 
     freq = args.freq
     esco = args.esco
+    serials = args.serials
 
-    runner = MeterSyncAllJob(run_frequency=freq, esco=esco)
+    runner = MeterSyncAllJob(run_frequency=freq, esco=esco, serials=serials)
     runner.run()
