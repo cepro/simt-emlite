@@ -34,57 +34,61 @@ class EMOPCLI(EmliteMediatorClient):
     def __init__(self, serial=None, emnify_id=None):
         self.serial = serial
 
-        # TODO: necessary for meters that have not yet had a serial read
-        #       they will be in the registry but with a NULL serial
-        if emnify_id is not None:
-            err_msg = "emnify_id lookup is not yet supported."
-            print(err_msg)
-            raise Exception(err_msg)
-
-        self.supabase = supa_client(
-            SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
-        )
-
-        if serial is not None:
-            result = (
-                self.supabase.table("meter_registry")
-                .select("id,esco,single_meter_app")
-                .eq("serial", serial)
-                .execute()
-            )
-            if len(result.data) == 0:
-                err_msg = f"meter {serial} not found"
+        try:
+            # TODO: necessary for meters that have not yet had a serial read
+            #       they will be in the registry but with a NULL serial
+            if emnify_id is not None:
+                err_msg = "emnify_id lookup is not yet supported."
                 print(err_msg)
                 raise Exception(err_msg)
 
-            meter = result.data[0]
-            meter_id = meter["id"]
-            esco_id = meter["esco"]
-            is_single_meter_app = meter["single_meter_app"]
+            self.supabase = supa_client(
+                SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
+            )
 
-            esco_code = None
-            if esco_id is not None:
+            if serial is not None:
                 result = (
-                    self.supabase.schema("flows")
-                    .table("escos")
-                    .select("code")
-                    .eq("id", esco_id)
+                    self.supabase.table("meter_registry")
+                    .select("id,esco,single_meter_app")
+                    .eq("serial", serial)
                     .execute()
                 )
-                esco_code = result.data[0]["code"]
+                if len(result.data) == 0:
+                    err_msg = f"meter {serial} not found"
+                    print(err_msg)
+                    raise Exception(err_msg)
 
-            containers = get_instance(
-                is_single_meter_app=is_single_meter_app,
-                esco=esco_code,
-                serial=serial,
-            )
-            mediator_address = containers.mediator_address(meter_id, serial)
+                meter = result.data[0]
+                meter_id = meter["id"]
+                esco_id = meter["esco"]
+                is_single_meter_app = meter["single_meter_app"]
 
-            super().__init__(
-                mediator_address=mediator_address,
-                meter_id=meter_id,
-                use_cert_auth=is_single_meter_app,
-            )
+                esco_code = None
+                if esco_id is not None:
+                    result = (
+                        self.supabase.schema("flows")
+                        .table("escos")
+                        .select("code")
+                        .eq("id", esco_id)
+                        .execute()
+                    )
+                    esco_code = result.data[0]["code"]
+
+                containers = get_instance(
+                    is_single_meter_app=is_single_meter_app,
+                    esco=esco_code,
+                    serial=serial,
+                )
+                mediator_address = containers.mediator_address(meter_id, serial)
+
+                super().__init__(
+                    mediator_address=mediator_address,
+                    meter_id=meter_id,
+                    use_cert_auth=is_single_meter_app,
+                )
+        except Exception as e:
+            print(f"Failure: [{e}]")
+            raise e
 
     # =================================
     #   Supabase Commands
