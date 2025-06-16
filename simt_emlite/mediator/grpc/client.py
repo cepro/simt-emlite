@@ -10,7 +10,6 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
     EmliteConnectionFailure,
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
-from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 
 from .generated.mediator_pb2 import (
@@ -38,8 +37,6 @@ class EmliteMediatorGrpcClient:
         meter_id=None,
         use_cert_auth=False,
     ):
-        load_config()
-
         self.client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
         self.client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
         self.ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
