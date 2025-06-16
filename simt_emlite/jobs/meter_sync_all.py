@@ -57,6 +57,7 @@ class MeterSyncAllJob:
         try:
             containers_api = None
             if is_single_meter_app:
+                print("get_instance")
                 containers_api = get_instance(
                     is_single_meter_app=is_single_meter_app,
                     serial=serial,
@@ -64,6 +65,8 @@ class MeterSyncAllJob:
                 )
             else:
                 containers_api = get_instance(esco=esco)
+
+            print("got_instance")
 
             mediator_address = containers_api.mediator_address(meter_id, serial)
             if mediator_address is None:

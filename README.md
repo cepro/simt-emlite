@@ -120,6 +120,9 @@ fly launch --config fly/fly-$SERIAL.toml --image hello-world --no-deploy --org c
 
 fly ips allocate-v4 -a $APP
 
+# private address also created for syncer jobs running inside the private network
+fly ips allocate-v6 --private -a $APP
+
 fly secrets set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
 fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=0)"
 fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"

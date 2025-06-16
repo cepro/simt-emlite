@@ -79,7 +79,7 @@ class FlyAdapter(BaseAdapter):
             else f"mediators-{esco}".lower()
         )
 
-        if self.use_private_address is None:
+        if use_private_address is None:
             # default to public for single meter apps and private for everything else
             self.use_private_address = not self.is_single_meter_app
 
