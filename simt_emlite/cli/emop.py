@@ -12,7 +12,8 @@ from typing import Any, Dict, List
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage
 
-from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
+from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.supabase import supa_client

@@ -10,7 +10,10 @@ from simt_emlite.jobs.util import (
     handle_supabase_faliure,
     update_meter_shadows_when_healthy,
 )
-from simt_emlite.mediator.client import EmliteMediatorClient, MediatorClientException
+from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.mediator_client_exception import (
+    MediatorClientException,
+)
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import Client as SupabaseClient
 from simt_emlite.util.supabase import supa_client

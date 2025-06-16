@@ -2,7 +2,9 @@ import sys
 import traceback
 from typing import Dict
 
-from simt_emlite.mediator.client import MediatorClientException
+from simt_emlite.mediator.mediator_client_exception import (
+    MediatorClientException,
+)
 
 
 def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties: Dict):

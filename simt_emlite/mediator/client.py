@@ -53,15 +53,9 @@ from simt_emlite.util.three_phase_intervals import (
 )
 
 from .grpc.client import EmliteMediatorGrpcClient
+from .mediator_client_exception import MediatorClientException
 
 logger = get_logger(__name__, __file__)
-
-
-class MediatorClientException(Exception):
-    def __init__(self, code_str, message):
-        self.code_str = code_str
-        self.message = message
-        super().__init__(self.message)
 
 
 # 8 blocks x 8 rates for tariff pricings
