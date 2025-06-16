@@ -65,7 +65,7 @@ class MeterSyncAllJob:
 
             self.log.info(f"containers_api {containers_api}")
 
-            mediator_address = containers_api.mediator_address(id, serial)
+            mediator_address = containers_api.mediator_address(meter_id, serial)
             self.log.info(f"mediator_address {mediator_address}")
 
             if mediator_address is None:
@@ -137,12 +137,12 @@ class MeterSyncAllJob:
                     self.run_job,
                     meter["id"],
                     meter["serial"],
-                    single_meter_app=self.single_meter_apps,
+                    is_single_meter_app=self.single_meter_apps,
                 )
                 for meter in meters
             ]
 
-        concurrent.futures.wait(futures)
+            concurrent.futures.wait(futures)
 
         self.log.info("finished")
 
