@@ -238,7 +238,6 @@ def serve():
         EmliteMediatorServicer(emlite_host, emlite_port), server
     )
 
-    # listen_address = f"[::]:{listen_port}"
     listen_address = f"0.0.0.0:{listen_port}"
 
     if use_cert_auth:
@@ -254,6 +253,11 @@ def serve():
 
         log.info(f"add_secure_port [{listen_address}]")
         server.add_secure_port(listen_address, server_credentials)
+
+        # add a private as well for internal services like meter sync jobs
+        private_listen_address = "0.0.0.0:44444"
+        log.info(f"add_insecure_port [{private_listen_address}]")
+        server.add_insecure_port(private_listen_address)
     else:
         log.info(f"add_insecure_port [{listen_address}]")
         server.add_insecure_port(listen_address)

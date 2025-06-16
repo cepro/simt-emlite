@@ -210,7 +210,10 @@ Create machine with these details (y/n): """)
 
     def get_app_address(self, machine):
         if self.use_private_address:
-            return self.get_private_address(machine)
+            if self.is_single_meter_app:
+                return self.get_private_address_for_single_meter_app(machine)
+            else:
+                return self.get_private_address(machine)
         else:
             return self.get_public_address()
 
@@ -225,6 +228,15 @@ Create machine with these details (y/n): """)
         except Exception as e:
             print(f"\nFailed to resolve address [{e}]\n")
             sys.exit(11)
+
+    # connect by private address. assumes wireguard running and connects via ip
+    # private to our fly organisation. see fly docs on flycast and private
+    # '6PN' addresses.
+    def get_private_address_for_single_meter_app(self, machine):
+        mediator_host = self.get_private_flycast_ip()
+        mediator_port = 44444  # fixed port for single_meter_app private access
+        # ipv6 so wrap host ip in []'s
+        return f"[{mediator_host}]:{mediator_port}"
 
     # connect by private address. assumes wireguard running and connects via ip
     # private to our fly organisation. see fly docs on flycast and private
