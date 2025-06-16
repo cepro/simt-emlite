@@ -16,6 +16,9 @@ def get_instance(
     fly_dns_server = os.environ.get("FLY_DNS_SERVER") or "fdaa::3"
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")
 
+    print(f"fly_api_token {fly_api_token}")
+    print(f"fly_dns_server {fly_dns_server}")
+    print(f"mediator_image {mediator_image}")
     if fly_api_token is not None:
         adapter = FlyAdapter(
             fly_api_token,

@@ -59,7 +59,9 @@ class MeterSyncAllJob:
 
             containers_api = None
             if is_single_meter_app:
-                containers_api = get_instance(serial=serial)
+                containers_api = get_instance(
+                    is_single_meter_app=is_single_meter_app, serial=serial
+                )
             else:
                 containers_api = get_instance(esco=esco)
 
