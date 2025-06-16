@@ -22,17 +22,6 @@ from .generated.mediator_pb2_grpc import EmliteMediatorServiceStub
 
 logger = get_logger(__name__, __file__)
 
-config = load_config()
-
-client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
-client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
-ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
-
-have_certs = (
-    client_cert_b64 is not None
-    and client_key_b64 is not None
-    and ca_cert_b64 is not None
-)
 
 # timeout considerations:
 # 1) a successful call should take less than 5 seconds
@@ -49,7 +38,19 @@ class EmliteMediatorGrpcClient:
         meter_id=None,
         use_cert_auth=False,
     ):
-        if use_cert_auth and not have_certs:
+        load_config()
+
+        self.client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
+        self.client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
+        self.ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
+
+        self.have_certs = (
+            self.client_cert_b64 is not None
+            and self.client_key_b64 is not None
+            and self.ca_cert_b64 is not None
+        )
+
+        if use_cert_auth and not self.have_certs:
             raise Exception("use_cert_auth set but certs not seend")
 
         self.mediator_address = mediator_address
@@ -194,12 +195,12 @@ class EmliteMediatorGrpcClient:
             return grpc.insecure_channel(self.mediator_address)
 
     def _channel_credentials(self):
-        if client_cert_b64 is None or client_key_b64 is None or ca_cert_b64 is None:
+        if not self.have_certs:
             raise Exception("client credentials not provided")
 
-        client_cert = self._decode_b64_secret_to_bytes(client_cert_b64)
-        client_key = self._decode_b64_secret_to_bytes(client_key_b64)
-        ca_cert = self._decode_b64_secret_to_bytes(ca_cert_b64)
+        client_cert = self._decode_b64_secret_to_bytes(self.client_cert_b64)
+        client_key = self._decode_b64_secret_to_bytes(self.client_key_b64)
+        ca_cert = self._decode_b64_secret_to_bytes(self.ca_cert_b64)
 
         return grpc.ssl_channel_credentials(
             root_certificates=ca_cert,
