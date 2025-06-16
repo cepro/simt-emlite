@@ -54,24 +54,24 @@ class MeterSyncAllJob:
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run_job(self, meter_id, serial, is_single_meter_app=False):
-        self.log.info(f"run_job {meter_id} {serial} {is_single_meter_app}")
-
-        containers_api = None
-        if is_single_meter_app:
-            containers_api = get_instance(serial=serial)
-        else:
-            containers_api = get_instance(esco=esco)
-
-        self.log.info(f"containers_api {containers_api}")
-
-        mediator_address = containers_api.mediator_address(id, serial)
-        self.log.info(f"mediator_address {mediator_address}")
-
-        if mediator_address is None:
-            self.log.warn(f"no mediator container exists for meter {serial}")
-            return
-
         try:
+            self.log.info(f"run_job {meter_id} {serial} {is_single_meter_app}")
+
+            containers_api = None
+            if is_single_meter_app:
+                containers_api = get_instance(serial=serial)
+            else:
+                containers_api = get_instance(esco=esco)
+
+            self.log.info(f"containers_api {containers_api}")
+
+            mediator_address = containers_api.mediator_address(id, serial)
+            self.log.info(f"mediator_address {mediator_address}")
+
+            if mediator_address is None:
+                self.log.warn(f"no mediator container exists for meter {serial}")
+                return
+
             self.log.info(
                 "run_job",
                 meter_id=meter_id,
