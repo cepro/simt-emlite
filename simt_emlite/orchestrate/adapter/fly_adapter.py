@@ -54,8 +54,10 @@ class FlyAdapter(BaseAdapter):
         is_single_meter_app: bool = False,
         esco: str = None,
         serial: str = None,
+        use_private_address: bool = None,
     ):
         super().__init__()
+
         self.api = API(api_token)
         self.dns_server = dns_server
         self.image = image
@@ -76,6 +78,10 @@ class FlyAdapter(BaseAdapter):
             if is_single_meter_app
             else f"mediators-{esco}".lower()
         )
+
+        if self.use_private_address is None:
+            # default to public for single meter apps and private for everything else
+            self.use_private_address = not self.is_single_meter_app
 
     def list(
         self,
@@ -202,10 +208,10 @@ Create machine with these details (y/n): """)
         return self.get_app_address(machines[0])
 
     def get_app_address(self, machine):
-        if self.is_single_meter_app:
-            return self.get_public_address()
-        else:
+        if self.use_private_address:
             return self.get_private_address(machine)
+        else:
+            return self.get_public_address()
 
     # connect by public address. for single meter per app setup that supports
     # external access through fly proxy.
@@ -213,7 +219,7 @@ Create machine with these details (y/n): """)
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = ["1.1.1.1"]
         try:
-            answers = resolver.resolve(f"mediator-{self.serial}.fly.dev", "A")
+            answers = resolver.resolve(f"{self.fly_app}.fly.dev", "A")
             return f"{answers[0].address}:50051"
         except Exception as e:
             print(f"\nFailed to resolve address [{e}]\n")
@@ -232,7 +238,7 @@ Create machine with these details (y/n): """)
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = [self.dns_server]
         try:
-            answers = resolver.resolve(f"mediators-{self.esco}.flycast", "AAAA")
+            answers = resolver.resolve(f"{self.fly_app}.flycast", "AAAA")
             return answers[0].address
         except Exception as e:
             print(f"\nFailed to resolve flycast address [{e}]\n")

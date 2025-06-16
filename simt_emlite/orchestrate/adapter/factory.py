@@ -5,7 +5,10 @@ from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
 
 
 def get_instance(
-    is_single_meter_app: bool = False, esco: str = None, serial: str = None
+    is_single_meter_app: bool = False,
+    esco: str = None,
+    serial: str = None,
+    use_private_address: bool = None,
 ):
     # ideally load these outside the function however due to the way we load
     # the env variables in the cli tool (in the body and not before the script
@@ -16,9 +19,6 @@ def get_instance(
     fly_dns_server = os.environ.get("FLY_DNS_SERVER") or "fdaa::3"
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")
 
-    print(f"fly_api_token {fly_api_token}")
-    print(f"fly_dns_server {fly_dns_server}")
-    print(f"mediator_image {mediator_image}")
     if fly_api_token is not None:
         adapter = FlyAdapter(
             fly_api_token,
@@ -27,6 +27,7 @@ def get_instance(
             is_single_meter_app,
             esco,
             serial,
+            use_private_address,
         )
     else:
         adapter = DockerAdapter(mediator_image)

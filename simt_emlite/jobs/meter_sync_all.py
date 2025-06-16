@@ -55,21 +55,17 @@ class MeterSyncAllJob:
 
     def run_job(self, meter_id, serial, is_single_meter_app=False):
         try:
-            self.log.info(f"run_job {meter_id} {serial} {is_single_meter_app}")
-
             containers_api = None
             if is_single_meter_app:
                 containers_api = get_instance(
-                    is_single_meter_app=is_single_meter_app, serial=serial
+                    is_single_meter_app=is_single_meter_app,
+                    serial=serial,
+                    use_private_address=True,
                 )
             else:
                 containers_api = get_instance(esco=esco)
 
-            self.log.info(f"containers_api {containers_api}")
-
             mediator_address = containers_api.mediator_address(meter_id, serial)
-            self.log.info(f"mediator_address {mediator_address}")
-
             if mediator_address is None:
                 self.log.warn(f"no mediator container exists for meter {serial}")
                 return
