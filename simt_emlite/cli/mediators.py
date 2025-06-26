@@ -178,6 +178,9 @@ class MediatorsCLI:
         # None means a random port will be allocated
         internal_port = 50051 if meter["single_meter_app"] else None
 
+        # we add an additional internal / private port for these apps
+        additional_internal_port = 44444 if meter["single_meter_app"] else None
+
         containers_api = get_instance(
             is_single_meter_app=meter["single_meter_app"],
             esco=meter["esco"],
@@ -189,6 +192,7 @@ class MediatorsCLI:
             serial,
             meter["ip_address"],
             port=internal_port,
+            additional_internal_port=additional_internal_port,
             skip_confirm=skip_confirm,
             use_cert_auth=meter["single_meter_app"],
         )

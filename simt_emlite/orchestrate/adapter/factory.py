@@ -20,7 +20,6 @@ def get_instance(
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")
 
     if fly_api_token is not None:
-        print("before FlyAdapter")
         adapter = FlyAdapter(
             fly_api_token,
             fly_dns_server,
@@ -30,7 +29,6 @@ def get_instance(
             serial,
             use_private_address,
         )
-        print("after FlyAdapter")
     else:
         adapter = DockerAdapter(mediator_image)
     return adapter

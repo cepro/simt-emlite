@@ -21,7 +21,7 @@ dependencies = [
     "argcomplete>=3.4.0",
     # testpypi deps - see additional metadata under 'tool.poetry.dependencies' 
     "emop-frame-protocol==0.3.9",
-    "simt-fly-machines==0.1.11",
+    "simt-fly-machines==0.1.12",
 ]
 
 [project.scripts]

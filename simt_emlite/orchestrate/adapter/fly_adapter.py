@@ -136,6 +136,7 @@ class FlyAdapter(BaseAdapter):
         serial: str,
         ip_address: str,
         port: int = None,
+        additional_internal_port: int = None,
         skip_confirm=False,
         use_cert_auth=False,
     ) -> str:
@@ -161,6 +162,7 @@ Create machine with these details (y/n): """)
             self.image,
             [cmd],
             port=port,
+            additional_internal_port=additional_internal_port,
             name=machine_name,
             env_vars=self._env_vars(ip_address, use_cert_auth),
             metadata=metadata,
