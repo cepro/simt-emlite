@@ -48,7 +48,7 @@ class EmliteMediatorGrpcClient:
         )
 
         if use_cert_auth and not self.have_certs:
-            raise Exception("use_cert_auth set but certs not seend")
+            raise Exception("use_cert_auth set but certs not set in env file")
 
         self.mediator_address = mediator_address
         self.meter_id = meter_id if meter_id is not None else "unknown"
