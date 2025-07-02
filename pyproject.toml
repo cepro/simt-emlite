@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.21.1"
+version = "0.21.2"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.12,<4.0"
@@ -27,6 +27,7 @@ dependencies = [
 [project.scripts]
 test = "simt_emlite:run_tests"
 lint = "simt_emlite:run_linter"
+build-cython = "scripts.build_cython:main"
 emop = "simt_emlite.cli.emop:main"
 mediators = "simt_emlite.cli.mediators:main"
 
@@ -47,11 +48,19 @@ simt-fly-machines = { source = "testpypi" }
 
 [tool.poetry.group.dev.dependencies]
 ruff = "0.11.2"
+cython = "3.1.2"
+build = "1.2.2.post1"
+cibuildwheel = "3.0.0"
 grpcio-tools = "1.64.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 extend-exclude = ["generated"]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "cython"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["emop_frame_protocol*"]
+exclude = ["tests"]
