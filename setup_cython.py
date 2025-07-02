@@ -26,7 +26,7 @@ def get_extensions(package_name):
     return extensions
 
 def main():
-    package_name = "simt-emlite"
+    package_name = "simt_emlite"  # Fixed: use underscore not hyphen
     
     extensions = get_extensions(package_name)
     

@@ -62,5 +62,5 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["emop_frame_protocol*"]
+include = ["simt_emlite*"]
 exclude = ["tests"]
