@@ -463,6 +463,17 @@ emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" -
         action="store_true",
     )
 
+    # ===========    generic obis read    ==========
+
+    obis_read_parser = subparsers.add_parser(
+        "obis_read", help="read a payload from an arbitrary obis / object id"
+    )
+    add_arg_serial(obis_read_parser)
+    obis_read_parser.add_argument(
+        "obis",
+        help="obis / objectid to read",
+    )
+
     # ===========    Writes    ==========
 
     clock_write_parser = subparsers.add_parser(
@@ -550,6 +561,19 @@ emop -s EML1411222333 load_switch_write never_button_required
         "setting",
         help="new load_switch setting",
         type=valid_load_switch_setting,
+    )
+
+    obis_write_parser = subparsers.add_parser(
+        "obis_write", help="Write a payload to an arbitrary obis / object id"
+    )
+    add_arg_serial(obis_write_parser)
+    obis_write_parser.add_argument(
+        "obis",
+        help="obis / objectid to read",
+    )
+    obis_write_parser.add_argument(
+        "payload",
+        help="payload to write to obis (hex string)",
     )
 
     # ===========      Tariff Writes    ==========

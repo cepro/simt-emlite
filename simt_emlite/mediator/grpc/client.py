@@ -57,33 +57,37 @@ class EmliteMediatorGrpcClient:
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
 
-    def read_element(self, object_id: ObjectIdEnum):
+    def read_element(self, object_id: ObjectIdEnum | int):
+        obis = self._object_id_int(object_id)
+        obis_name = (
+            object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
+        )
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 rsp_obj = stub.readElement(
-                    ReadElementRequest(objectId=object_id.value),
+                    ReadElementRequest(objectId=obis),
                     timeout=TIMEOUT_SECONDS,
                 )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
                     self.log.warn(
-                        "rpc timeout (deadline_exceeded)", object_id=object_id.name
+                        "rpc timeout (deadline_exceeded)", object_id=obis_name
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
                     if "EOFError" in e.details():
                         # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
                         self.log.warn(
                             "EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
-                            object_id=object_id.name,
+                            object_id=obis_name,
                         )
                         raise EmliteEOFError(
-                            f"object_id={object_id.name}, meter={self.meter_id}"
+                            f"object_id={obis_name}, meter={self.meter_id}"
                         )
                     elif "failed to connect after retries" in e.details():
                         self.log.warn(e.details())
                         raise EmliteConnectionFailure(
-                            f"object_id={object_id.name}, meter={self.meter_id}"
+                            f"object_id={obis_name}, meter={self.meter_id}"
                         )
                     else:
                         raise e
@@ -101,14 +105,14 @@ class EmliteMediatorGrpcClient:
                         "readElement failed",
                         details=e.details(),
                         code=e.code(),
-                        object_id=object_id.name,
+                        object_id=obis_name,
                     )
                 else:
                     self.log.error(
                         "readElement failed",
                         details=e.details(),
                         code=e.code(),
-                        object_id=object_id.name,
+                        object_id=obis_name,
                     )
                 raise e
 
@@ -123,33 +127,37 @@ class EmliteMediatorGrpcClient:
         emlite_rsp._read()
         return emlite_rsp.message
 
-    def write_element(self, object_id: ObjectIdEnum, payload: bytes):
+    def write_element(self, object_id: ObjectIdEnum | int, payload: bytes):
+        obis = self._object_id_int(object_id)
+        obis_name = (
+            object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
+        )
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)
             try:
                 stub.writeElement(
-                    WriteElementRequest(objectId=object_id.value, payload=payload),
+                    WriteElementRequest(objectId=obis, payload=payload),
                     timeout=TIMEOUT_SECONDS,
                 )
             except grpc.RpcError as e:
                 if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
                     self.log.warn(
-                        "rpc timeout (deadline_exceeded)", object_id=object_id.name
+                        "rpc timeout (deadline_exceeded)", object_id=obis_name
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
                     if "EOFError" in e.details():
                         # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
                         self.log.warn(
                             "EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
-                            object_id=object_id.name,
+                            object_id=obis_name,
                         )
                         raise EmliteEOFError(
-                            "object_id=" + object_id.name + ", meter=" + self.meter_id
+                            "object_id=" + obis_name + ", meter=" + self.meter_id
                         )
                     elif "failed to connect after retries" in e.details():
                         self.log.warn(e.details())
                         raise EmliteConnectionFailure(
-                            "object_id=" + object_id.name + ", meter=" + self.meter_id
+                            "object_id=" + obis_name + ", meter=" + self.meter_id
                         )
                     else:
                         raise e
@@ -158,7 +166,7 @@ class EmliteMediatorGrpcClient:
                         "writeElement failed",
                         details=e.details(),
                         code=e.code(),
-                        object_id=object_id.name,
+                        object_id=obis_name,
                     )
                 raise e
 
@@ -212,3 +220,6 @@ class EmliteMediatorGrpcClient:
             .replace("\\n", "\n")
             .encode("utf-8")
         )
+
+    def _object_id_int(self, obj_id: ObjectIdEnum | int) -> int:
+        return obj_id.value if isinstance(obj_id, ObjectIdEnum) else obj_id

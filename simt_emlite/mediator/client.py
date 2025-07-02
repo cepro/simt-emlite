@@ -37,6 +37,7 @@ from emop_frame_protocol.util import (
     emop_encode_timestamp_as_u4le_rec,
     emop_epoch_seconds_to_datetime,
     emop_format_firmware_version,
+    emop_obis_triplet_to_decimal,
     emop_scale_price_amount,
 )
 from emop_frame_protocol.vendor.kaitaistruct import BytesIO, KaitaiStream
@@ -881,7 +882,18 @@ class EmliteMediatorClient(object):
 
         return pricings
 
-    def _read_element(self, object_id: ObjectIdEnum):
+    def obis_read(self, obis: str):
+        object_id = emop_obis_triplet_to_decimal(obis)
+        result = self._read_element(object_id)
+        self.log.info("obis_read", obis=obis, result=result.payload.hex())
+        result
+
+    def obis_write(self, obis: str, payload_hex: str):
+        object_id = emop_obis_triplet_to_decimal(obis)
+        payload_bytes = bytes.fromhex(payload_hex)
+        self._write_element(object_id, payload_bytes)
+
+    def _read_element(self, object_id: ObjectIdEnum | int):
         try:
             data = self.grpc_client.read_element(object_id)
         except EmliteConnectionFailure as e:
@@ -892,7 +904,7 @@ class EmliteMediatorClient(object):
             raise MediatorClientException(e.code().name, e.details())
         return data
 
-    def _write_element(self, object_id: ObjectIdEnum, payload: bytes):
+    def _write_element(self, object_id: ObjectIdEnum | int, payload: bytes):
         try:
             self.grpc_client.write_element(object_id, payload)
         except EmliteConnectionFailure as e:
