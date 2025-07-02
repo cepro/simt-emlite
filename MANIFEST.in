@@ -1,0 +1,5 @@
+include README.pypi.md
+recursive-exclude tests *
+recursive-exclude simt_emlite *.py
+global-exclude __pycache__
+global-exclude *.py[cod]
