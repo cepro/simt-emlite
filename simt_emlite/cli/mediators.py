@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import datetime
 from json import dumps
-from typing import Dict, List, Union
+from typing import Any, Dict, List
 
 from rich import box
 from rich.console import Console
@@ -20,18 +20,18 @@ from simt_emlite.util.supabase import Client, supa_client
 
 config = load_config()
 
-SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
-SUPABASE_ANON_KEY = config["supabase_anon_key"]
-SUPABASE_URL = config["supabase_url"]
+SUPABASE_ACCESS_TOKEN: str | int | None = config["supabase_access_token"]
+SUPABASE_ANON_KEY: str | int | None = config["supabase_anon_key"]
+SUPABASE_URL: str | int | None = config["supabase_url"]
 
-FLY_API_TOKEN = config["fly_api_token"]
+FLY_API_TOKEN: str | int | None = config["fly_api_token"]
 
-SOCKS_HOST = config["socks_host"]
-SOCKS_PORT = config["socks_port"]
-SOCKS_USERNAME = config["socks_username"]
-SOCKS_PASSWORD = config["socks_password"]
+SOCKS_HOST: str | int | None = config["socks_host"]
+SOCKS_PORT: str | int | None = config["socks_port"]
+SOCKS_USERNAME: str | int | None = config["socks_username"]
+SOCKS_PASSWORD: str | int | None = config["socks_password"]
 
-SIMT_EMLITE_IMAGE = config["simt_emlite_image"]
+SIMT_EMLITE_IMAGE: str | int | None = config["simt_emlite_image"]
 
 """
     This is a CLI for managing Emlite mediator processes.
@@ -49,7 +49,7 @@ def rich_status_circle(color):
     return f"[{color}]●[/{color}]"
 
 
-def rich_signal_circle(csq: int):
+def rich_signal_circle(csq: int | None):
     if csq is None or csq < 1:
         color = "rgb(255,0,0)"  # Red
     elif csq > 22:
@@ -66,22 +66,25 @@ def rich_signal_circle(csq: int):
 
 
 class MediatorsCLI:
-    def __init__(self):
+    def __init__(self) -> None:
+        if not SUPABASE_URL or not SUPABASE_ANON_KEY:
+            raise Exception("SUPABASE_URL and SUPABASE_ANON_KEY not set")
+
         self.supabase: Client = supa_client(
-            SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
+            str(SUPABASE_URL), str(SUPABASE_ANON_KEY), str(SUPABASE_ACCESS_TOKEN)
         )
 
     def list(
         self,
-        esco: str = None,
-        feeder: str = None,
-        state: str = None,
-        exists: bool = None,
+        esco: str | None = None,
+        feeder: str | None = None,
+        state: str | None = None,
+        exists: bool | None = None,
         three_phase_only=False,
         json=False,
         show_all=False,
-    ) -> List:
-        container_state: Union[ContainerState] = (
+    ) -> None:
+        container_state: ContainerState | None = (
             ContainerState.__members__[state.upper()] if state is not None else None
         )
 
@@ -96,7 +99,7 @@ class MediatorsCLI:
 
         if json is True:
             print(dumps(meters, indent=2))
-            return
+            return None
 
         table = Table(
             "esco",
@@ -135,10 +138,10 @@ class MediatorsCLI:
 
     def _list(
         self,
-        esco: str = None,
-        feeder: str = None,
-        state: Union[ContainerState] = None,
-        exists: bool = None,
+        esco: str | None = None,
+        feeder: str | None = None,
+        state: ContainerState | None = None,
+        exists: bool | None = None,
         three_phase_only=False,
         show_all=False,
     ) -> List:
@@ -171,7 +174,7 @@ class MediatorsCLI:
 
         return meters
 
-    def create(self, serial: str, skip_confirm=False):
+    def create(self, serial: str, skip_confirm=False) -> None:
         meter = self._meter_by_serial(serial)
 
         # single meter per app always listen on default
@@ -186,7 +189,7 @@ class MediatorsCLI:
             esco=meter["esco"],
             serial=serial,
         )
-        result = containers_api.create(
+        containers_api.create(
             "simt_emlite.mediator.grpc.server",
             meter["id"],
             serial,
@@ -196,9 +199,8 @@ class MediatorsCLI:
             skip_confirm=skip_confirm,
             use_cert_auth=meter["single_meter_app"],
         )
-        return result
 
-    def create_all(self, esco: str):
+    def create_all(self, esco: str) -> None:
         if esco is None:
             print("esco mandatory")
             sys.exit(1)
@@ -215,20 +217,20 @@ Go ahead and create ALL of these? (y/n): """)
         for m in mediators:
             self.create(m["serial"], skip_confirm=True)
 
-    def start_one(self, serial: str):
+    def start_one(self, serial: str) -> None:
         containers_api, container = self._container_by_serial(serial)
         containers_api.start(container.id)
         print("container started")
 
-    def wait_one(self, serial: str, state: ContainerState):
+    def wait_one(self, serial: str, state: ContainerState) -> None:
         containers_api, container = self._container_by_serial(serial)
-        return containers_api.wait(container.id, state)
+        containers_api.wait(container.id, state)
 
-    def destroy_one(self, serial: str):
+    def destroy_one(self, serial: str) -> None:
         containers_api, container = self._container_by_serial(serial)
-        return containers_api.destroy(container.id)
+        containers_api.destroy(container.id)
 
-    def destroy_all(self, esco: str):
+    def destroy_all(self, esco: str) -> None:
         if esco is None:
             print("esco mandatory")
             sys.exit(1)
@@ -248,18 +250,18 @@ Go ahead and destroy ALL of these? (y/n): """)
             ]
         concurrent.futures.wait(futures)
 
-    def stop_one(self, serial: str) -> str:
+    def stop_one(self, serial: str) -> None:
         containers_api, container = self._container_by_serial(serial)
         containers_api.stop(container.id)
         print("container stopped")
 
-    def start_many(self, meter_ids: List[str]) -> Dict[str, int]:
+    def start_many(self, meter_ids: List[str]) -> None:
         pass
 
-    def start_all(self) -> Dict[str, int]:
+    def start_all(self) -> None:
         pass
 
-    def stop_all(self):
+    def stop_all(self) -> None:
         pass
 
     # =================================
@@ -268,14 +270,14 @@ Go ahead and destroy ALL of these? (y/n): """)
 
     # TODO: these are duplicated in emop - put them in one tool or at least consolidate the duplicated code
 
-    def version(self):
+    def version(self) -> None:
         version = importlib.metadata.version("simt-emlite")
         logging.info(version)
 
-    def env_show(self):
+    def env_show(self) -> None:
         logging.info(config["env"])
 
-    def env_set(self, env: str):
+    def env_set(self, env: str) -> None:
         allowed_env = ["prod", "qa", "local"]
         if env not in allowed_env:
             logging.info(f"ERROR: env must be one of {allowed_env}")
@@ -290,7 +292,7 @@ Go ahead and destroy ALL of these? (y/n): """)
             raise Exception(f"machine for meter {serial} not found")
         return machines_match[0]["machine"]
 
-    def _meter_by_serial(self, serial) -> str:
+    def _meter_by_serial(self, serial) -> Dict[str, Any]:
         meter_result = (
             self.supabase.table("meter_registry")
             .select("id,ip_address,esco,single_meter_app")
@@ -314,7 +316,7 @@ Go ahead and destroy ALL of these? (y/n): """)
 
         return meter
 
-    def _get_meters(self, esco: str = None, feeder: str = None):
+    def _get_meters(self, esco: str | None = None, feeder: str | None = None):
         meters_result = self.supabase.rpc(
             "get_meters_for_cli", {"esco_filter": esco, "feeder_filter": feeder}
         ).execute()
@@ -335,7 +337,7 @@ Go ahead and destroy ALL of these? (y/n): """)
 
         return containers_api, container
 
-    def _add_container_info_to_app_per_esco_meters(self, meters):
+    def _add_container_info_to_app_per_esco_meters(self, meters) -> None:
         escos = set(
             map(
                 lambda m: m["esco"].lower(),
@@ -363,7 +365,7 @@ Go ahead and destroy ALL of these? (y/n): """)
                     container_matches[0] if len(container_matches) != 0 else None
                 )
 
-    def _add_container_info_to_app_per_serial_meters(self, meters):
+    def _add_container_info_to_app_per_serial_meters(self, meters) -> None:
         single_app_meters = list(
             filter(lambda m: m["single_meter_app"] is True, meters)
         )
@@ -386,7 +388,7 @@ Go ahead and destroy ALL of these? (y/n): """)
 ESCO_FILTER_HELP = "Filter by ESCO code [eg. wlce, hmce, lab]"
 
 
-def main():
+def main() -> None:
     logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
     logging.getLogger("httpx").setLevel(logging.WARNING)

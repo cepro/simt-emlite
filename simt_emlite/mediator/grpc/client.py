@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 import base64
 import os
 
@@ -33,10 +34,10 @@ TIMEOUT_SECONDS = 75
 class EmliteMediatorGrpcClient:
     def __init__(
         self,
-        mediator_address="0.0.0.0:50051",
-        meter_id=None,
-        use_cert_auth=False,
-    ):
+        mediator_address: str | None = "0.0.0.0:50051",
+        meter_id: str | None = None,
+        use_cert_auth: bool = False,
+    ) -> None:
         self.client_cert_b64 = os.environ.get("MEDIATOR_CLIENT_CERT")
         self.client_key_b64 = os.environ.get("MEDIATOR_CLIENT_KEY")
         self.ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
@@ -63,7 +64,7 @@ class EmliteMediatorGrpcClient:
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
         )
         with self._get_channel() as channel:
-            stub = EmliteMediatorServiceStub(channel)
+            stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
                 rsp_obj = stub.readElement(
                     ReadElementRequest(objectId=obis),
@@ -127,13 +128,13 @@ class EmliteMediatorGrpcClient:
         emlite_rsp._read()
         return emlite_rsp.message
 
-    def write_element(self, object_id: ObjectIdEnum | int, payload: bytes):
+    def write_element(self, object_id: ObjectIdEnum | int, payload: bytes) -> None:
         obis = self._object_id_int(object_id)
         obis_name = (
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
         )
         with self._get_channel() as channel:
-            stub = EmliteMediatorServiceStub(channel)
+            stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
                 stub.writeElement(
                     WriteElementRequest(objectId=obis, payload=payload),
@@ -170,9 +171,9 @@ class EmliteMediatorGrpcClient:
                     )
                 raise e
 
-    def send_message(self, message: bytes):
+    def send_message(self, message: bytes) -> bytes:
         with self._get_channel() as channel:
-            stub = EmliteMediatorServiceStub(channel)
+            stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
                 rsp_obj = stub.sendRawMessage(
                     SendRawMessageRequest(dataField=message),
@@ -188,7 +189,7 @@ class EmliteMediatorGrpcClient:
         )
         return payload_bytes
 
-    def _get_channel(self):
+    def _get_channel(self) -> grpc.Channel:
         if self.use_cert_auth:
             credentials = self._channel_credentials()
             return grpc.secure_channel(
@@ -199,7 +200,7 @@ class EmliteMediatorGrpcClient:
         else:
             return grpc.insecure_channel(self.mediator_address)
 
-    def _channel_credentials(self):
+    def _channel_credentials(self) -> grpc.ChannelCredentials:
         if not self.have_certs:
             raise Exception("client credentials not provided")
 
@@ -213,7 +214,9 @@ class EmliteMediatorGrpcClient:
             certificate_chain=client_cert,
         )
 
-    def _decode_b64_secret_to_bytes(self, b64_secret: str) -> bytes:
+    def _decode_b64_secret_to_bytes(self, b64_secret: str | None) -> bytes:
+        if b64_secret is None:
+            return bytes()
         return (
             base64.b64decode(b64_secret)
             .decode("utf-8")

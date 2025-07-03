@@ -1,9 +1,17 @@
 import os
 import socket
 
-from python_socks import ProxyConnectionError, ProxyError, ProxyTimeoutError
-from python_socks.sync import Proxy
-from tenacity import retry, stop_after_attempt, wait_fixed
+from python_socks import (  # type: ignore[import-untyped]
+    ProxyConnectionError,
+    ProxyError,
+    ProxyTimeoutError,
+)
+from python_socks.sync import Proxy  # type: ignore[import-untyped]
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from simt_emlite.util.logging import get_logger
 
@@ -12,10 +20,10 @@ logger = get_logger(__name__, __file__)
 socket_timeout_seconds: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
 
 
-socks_host: str = os.environ.get("SOCKS_HOST")
-socks_port: int = os.environ.get("SOCKS_PORT")
-socks_username: str = os.environ.get("SOCKS_USERNAME")
-socks_password: str = os.environ.get("SOCKS_PASSWORD")
+socks_host: str | None = os.environ.get("SOCKS_HOST")
+socks_port: str | None = os.environ.get("SOCKS_PORT")
+socks_username: str | None = os.environ.get("SOCKS_USERNAME")
+socks_password: str | None = os.environ.get("SOCKS_PASSWORD")
 
 use_socks = all(
     v is not None for v in [socks_host, socks_port, socks_username, socks_password]
@@ -32,15 +40,15 @@ num_retries_send_message = 5
 
 
 class EmliteNET:
-    def __init__(self, host, port=8080):
+    def __init__(self, host: str, port: int = 8080) -> None:
         self.host = host
         self.port = int(port)
         global logger
         logger = logger.bind(host=host)
 
     @retry(stop=stop_after_attempt(num_retries_send_message), wait=wait_fixed(7))
-    def send_message(self, req_bytes: bytes):
-        sock = self._open_socket(self.send_message.statistics["attempt_number"])
+    def send_message(self, req_bytes: bytes) -> bytes:
+        sock = self._open_socket(self.send_message.statistics["attempt_number"])  # type: ignore[attr-defined]
         try:
             logger.debug("sending", request_payload=req_bytes.hex())
             self._write_bytes(sock, req_bytes)
@@ -49,17 +57,15 @@ class EmliteNET:
         except socket.timeout as e:
             logger.warn("Timeout in send_message")
             sock.close()
-            sock = None
             raise e
         except socket.error as e:
             logger.error(f"socket.error {e}")
             sock.close()
-            sock = None
             raise e
         logger.info("received response", response_payload=rsp_bytes.hex())
         return rsp_bytes
 
-    def _open_socket(self, attempt: int = None):
+    def _open_socket(self, attempt: int | None = None) -> socket.socket:
         try:
             if use_socks is True:
                 logger.debug(
@@ -75,7 +81,7 @@ class EmliteNET:
                     socks_username=socks_username,
                     attempt=attempt,
                 )
-                sock = proxy.connect(
+                sock: socket.socket = proxy.connect(
                     dest_host=self.host, dest_port=self.port, timeout=10
                 )
                 logger.debug("connected")
@@ -90,7 +96,6 @@ class EmliteNET:
             # very common so log at debug level
             logger.debug("timeout connecting to meter by proxy")
             sock.close()
-            sock = None
             # raise again will be caught by @retry
             raise e
         except ProxyError as e:
@@ -99,7 +104,7 @@ class EmliteNET:
                 # very common so log at debug level
                 logger.debug(err_str)
             else:
-                attempt_num = self.send_message.statistics["attempt_number"]
+                attempt_num = self.send_message.statistics["attempt_number"]  # type: ignore[attr-defined]
                 log_level = (
                     "error" if attempt_num == num_retries_send_message else "warn"
                 )
@@ -107,7 +112,6 @@ class EmliteNET:
                     f"ProxyError: {err_str}", attempt=attempt_num
                 )
             sock.close()
-            sock = None
             # raise again will be caught by @retry
             raise e
         except ProxyConnectionError as e:
@@ -117,13 +121,11 @@ class EmliteNET:
             # a number of times a day
             logger.info(f"socks proxy connection failure [{e}]")
             sock.close()
-            sock = None
             # raise again will be caught by @retry
             raise e
         except socket.timeout as e:
             logger.info("timeout connecting to socket", error=e)
             sock.close()
-            sock = None
             # raise again will be caught by @retry
             raise e
         except socket.error as e:
@@ -140,7 +142,6 @@ class EmliteNET:
             else:
                 logger.warn("Error connecting to socket", error=e)
             sock.close()
-            sock = None
             # raise again will be caught by @retry
             raise e
         except Exception as e:
@@ -151,14 +152,14 @@ class EmliteNET:
 
         return sock
 
-    def _write_bytes(self, sock, data):
+    def _write_bytes(self, sock: socket.socket, data: bytes) -> None:
         try:
             sock.send(data)
         except socket.error as e:
             logger.error("Error writing to socket", error=e)
             raise e
 
-    def _read_bytes(self, sock, num_bytes):
+    def _read_bytes(self, sock: socket.socket, num_bytes: int) -> bytes:
         try:
             return sock.recv(num_bytes)
         except socket.error as e:

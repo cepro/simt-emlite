@@ -9,7 +9,7 @@ class SyncerTariffsFuture(SyncerBase):
     def fetch_metrics(self) -> UpdatesTuple:
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
-            return
+            return UpdatesTuple(None, None)
 
         tariffs = self.emlite_client.tariffs_future_read()
         return UpdatesTuple({"tariffs_future": tariffs}, None)

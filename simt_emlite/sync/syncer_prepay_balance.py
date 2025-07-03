@@ -9,7 +9,7 @@ logger = get_logger(__name__, __file__)
 
 class SyncerPrepayBalance(SyncerBase):
     @override
-    def fetch_metrics(self) -> UpdatesTuple | None:
+    def fetch_metrics(self) -> UpdatesTuple:
         result = (
             self.supabase.table("meter_registry")
             .select("prepay_enabled, hardware")
@@ -19,7 +19,7 @@ class SyncerPrepayBalance(SyncerBase):
 
         # skip prepay metrics on 3phase meters - properties don't exist so emop calls fail
         if is_three_phase(result.data[0]["hardware"]):
-            return None
+            return UpdatesTuple(None, None)
 
         enabled = result.data[0]["prepay_enabled"]
         if enabled is not True:
@@ -27,7 +27,7 @@ class SyncerPrepayBalance(SyncerBase):
                 "prepay not enabled, skipping balance lookup ...",
                 meter_id=self.meter_id,
             )
-            return None
+            return UpdatesTuple(None, None)
 
         balance = self.emlite_client.prepay_balance()
         return UpdatesTuple({"balance": str(balance)}, None)

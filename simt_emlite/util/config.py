@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Dict
 
 from dotenv import load_dotenv
 
@@ -7,7 +8,7 @@ CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".simt")
 EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emlite.env")
 
 
-def load_config():
+def load_config() -> Dict[str, str | int | None]:
     if os.path.isfile(EMOP_CONFIG_FILE) is False:
         print(
             "ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up."
@@ -37,7 +38,7 @@ def load_config():
     }
 
 
-def set_config(env: str):
+def set_config(env: str) -> None:
     config_path = os.path.join(os.path.expanduser("~"), ".simt")
     target_path = os.path.join(config_path, "emlite.env")
     source_path = os.path.join(config_path, f"emlite.{env}.env")

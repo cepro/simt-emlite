@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, NamedTuple, Optional
+from typing import Any, Dict, NamedTuple, Optional
 
 from httpx import ConnectError
 
@@ -20,16 +20,16 @@ from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
-supabase_url_extra: str = os.environ.get("SUPABASE_URL_EXTRA")
-supabase_key_extra: str = os.environ.get("SUPABASE_ANON_KEY_EXTRA")
-flows_role_key_extra: str = os.environ.get("FLOWS_ROLE_KEY_EXTRA")
+supabase_url_extra: str | None = os.environ.get("SUPABASE_URL_EXTRA")
+supabase_key_extra: str | None = os.environ.get("SUPABASE_ANON_KEY_EXTRA")
+flows_role_key_extra: str | None = os.environ.get("FLOWS_ROLE_KEY_EXTRA")
 
 sync_extra: bool = all([supabase_url_extra, supabase_key_extra, flows_role_key_extra])
 
 
 class UpdatesTuple(NamedTuple):
-    shadow: Optional[Dict[str, any]]
-    registry: Optional[Dict[str, any]]
+    shadow: Optional[Dict[str, Any]]
+    registry: Optional[Dict[str, Any]]
 
 
 class SyncerBase(ABC):
@@ -45,6 +45,10 @@ class SyncerBase(ABC):
 
         self.supabase_extra = None
         if sync_extra is True:
+            if not supabase_url_extra or not supabase_key_extra:
+                raise Exception(
+                    "SUPABASE_URL_EXTRA and SUPABASE_ANON_KEY_EXTRA not set"
+                )
             self.supabase_extra = supa_client(
                 supabase_url_extra, supabase_key_extra, flows_role_key_extra
             )
@@ -52,7 +56,7 @@ class SyncerBase(ABC):
         global logger
         self.log = logger.bind(meter_id=meter_id, syncer=self.__class__.__name__)
 
-    def sync(self):
+    def sync(self) -> None:
         """Main function invoked to perform the syncing flow.
 
         First metrics are fetched. see fetch_metrics implementations in each
@@ -61,7 +65,7 @@ class SyncerBase(ABC):
         Next depending on the data set by the subclasses the meter shadow and
         registry tables are updated
         """
-        updates: UpdatesTuple = self.fetch_metrics_with_error_handling()
+        updates: UpdatesTuple | None = self.fetch_metrics_with_error_handling()
         if updates is None:
             return
 
@@ -71,7 +75,7 @@ class SyncerBase(ABC):
         if updates.registry:
             self._update_registry(updates.registry)
 
-    def fetch_metrics_with_error_handling(self) -> UpdatesTuple:
+    def fetch_metrics_with_error_handling(self) -> UpdatesTuple | None:
         try:
             return self.fetch_metrics()
         except MediatorClientException as e:
@@ -80,12 +84,13 @@ class SyncerBase(ABC):
             )
         except Exception as e:
             handle_mediator_unknown_failure(self.log, e)
+        return None
 
     @abstractmethod
     def fetch_metrics(self) -> UpdatesTuple:
         pass
 
-    def _update_shadow(self, update_props: Dict[str, any]):
+    def _update_shadow(self, update_props: Dict[str, Any]):
         self.log.info(
             "update shadow props", meter_id=self.meter_id, update_props=update_props
         )
@@ -108,7 +113,7 @@ class SyncerBase(ABC):
                     error=e,
                 )
 
-    def _update_registry(self, update_props: Dict[str, any]):
+    def _update_registry(self, update_props: Dict[str, Any]):
         self.log.info(
             "update registry props", meter_id=self.meter_id, update_props=update_props
         )

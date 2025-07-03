@@ -12,9 +12,9 @@ from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
-supabase_url: str = os.environ.get("SUPABASE_URL")
-supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
-flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
+supabase_url: str | None = os.environ.get("SUPABASE_URL")
+supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
+flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 15)
 
 
@@ -30,11 +30,14 @@ def filter_connected(meter):
 class MeterSyncAllJob:
     def __init__(
         self,
-        filter_fn: Callable[[Any], bool] = None,
+        filter_fn: Callable[[Any], bool] | None = None,
         run_frequency=None,
         esco=None,
         serials=None,
     ):
+        if not supabase_url or not supabase_key:
+            raise Exception("SUPABASE_URL and SUPABASE_KEY not set")
+
         self.esco = esco
 
         # '-public' suffix means sync only public or single_meter_app meters

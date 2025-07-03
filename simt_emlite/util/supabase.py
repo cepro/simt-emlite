@@ -4,7 +4,12 @@ from supabase.lib.client_options import ClientOptions
 SCHEMA_NAME = "flows"
 
 
-def supa_client(supabase_url: str, supabase_key: str, role_key: str = None, schema: str = None) -> Client:
+def supa_client(
+    supabase_url: str,
+    supabase_key: str,
+    role_key: str | None = None,
+    schema: str | None = None,
+) -> Client:
     options = ClientOptions()
     options.schema = schema if schema is not None else SCHEMA_NAME
     options.auto_refresh_token = False

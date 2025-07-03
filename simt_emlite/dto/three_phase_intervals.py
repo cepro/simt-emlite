@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 from typing import List
 
 from emop_frame_protocol.emop_profile_three_phase_interval_record import (
@@ -17,7 +18,7 @@ class ThreePhaseIntervals:
         block_start_time: int,
         interval_duration: int,
         num_channel_ids: int,
-        channel_ids: List[int],
+        channel_ids: List[bytes],
         intervals: List[EmopProfileThreePhaseIntervalRecord],
     ):
         self.block_start_time = emop_epoch_seconds_to_datetime(block_start_time)
@@ -26,7 +27,7 @@ class ThreePhaseIntervals:
         self.channel_ids = channel_ids
         self.intervals = intervals
 
-    def __str__(self):
+    def __str__(self) -> str:
         channel_ids_str = ", ".join(channel_id.hex() for channel_id in self.channel_ids)
         intervals_str = ", ".join(
             emop_profile_three_phase_interval_record_pretty_print(record)

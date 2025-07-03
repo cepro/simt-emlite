@@ -9,11 +9,11 @@ logger = get_logger(__name__, __file__)
 
 class SyncerReads(SyncerBase):
     @override
-    def fetch_metrics(self) -> UpdatesTuple | None:
+    def fetch_metrics(self) -> UpdatesTuple:
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
             # for now skip it but later we want to try do 3p reads
-            return
+            return UpdatesTuple(None, None)
 
         element_a_read = self.emlite_client.read_element_a()
         element_b_read = self.emlite_client.read_element_b()

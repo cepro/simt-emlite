@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict
+from typing import Any, Dict
 
 
 class ContainerEnvironment(Enum):
@@ -28,7 +28,7 @@ class Container:
     container_environment: ContainerEnvironment
     metadata: Dict[str, str]
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,

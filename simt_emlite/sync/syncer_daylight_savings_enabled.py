@@ -6,7 +6,7 @@ from simt_emlite.util.meters import is_three_phase
 
 class SyncerDaylightSavingsEnabled(SyncerBase):
     @override
-    def fetch_metrics(self) -> UpdatesTuple | None:
+    def fetch_metrics(self) -> UpdatesTuple:
         result = (
             self.supabase.table("meter_registry")
             .select("hardware")
@@ -16,7 +16,7 @@ class SyncerDaylightSavingsEnabled(SyncerBase):
 
         # skip on 3phase meters - properties don't exist so emop calls fail
         if is_three_phase(result.data[0]["hardware"]):
-            return None
+            return UpdatesTuple(None, None)
 
         enabled = self.emlite_client.daylight_savings_correction_enabled()
         return UpdatesTuple(

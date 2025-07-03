@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 import base64
 import os
 import signal
@@ -68,12 +69,12 @@ inactivity_seconds = int(os.environ.get("MEDIATOR_INACTIVITY_SECONDS") or "0")
 inactivity_check_interval_seconds = 30
 
 
-def epoch_seconds():
+def epoch_seconds() -> int:
     return round(time.time())
 
 
-last_request_time = epoch_seconds()
-inactivity_event = threading.Event()
+last_request_time: int = epoch_seconds()
+inactivity_event: threading.Event = threading.Event()
 
 server = None
 
@@ -98,11 +99,11 @@ server = None
 
 
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
-    def __init__(self, host, port):
+    def __init__(self, host, port) -> None:
         self.api = EmliteAPI(host, port)
         self.log = logger.bind(emlite_host=host)
 
-    def sendRawMessage(self, request, context):
+    def sendRawMessage(self, request, context) -> SendRawMessageReply:
         self._refresh_last_request_time()
         self.log.info("sendRawMessage", message=request.dataField.hex())
         self._space_out_requests()
@@ -114,7 +115,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "sendRawMessage", context)
             return SendRawMessageReply()
 
-    def readElement(self, request, context):
+    def readElement(self, request, context) -> ReadElementReply:
         self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info("readElement request", object_id=object_id_bytes.hex())
@@ -131,7 +132,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "readElement", context)
             return ReadElementReply()
 
-    def writeElement(self, request, context):
+    def writeElement(self, request, context) -> WriteElementReply:
         self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info(
@@ -151,7 +152,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "writeElement", context)
             return WriteElementReply()
 
-    def _handle_failure(self, exception: Exception, call_name: str, context):
+    def _handle_failure(self, exception: Exception, call_name: str, context) -> None:
         if exception.__class__.__name__.startswith("RetryError"):
             self.log.warn(
                 "Failed to connect to meter after a number of retries",
@@ -174,7 +175,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
     """ sleep the minimum amount of time between requests if there was a request recently in that range """
 
-    def _space_out_requests(self):
+    def _space_out_requests(self) -> None:
         if self.api.last_request_datetime is None:
             return
 
@@ -189,17 +190,17 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             )
             time.sleep(minimum_time_between_emlite_requests_seconds)
 
-    def _refresh_last_request_time(self):
+    def _refresh_last_request_time(self) -> None:
         global last_request_time
         last_request_time = epoch_seconds()
 
 
-def shutdown_handler(signal, frame):
+def shutdown_handler(signal: int | None, frame: object | None) -> None:
     logger.info("Server shutting down...")
     sys.exit(0)
 
 
-def inactivity_checking():
+def inactivity_checking() -> None:
     """
     check for inactivity on a Timer and reaise event and exit the thread when reached
     """
@@ -213,7 +214,9 @@ def inactivity_checking():
         threading.Timer(inactivity_check_interval_seconds, inactivity_checking).start()
 
 
-def decode_b64_secret_to_bytes(b64_secret: str) -> bytes:
+def decode_b64_secret_to_bytes(b64_secret: str | None) -> bytes:
+    if b64_secret is None:
+        return bytes()
     return (
         base64.b64decode(b64_secret)
         .decode("utf-8")
@@ -222,7 +225,7 @@ def decode_b64_secret_to_bytes(b64_secret: str) -> bytes:
     )
 
 
-def serve():
+def serve() -> None:
     global logger
     log = logger.bind(emlite_host=emlite_host)
 
@@ -234,7 +237,7 @@ def serve():
 
     global server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
-    add_EmliteMediatorServiceServicer_to_server(
+    add_EmliteMediatorServiceServicer_to_server(  # type: ignore[no-untyped-call]
         EmliteMediatorServicer(emlite_host, emlite_port), server
     )
 

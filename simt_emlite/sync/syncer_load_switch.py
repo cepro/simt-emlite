@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 from emop_frame_protocol.emop_message import EmopMessage
 from typing_extensions import override
 
@@ -13,12 +14,12 @@ class SyncerLoadSwitch(SyncerBase):
     def fetch_metrics(self) -> UpdatesTuple:
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
-            return
+            return UpdatesTuple(None, None)
 
         setting = self.emlite_client.load_switch()
 
         if not isinstance(setting, EmopMessage.LoadSwitchSettingType):
             logger.warn("skipping because the load_switch value is unknown")
-            return
+            return UpdatesTuple(None, None)
 
         return UpdatesTuple({"load_switch": setting.name}, None)

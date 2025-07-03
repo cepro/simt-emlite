@@ -14,9 +14,9 @@ from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
-supabase_url: str = os.environ.get("SUPABASE_URL")
-supabase_key: str = os.environ.get("SUPABASE_ANON_KEY")
-flows_role_key: str = os.environ.get("FLOWS_ROLE_KEY")
+supabase_url: str | None = os.environ.get("SUPABASE_URL")
+supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
+flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
 
 """

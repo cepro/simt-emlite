@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 import argparse
 import datetime
 import importlib
@@ -33,7 +34,12 @@ FLY_API_TOKEN = config["fly_api_token"]
 
 
 class EMOPCLI(EmliteMediatorClient):
-    def __init__(self, serial=None, emnify_id=None, logging_level=logging.INFO):
+    def __init__(
+        self,
+        serial: str | None = None,
+        emnify_id: str | None = None,
+        logging_level=logging.INFO,
+    ):
         self.serial = serial
 
         try:
@@ -44,8 +50,13 @@ class EMOPCLI(EmliteMediatorClient):
                 print(err_msg)
                 raise Exception(err_msg)
 
+            if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_ACCESS_TOKEN:
+                raise Exception(
+                    "SUPABASE_URL, SUPABASE_ANON_KEY and/or SUPABASE_ACCESS_TOKEN not set"
+                )
+
             self.supabase = supa_client(
-                SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_ACCESS_TOKEN
+                str(SUPABASE_URL), str(SUPABASE_ANON_KEY), str(SUPABASE_ACCESS_TOKEN)
             )
 
             if serial is not None:
@@ -97,7 +108,7 @@ class EMOPCLI(EmliteMediatorClient):
     #   Supabase Commands
     # =================================
 
-    def serial_to_name(self, serial: str):
+    def serial_to_name(self, serial: str) -> None:
         result = (
             self.supabase.table("meter_registry")
             .select("name")
@@ -111,7 +122,7 @@ class EMOPCLI(EmliteMediatorClient):
 
         print(result.data[0]["name"])
 
-    def info(self):
+    def info(self) -> None:
         result = (
             self.supabase.table("meter_registry")
             .select("*")
@@ -138,14 +149,14 @@ class EMOPCLI(EmliteMediatorClient):
     #   Tool related
     # =================================
 
-    def version(self):
+    def version(self) -> None:
         version = importlib.metadata.version("simt-emlite")
         logging.info(version)
 
-    def env_show(self):
+    def env_show(self) -> None:
         logging.info(config["env"])
 
-    def env_set(self, env: str):
+    def env_set(self, env: str) -> None:
         allowed_env = ["prod", "qa", "local"]
         if env not in allowed_env:
             logging.info(f"ERROR: env must be one of {allowed_env}")
@@ -185,21 +196,21 @@ class EMOPCLI(EmliteMediatorClient):
     #     return dotenv_values(SUPABASE_TOKEN_FILE)
 
 
-def valid_log_level(level_str: str):
+def valid_log_level(level_str: str) -> Any:
     try:
         return getattr(logging, level_str.upper())
     except AttributeError:
         raise argparse.ArgumentTypeError(f"Invalid log level: {level_str}")
 
 
-def valid_iso_datetime(timestamp: str):
+def valid_iso_datetime(timestamp: str) -> datetime.datetime:
     try:
         return datetime.datetime.fromisoformat(timestamp)
     except ValueError:
         raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
 
 
-def valid_event_log_idx(idx: str):
+def valid_event_log_idx(idx: str) -> int:
     try:
         idx_int = int(idx)
     except Exception:
@@ -224,7 +235,7 @@ def valid_decimal(rate: str):
         )
 
 
-def valid_rate(rate: str):
+def valid_rate(rate: str) -> Decimal:
     rate_decimal = valid_decimal(rate)
 
     if rate_decimal > 1.0:
@@ -287,7 +298,7 @@ def valid_load_switch_setting(setting: str) -> EmopMessage.LoadSwitchSettingType
         )
 
 
-def add_arg_serial(parser):
+def add_arg_serial(parser: argparse.ArgumentParser) -> None:
     """Adds optional positional argument serial"""
     parser.add_argument("serial", help="meter serial", nargs="?")
 
@@ -649,7 +660,7 @@ emop -s EML1411222333 tariffs_future_write \\
     return parser
 
 
-def run_command(serial: str, command: str, kwargs: Dict[str, Any]):
+def run_command(serial: str, command: str, kwargs: Dict[str, Any]) -> None:
     log_level = kwargs.pop("log_level", None)
     try:
         cli = EMOPCLI(serial=serial, logging_level=log_level)
@@ -669,13 +680,13 @@ def run_command(serial: str, command: str, kwargs: Dict[str, Any]):
 
 def run_command_for_serials(
     serial_list: List[str], command: str, kwargs: Dict[str, Any]
-):
+) -> None:
     for serial in serial_list:
         logging.info(f"\nrunning '{command}' for meter {serial} ...\n")
         run_command(serial, command, kwargs)
 
 
-def main():
+def main() -> None:
     logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
     logging.getLogger("httpx").setLevel(logging.WARNING)

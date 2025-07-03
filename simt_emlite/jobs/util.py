@@ -2,12 +2,16 @@ import sys
 import traceback
 from typing import Dict
 
+from supabase import Client as SupabaseClient
+
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
 
 
-def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties: Dict):
+def update_meter_shadows_when_healthy(
+    supabase: SupabaseClient, meter_id: str, update_properties: Dict
+):
     return (
         supabase.table("meter_shadows")
         .update(
@@ -24,8 +28,12 @@ def update_meter_shadows_when_healthy(supabase, meter_id: str, update_properties
 
 
 def handle_meter_unhealthy_status(
-    supabase, supabase_extra, logger, meter_id: str, exception: MediatorClientException
-):
+    supabase: SupabaseClient,
+    supabase_extra: SupabaseClient,
+    logger,
+    meter_id: str,
+    exception: MediatorClientException,
+) -> None:
     logger.info("updating meter_shadows.health to unhealthy")
     supabase.table("meter_shadows").update(
         {"health": "unhealthy", "health_details": exception.message, "csq": None}
@@ -39,7 +47,7 @@ def handle_meter_unhealthy_status(
     sys.exit(100)
 
 
-def handle_mediator_unknown_failure(logger, error):
+def handle_mediator_unknown_failure(logger, error) -> None:
     logger.error(
         "failure connecting to meter or mediator",
         error=error,
@@ -48,7 +56,7 @@ def handle_mediator_unknown_failure(logger, error):
     sys.exit(101)
 
 
-def handle_supabase_faliure(logger, error):
+def handle_supabase_faliure(logger, error) -> None:
     logger.error(
         "Supabase connection failure",
         error=error,
@@ -59,7 +67,7 @@ def handle_supabase_faliure(logger, error):
 
 def check_environment_vars(
     logger, supabase_url, supabase_key, flows_role_key, meter_id
-):
+) -> None:
     if not supabase_url or not supabase_key:
         logger.error(
             "Environment variables SUPABASE_URL and SUPABASE_ANON_KEY not set."

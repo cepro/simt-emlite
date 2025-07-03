@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 from datetime import datetime
 from typing import List
 
@@ -56,7 +57,7 @@ class SyncerEventLog(SyncerBase):
     def fetch_metrics(self) -> UpdatesTuple:
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
-            return
+            return UpdatesTuple(None, None)
 
         result = (
             self.supabase.table("meter_event_log")

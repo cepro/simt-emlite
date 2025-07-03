@@ -1,4 +1,4 @@
-def run_tests():
+def run_tests() -> None:
     import unittest
 
     loader = unittest.TestLoader()
@@ -9,7 +9,7 @@ def run_tests():
         raise Exception("Tests failed")
 
 
-def run_linter():
+def run_linter() -> None:
     import subprocess
 
     subprocess.run(["ruff", "check", "."], check=True)

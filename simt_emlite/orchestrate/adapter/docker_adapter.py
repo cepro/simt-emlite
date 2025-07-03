@@ -32,16 +32,16 @@ CONTAINER_STATUS = {
 
 
 class DockerAdapter(BaseAdapter):
-    def __init__(self, image: str):
+    def __init__(self, image: str) -> None:
         super().__init__()
 
-        self.docker_client = docker.from_env()
+        self.docker_client = docker.from_env()  # type: ignore [attr-defined]
         self.image = image
 
     def list(
         self,
-        metadata_filter: tuple[str, str] = None,
-        status_filter: ContainerState = None,
+        metadata_filter: tuple[str, str] | None = None,
+        status_filter: ContainerState | None = None,
     ) -> List[Container]:
         filters = {"ancestor": "simt-emlite"}
 
@@ -79,7 +79,7 @@ class DockerAdapter(BaseAdapter):
             self.image,
             name=mediator_name,
             command=cmd,
-            environment=self._env_vars(ip_address),
+            environment=self._env_vars(ip_address, use_cert_auth=False),
             network_mode="host",
             restart_policy={"Name": "always"},
             # use ports if switching from host mode to a separate network
@@ -89,23 +89,23 @@ class DockerAdapter(BaseAdapter):
         )
         return container.id
 
-    def start(self, id: str):
+    def start(self, id: str) -> None:
         container = self.docker_client.containers.get(id)
         container.start()
 
-    def stop(self, id: str):
+    def stop(self, id: str) -> None:
         container = self.docker_client.containers.get(id)
         # stop is slow - 15 sec timeout before sending SIGINT
         # killing causes an immediate stop and this is fine for mediators
         container.kill()
 
-    def destroy(self, id: str, force: bool = True):
+    def destroy(self, id: str, force: bool = True) -> None:
         container = self.docker_client.containers.get(id)
         container.kill()
         time.sleep(5)
         container.remove(force=force)
 
-    def mediator_address(self, meter_id: str, serial: str):
+    def mediator_address(self, meter_id: str, serial: str) -> str:
         # return "172.19.0.4:50051"
         # return f"mediator-{serial}:50051"
 

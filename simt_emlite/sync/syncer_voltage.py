@@ -9,7 +9,7 @@ logger = get_logger(__name__, __file__)
 
 class SyncerVoltage(SyncerBase):
     @override
-    def fetch_metrics(self) -> UpdatesTuple | None:
+    def fetch_metrics(self) -> UpdatesTuple:
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
             (v1, v2, v3) = self.emlite_client.three_phase_instantaneous_voltage()

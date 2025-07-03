@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 import sys
 from typing import List
 
@@ -52,9 +53,9 @@ class FlyAdapter(BaseAdapter):
         dns_server: str,
         image: str,
         is_single_meter_app: bool = False,
-        esco: str = None,
-        serial: str = None,
-        use_private_address: bool = None,
+        esco: str | None = None,
+        serial: str | None = None,
+        use_private_address: bool | None = None,
     ):
         super().__init__()
 
@@ -86,8 +87,8 @@ class FlyAdapter(BaseAdapter):
 
     def list(
         self,
-        metadata_filter: tuple[str, str] = None,
-        status_filter: ContainerState = None,
+        metadata_filter: tuple[str, str] | None = None,
+        status_filter: ContainerState | None = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app)
 
@@ -135,8 +136,8 @@ class FlyAdapter(BaseAdapter):
         meter_id: str,
         serial: str,
         ip_address: str,
-        port: int = None,
-        additional_internal_port: int = None,
+        port: int | None = None,
+        additional_internal_port: int | None = None,
         skip_confirm=False,
         use_cert_auth=False,
     ) -> str:
@@ -179,13 +180,13 @@ Create machine with these details (y/n): """)
         )
         return create_response["id"]
 
-    def start(self, id: str):
-        return self.api.start(self.fly_app, id)
+    def start(self, id: str) -> None:
+        self.api.start(self.fly_app, id)
 
-    def stop(self, id: str):
-        return self.api.stop(self.fly_app, id)
+    def stop(self, id: str) -> None:
+        self.api.stop(self.fly_app, id)
 
-    def destroy(self, id: str, force: bool = False):
+    def destroy(self, id: str, force: bool = False) -> None:
         if not force:
             stop_rsp = self.api.stop(self.fly_app, id)
             print(f"stop_rsp [{id}]: {stop_rsp}")
@@ -201,16 +202,15 @@ Create machine with these details (y/n): """)
 
         destroy_rsp = self.api.destroy(self.fly_app, id, force=force)
         print(f"destroy_rsp [{id}]: {destroy_rsp}")
-        return destroy_rsp
 
-    def mediator_address(self, meter_id: str, serial: str):
+    def mediator_address(self, meter_id: str, serial: str) -> str | None:
         machines = self.list(("meter_id", meter_id))
         if len(machines) == 0:
             print("no match")
             return None
         return self.get_app_address(machines[0])
 
-    def get_app_address(self, machine):
+    def get_app_address(self, machine) -> str:
         if self.use_private_address:
             if self.is_single_meter_app:
                 return self.get_private_address_for_single_meter_app(machine)

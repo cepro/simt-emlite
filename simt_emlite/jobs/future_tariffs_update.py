@@ -1,6 +1,7 @@
 import traceback
 from datetime import datetime, timezone
 from decimal import Decimal
+from typing import Any, Dict
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import (
@@ -16,7 +17,7 @@ class FutureTariffsUpdateJob:
     def __init__(
         self,
         *,
-        tariff: str,
+        tariff: Dict[str, Any],
         mediator_address: str,
         supabase: SupabaseClient,
     ):

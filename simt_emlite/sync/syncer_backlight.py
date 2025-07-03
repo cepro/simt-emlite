@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 from emop_frame_protocol.emop_message import EmopMessage
 from typing_extensions import override
 
@@ -15,7 +16,7 @@ class SyncerBacklight(SyncerBase):
 
         if not isinstance(setting, EmopMessage.BacklightSettingType):
             logger.warn("skipping because the backlight value is unknown")
-            return
+            return UpdatesTuple(None, None)
 
         setting_name = setting.name
 

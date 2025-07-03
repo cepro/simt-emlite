@@ -1,3 +1,4 @@
+# mypy: disable-error-code="import-untyped"
 import csv
 from datetime import timedelta
 from typing import List
@@ -29,7 +30,7 @@ channel_id_to_name = {
 
 
 def blocks_to_intervals_rec(
-    blocks: [EmopProfileThreePhaseIntervalsResponseBlock],
+    blocks: List[EmopProfileThreePhaseIntervalsResponseBlock],
 ) -> ThreePhaseIntervals:
     # use the first block header which has the first start time
     # all other fields will be the same for each block
@@ -139,7 +140,7 @@ def export_three_phase_intervals_to_csv(
             writer.writerow(row)
 
 
-def _channel_ids_to_header_names(channel_ids: List[int]):
+def _channel_ids_to_header_names(channel_ids: List[int] | List[bytes]):
     channel_headers = []
 
     for channel_id in channel_ids:
