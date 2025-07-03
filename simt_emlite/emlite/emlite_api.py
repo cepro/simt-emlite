@@ -5,7 +5,6 @@ from typing import cast
 import crcmod.predefined
 from emop_frame_protocol.emop_data import EmopData
 from emop_frame_protocol.emop_frame import EmopFrame
-from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.generated.emop_default_request_response import (
     EmopDefaultRequestResponse,
 )
