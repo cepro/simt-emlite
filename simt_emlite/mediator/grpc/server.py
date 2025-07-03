@@ -5,6 +5,7 @@ import signal
 import sys
 import threading
 import time
+import traceback
 from concurrent import futures
 from datetime import datetime, timedelta
 
@@ -174,6 +175,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self.log.warn(
                 "EOFError seen - so far only happens on back to back calls for 3p voltage",
                 call_name=call_name,
+                exception=traceback.format_exception(exception),
             )
             context.set_details("EOFError")
         else:
