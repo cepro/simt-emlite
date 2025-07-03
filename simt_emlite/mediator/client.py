@@ -12,9 +12,11 @@ from emop_frame_protocol.emop_event_log_response import EmopEventLogResponse
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
 from emop_frame_protocol.emop_profile_log_1_response import (
+    EmopProfileLog1Response,
     emop_decode_profile_log_1_response,
 )
 from emop_frame_protocol.emop_profile_log_2_response import (
+    EmopProfileLog2Response,
     emop_decode_profile_log_2_response,
 )
 from emop_frame_protocol.emop_profile_three_phase_intervals_response_block import (
@@ -131,10 +133,10 @@ class TariffsFuture(TypedDict):
 class EmliteMediatorClient(object):
     def __init__(
         self,
-        mediator_address="0.0.0.0:50051",
-        meter_id=None,
-        use_cert_auth=False,
-        logging_level=logging.INFO,
+        mediator_address: str = "0.0.0.0:50051",
+        meter_id: str | None = None,
+        use_cert_auth: bool = False,
+        logging_level: str | int = logging.INFO,
     ) -> None:
         self.grpc_client = EmliteMediatorGrpcClient(
             mediator_address=mediator_address,
@@ -391,13 +393,13 @@ class EmliteMediatorClient(object):
         self.log.debug("three phase hardware configuration", value=str(data))
         return data
 
-    def profile_log_1(self, timestamp: datetime.datetime):
+    def profile_log_1(self, timestamp: datetime.datetime) -> EmopProfileLog1Response:
         log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_1)
         log_decoded = emop_decode_profile_log_1_response(log_rsp)
         self.log.debug(f"profile_log_1 response [{str(log_decoded)}]")
         return log_decoded
 
-    def profile_log_2(self, timestamp: datetime.datetime):
+    def profile_log_2(self, timestamp: datetime.datetime) -> EmopProfileLog2Response:
         log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
 
         hardware = self.hardware()
@@ -410,7 +412,9 @@ class EmliteMediatorClient(object):
 
         return log_decoded
 
-    def _profile_log(self, timestamp: datetime.datetime, format: EmopData.RecordFormat):
+    def _profile_log(
+        self, timestamp: datetime.datetime, format: EmopData.RecordFormat
+    ) -> bytes:
         message_len = 4  # profile log request: timestamp (4)
 
         message_field = EmopProfileLogRequest()
@@ -771,7 +775,7 @@ class EmliteMediatorClient(object):
         emergency_credit: Decimal,
         ecredit_availability: Decimal,
         debt_recovery_rate: Decimal,
-    ):
+    ) -> None:
         # block threshold mask and values - set values to zeros and rate 1 only in mask
         threshold_mask_bytes = bytes(1)
         self.log.debug("zero out threshold mask")
@@ -904,14 +908,14 @@ class EmliteMediatorClient(object):
         object_id = emop_obis_triplet_to_decimal(obis)
         result = self._read_element(object_id)
         self.log.info("obis_read", obis=obis, result=result.payload.hex())
-        return result.payload
+        return cast(bytes, result.payload)
 
     def obis_write(self, obis: str, payload_hex: str) -> None:
         object_id = emop_obis_triplet_to_decimal(obis)
         payload_bytes = bytes.fromhex(payload_hex)
         self._write_element(object_id, payload_bytes)
 
-    def _read_element(self, object_id: ObjectIdEnum | int):
+    def _read_element(self, object_id: ObjectIdEnum | int) -> Any:
         try:
             data = self.grpc_client.read_element(object_id)
         except EmliteConnectionFailure as e:
@@ -937,7 +941,7 @@ class EmliteMediatorClient(object):
             data = self.grpc_client.send_message(message)
         except grpc.RpcError as e:
             raise MediatorClientException(e.code().name, e.details())
-        return cast(bytes, data)
+        return data
 
     def _log_thresholds(
         self,

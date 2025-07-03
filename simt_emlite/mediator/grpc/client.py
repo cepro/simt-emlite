@@ -1,6 +1,7 @@
 # mypy: disable-error-code="import-untyped"
 import base64
 import os
+from typing import Any
 
 from emop_frame_protocol.emop_message import EmopMessage
 from emop_frame_protocol.emop_object_id_enum import ObjectIdEnum
@@ -58,7 +59,7 @@ class EmliteMediatorGrpcClient:
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
 
-    def read_element(self, object_id: ObjectIdEnum | int):
+    def read_element(self, object_id: ObjectIdEnum | int) -> Any:
         obis = self._object_id_int(object_id)
         obis_name = (
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)

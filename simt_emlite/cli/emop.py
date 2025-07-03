@@ -38,8 +38,8 @@ class EMOPCLI(EmliteMediatorClient):
         self,
         serial: str | None = None,
         emnify_id: str | None = None,
-        logging_level=logging.INFO,
-    ):
+        logging_level: str | int = logging.INFO,
+    ) -> None:
         self.serial = serial
 
         try:
@@ -196,21 +196,27 @@ class EMOPCLI(EmliteMediatorClient):
     #     return dotenv_values(SUPABASE_TOKEN_FILE)
 
 
-def valid_log_level(level_str: str) -> Any:
+def valid_log_level(level_str: str | None) -> Any:
+    if level_str is None:
+        raise argparse.ArgumentTypeError("log level cannot be None")
     try:
         return getattr(logging, level_str.upper())
     except AttributeError:
         raise argparse.ArgumentTypeError(f"Invalid log level: {level_str}")
 
 
-def valid_iso_datetime(timestamp: str) -> datetime.datetime:
+def valid_iso_datetime(timestamp: str | None) -> datetime.datetime:
+    if timestamp is None:
+        raise argparse.ArgumentTypeError("event log idx cannot be None")
     try:
         return datetime.datetime.fromisoformat(timestamp)
     except ValueError:
         raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
 
 
-def valid_event_log_idx(idx: str) -> int:
+def valid_event_log_idx(idx: str | None) -> int:
+    if idx is None:
+        raise argparse.ArgumentTypeError("event log idx cannot be None")
     try:
         idx_int = int(idx)
     except Exception:
@@ -226,7 +232,9 @@ def valid_event_log_idx(idx: str) -> int:
     return idx_int
 
 
-def valid_decimal(rate: str):
+def valid_decimal(rate: str | None) -> Decimal:
+    if rate is None:
+        raise argparse.ArgumentTypeError("rate cannot be None")
     try:
         return Decimal(rate)
     except Exception:
@@ -235,15 +243,16 @@ def valid_decimal(rate: str):
         )
 
 
-def valid_rate(rate: str) -> Decimal:
-    rate_decimal = valid_decimal(rate)
+def valid_rate(rate: str | None) -> Decimal:
+    rate_decimal: Decimal = valid_decimal(rate)
 
     if rate_decimal > 1.0:
         raise argparse.ArgumentTypeError(
             f"Invalid rate {rate}. Can't be greater than 1 GBP."
         )
 
-    decimal_places = abs(rate_decimal.as_tuple().exponent)
+    exponent_int: int = rate_decimal.as_tuple().exponent  # type: ignore[assignment]
+    decimal_places = abs(exponent_int)
     if decimal_places > 5:
         raise argparse.ArgumentTypeError(
             f"Invalid rate {rate}. Emlite meters can only store up to 5 decimal places."
@@ -303,7 +312,7 @@ def add_arg_serial(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("serial", help="meter serial", nargs="?")
 
 
-def args_parser():
+def args_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -388,8 +397,8 @@ def args_parser():
         ),
         ("tariffs_time_switches_element_b_read", "Time switches for element B"),
     ]
-    for cmd in simple_read_commands:
-        cmd_parser = subparsers.add_parser(cmd[0], help=cmd[1])
+    for cmd_tuple in simple_read_commands:
+        cmd_parser = subparsers.add_parser(cmd_tuple[0], help=cmd_tuple[1])
         add_arg_serial(cmd_parser)
 
     # ===========    Event logs     ==========
@@ -411,14 +420,14 @@ def args_parser():
         "profile_log_1",
         "profile_log_2",
     ]
-    for cmd in profile_log_commands:
+    for cmd_str in profile_log_commands:
         profile_parser = subparsers.add_parser(
-            cmd,
+            cmd_str,
             description=f"""Fetch half hourly data for a given date time.
 
 Example usage:
 
-  emop -s EML1411222333 {cmd} --timestamp 2024-08-21
+  emop -s EML1411222333 {cmd_str} --timestamp 2024-08-21
 """,
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
@@ -660,7 +669,7 @@ emop -s EML1411222333 tariffs_future_write \\
     return parser
 
 
-def run_command(serial: str, command: str, kwargs: Dict[str, Any]) -> None:
+def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> None:
     log_level = kwargs.pop("log_level", None)
     try:
         cli = EMOPCLI(serial=serial, logging_level=log_level)

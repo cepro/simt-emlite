@@ -16,8 +16,11 @@ from simt_emlite.util.logging import get_logger
 
 from .generated.mediator_pb2 import (
     ReadElementReply,
+    ReadElementRequest,
     SendRawMessageReply,
+    SendRawMessageRequest,
     WriteElementReply,
+    WriteElementRequest,
 )
 from .generated.mediator_pb2_grpc import (
     EmliteMediatorServiceServicer,
@@ -99,11 +102,13 @@ server = None
 
 
 class EmliteMediatorServicer(EmliteMediatorServiceServicer):
-    def __init__(self, host, port) -> None:
+    def __init__(self, host: str, port: int) -> None:
         self.api = EmliteAPI(host, port)
         self.log = logger.bind(emlite_host=host)
 
-    def sendRawMessage(self, request, context) -> SendRawMessageReply:
+    def sendRawMessage(
+        self, request: SendRawMessageRequest, context: grpc.ServicerContext
+    ) -> SendRawMessageReply:
         self._refresh_last_request_time()
         self.log.info("sendRawMessage", message=request.dataField.hex())
         self._space_out_requests()
@@ -115,7 +120,9 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "sendRawMessage", context)
             return SendRawMessageReply()
 
-    def readElement(self, request, context) -> ReadElementReply:
+    def readElement(
+        self, request: ReadElementRequest, context: grpc.ServicerContext
+    ) -> ReadElementReply:
         self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info("readElement request", object_id=object_id_bytes.hex())
@@ -132,7 +139,9 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "readElement", context)
             return ReadElementReply()
 
-    def writeElement(self, request, context) -> WriteElementReply:
+    def writeElement(
+        self, request: WriteElementRequest, context: grpc.ServicerContext
+    ) -> WriteElementReply:
         self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
         self.log.info(
@@ -152,7 +161,9 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             self._handle_failure(e, "writeElement", context)
             return WriteElementReply()
 
-    def _handle_failure(self, exception: Exception, call_name: str, context) -> None:
+    def _handle_failure(
+        self, exception: Exception, call_name: str, context: grpc.ServicerContext
+    ) -> None:
         if exception.__class__.__name__.startswith("RetryError"):
             self.log.warn(
                 "Failed to connect to meter after a number of retries",
@@ -238,7 +249,7 @@ def serve() -> None:
     global server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     add_EmliteMediatorServiceServicer_to_server(  # type: ignore[no-untyped-call]
-        EmliteMediatorServicer(emlite_host, emlite_port), server
+        EmliteMediatorServicer(emlite_host, int(emlite_port)), server
     )
 
     listen_address = f"0.0.0.0:{listen_port}"

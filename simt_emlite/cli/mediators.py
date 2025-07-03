@@ -11,12 +11,13 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 from rich.text import Text
+from supabase import Client as SupabaseClient
 
 from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.meters import is_three_phase
-from simt_emlite.util.supabase import Client, supa_client
+from simt_emlite.util.supabase import supa_client
 
 config = load_config()
 
@@ -40,16 +41,16 @@ SIMT_EMLITE_IMAGE: str | int | None = config["simt_emlite_image"]
 LOG_TIMES = False
 
 
-def log(msg):
+def log(msg: str) -> None:
     if LOG_TIMES:
         print(f"{datetime.now().strftime('%S.%f')} {msg}")
 
 
-def rich_status_circle(color):
+def rich_status_circle(color: str) -> str:
     return f"[{color}]●[/{color}]"
 
 
-def rich_signal_circle(csq: int | None):
+def rich_signal_circle(csq: int | None) -> Text:
     if csq is None or csq < 1:
         color = "rgb(255,0,0)"  # Red
     elif csq > 22:
@@ -70,7 +71,7 @@ class MediatorsCLI:
         if not SUPABASE_URL or not SUPABASE_ANON_KEY:
             raise Exception("SUPABASE_URL and SUPABASE_ANON_KEY not set")
 
-        self.supabase: Client = supa_client(
+        self.supabase: SupabaseClient = supa_client(
             str(SUPABASE_URL), str(SUPABASE_ANON_KEY), str(SUPABASE_ACCESS_TOKEN)
         )
 
@@ -80,9 +81,9 @@ class MediatorsCLI:
         feeder: str | None = None,
         state: str | None = None,
         exists: bool | None = None,
-        three_phase_only=False,
-        json=False,
-        show_all=False,
+        three_phase_only: bool = False,
+        json: bool = False,
+        show_all: bool = False,
     ) -> None:
         container_state: ContainerState | None = (
             ContainerState.__members__[state.upper()] if state is not None else None
@@ -142,8 +143,8 @@ class MediatorsCLI:
         feeder: str | None = None,
         state: ContainerState | None = None,
         exists: bool | None = None,
-        three_phase_only=False,
-        show_all=False,
+        three_phase_only: bool = False,
+        show_all: bool = False,
     ) -> List:
         meters = self._get_meters(esco, feeder)
 
@@ -174,7 +175,7 @@ class MediatorsCLI:
 
         return meters
 
-    def create(self, serial: str, skip_confirm=False) -> None:
+    def create(self, serial: str, skip_confirm: bool = False) -> None:
         meter = self._meter_by_serial(serial)
 
         # single meter per app always listen on default
@@ -285,7 +286,7 @@ Go ahead and destroy ALL of these? (y/n): """)
         set_config(env)
         logging.info(f"env set to {env}")
 
-    def _machine_by_serial(self, serial):
+    def _machine_by_serial(self, serial: str) -> str:
         meter = self._meter_by_serial(serial)
         machines_match = list(filter(lambda m: m["id"] == meter["id"], self._list()))
         if len(machines_match) == 0:

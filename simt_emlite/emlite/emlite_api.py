@@ -1,5 +1,6 @@
 # mypy: disable-error-code="import-untyped"
 from datetime import datetime
+from typing import cast
 
 import crcmod.predefined
 from emop_frame_protocol.emop_data import EmopData
@@ -33,20 +34,20 @@ crc16 = crcmod.predefined.mkCrcFun("crc-ccitt-false")
 
 
 class EmliteAPI:
-    def __init__(self, host, port=8080):
+    def __init__(self, host: str, port: int = 8080) -> None:
         self.net = emlite_net.EmliteNET(host, port)
-        self.last_request_datetime = None
+        self.last_request_datetime: None | datetime = None
         global logger
         logger.bind(host=host)
 
-    def send_message(self, req_data_field_bytes: bytes):
+    def send_message(self, req_data_field_bytes: bytes) -> bytes:
         data_field = EmopData(
             len(req_data_field_bytes), KaitaiStream(BytesIO(req_data_field_bytes))
         )
         data_field._read()
         return self.send_message_with_data_instance(data_field)
 
-    def send_message_with_data_instance(self, req_data_field: EmopData):
+    def send_message_with_data_instance(self, req_data_field: EmopData) -> bytes:
         req_bytes: bytes = self._build_frame_bytes(req_data_field)
         rsp_bytes: bytes = self.net.send_message(req_bytes)
 
@@ -56,18 +57,18 @@ class EmliteAPI:
 
         self.last_request_datetime = datetime.now()
 
-        return frame.data.message
+        return cast(bytes, frame.data.message)
 
-    def read_element(self, object_id: bytearray):
+    def read_element(self, object_id: bytearray) -> bytes:
         data_field = self._build_data_field(object_id)
         payload_bytes = self.send_message_with_data_instance(data_field)
         rec = EmopDefaultRequestResponse(
             len(payload_bytes), KaitaiStream(BytesIO(payload_bytes))
         )
         rec._read()
-        return rec.payload
+        return cast(bytes, rec.payload)
 
-    def write_element(self, object_id: ObjectIdEnum, payload: bytes):
+    def write_element(self, object_id: ObjectIdEnum, payload: bytes) -> None:
         data_field = self._build_data_field(
             object_id,
             read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.write,
@@ -83,8 +84,8 @@ class EmliteAPI:
     def _build_data_field(
         self,
         object_id: bytearray,
-        read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.read,
-        payload=bytes(),
+        read_write_flag: EmopDefaultRequestResponse.ReadWriteFlags = EmopDefaultRequestResponse.ReadWriteFlags.read,
+        payload: bytes = bytes(),
     ) -> EmopData:
         # 4 = length of EmopDefaultRequestResponse static fields
         len_message = 4 + len(payload)
@@ -104,7 +105,7 @@ class EmliteAPI:
 
         return data_field
 
-    def _build_frame_bytes(self, data_field) -> bytes:
+    def _build_frame_bytes(self, data_field: EmopData) -> bytes:
         req_frame = EmopFrame()
 
         req_frame.frame_delimeter = b"\x7e"

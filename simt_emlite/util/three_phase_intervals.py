@@ -140,7 +140,7 @@ def export_three_phase_intervals_to_csv(
             writer.writerow(row)
 
 
-def _channel_ids_to_header_names(channel_ids: List[int] | List[bytes]):
+def _channel_ids_to_header_names(channel_ids: List[int] | List[bytes]) -> List[str]:
     channel_headers = []
 
     for channel_id in channel_ids:

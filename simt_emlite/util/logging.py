@@ -52,5 +52,5 @@ def logger_module_name(name: str, file: str | None = None) -> str:
     return path_to_package_and_module(file)
 
 
-def get_logger(name: str, python_file: str):
+def get_logger(name: str, python_file: str) -> Any:
     return structlog.get_logger(module=logger_module_name(name, python_file))
