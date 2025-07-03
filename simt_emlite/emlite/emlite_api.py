@@ -66,7 +66,7 @@ class EmliteAPI:
         rec._read()
         return rec.payload
 
-    def write_element(self, object_id: ObjectIdEnum, payload: bytes):
+    def write_element(self, object_id: bytearray, payload: bytes):
         data_field = self._build_data_field(
             object_id,
             read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.write,
@@ -79,7 +79,7 @@ class EmliteAPI:
             payload=payload.hex(),
         )
 
-        kt_stream = KaitaiStream(BytesIO(bytearray(data_field.len_data)))
+        kt_stream = KaitaiStream(BytesIO(bytearray(data_field.len_data + 1)))
         data_field._write(kt_stream)
         message_bytes = kt_stream.to_byte_array()
 
