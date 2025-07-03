@@ -72,6 +72,12 @@ class EmliteAPI:
             read_write_flag=EmopDefaultRequestResponse.ReadWriteFlags.write,
             payload=payload,
         )
+        logger.info(
+            "data_Field",
+            data=str(data_field),
+            len_data=data_field.len_data,
+            payload=payload.hex(),
+        )
 
         kt_stream = KaitaiStream(BytesIO(bytearray(data_field.len_data)))
         data_field._write(kt_stream)
