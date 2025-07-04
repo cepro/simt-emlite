@@ -93,6 +93,8 @@ class EMOPCLI(EmliteMediatorClient):
                     serial=serial,
                 )
                 mediator_address = containers.mediator_address(meter_id, serial)
+                if not mediator_address:
+                    raise Exception("unable to get mediator address")
 
                 super().__init__(
                     mediator_address=mediator_address,
@@ -593,7 +595,7 @@ emop -s EML1411222333 load_switch_write never_button_required
         help="obis / objectid to read",
     )
     obis_write_parser.add_argument(
-        "payload",
+        "payload_hex",
         help="payload to write to obis (hex string)",
     )
 
