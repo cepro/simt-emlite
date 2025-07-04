@@ -217,6 +217,7 @@ def valid_iso_datetime(timestamp: str | None) -> datetime.datetime:
 def valid_event_log_idx(idx: str | None) -> int:
     if idx is None:
         raise argparse.ArgumentTypeError("event log idx cannot be None")
+
     try:
         idx_int = int(idx)
     except Exception:

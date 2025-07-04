@@ -347,9 +347,7 @@ class EmliteMediatorClient(object):
 
     def prepay_transaction_count(self) -> int:
         data = self._read_element(ObjectIdEnum.monetary_info_transaction_count)
-        self.log.debug(
-            "received prepay transaction count", transaction_count=data.count
-        )
+        self.log.info("received prepay transaction count", transaction_count=data.count)
         return cast(int, data.count)
 
     def three_phase_serial(self) -> str:
@@ -380,17 +378,21 @@ class EmliteMediatorClient(object):
             self.log.warn(f"3p v3 failed - setting to None (e={e})")
             vl3 = None
 
-        return (
+        voltage_3p_tuple = (
             cast(float, vl1.voltage) / 10.0,
             None if vl2 is None else cast(float, vl2.voltage) / 10.0,
             None if vl3 is None else cast(float, vl3.voltage) / 10.0,
         )
 
+        self.log.info(f"voltages [{voltage_3p_tuple}]")
+
+        return voltage_3p_tuple
+
     def three_phase_hardware_configuration(
         self,
     ) -> EmopMessage.ThreePhaseHardwareConfigurationRec:
         data = self._read_element(ObjectIdEnum.three_phase_hardware_configuration)
-        self.log.debug("three phase hardware configuration", value=str(data))
+        self.log.info("three phase hardware configuration", value=str(data))
         return data
 
     def profile_log_1(self, timestamp: datetime.datetime) -> EmopProfileLog1Response:
@@ -871,7 +873,7 @@ class EmliteMediatorClient(object):
 
     def tariffs_time_switches_element_a_or_single_read(self) -> bytes:
         data = self._read_element(ObjectIdEnum.tariff_time_switch_element_a_or_single)
-        self.log.debug("element A switch settings", value=data.switch_settings)
+        self.log.info("element A switch settings", value=data.switch_settings)
         return cast(bytes, data.switch_settings)
 
     def tariffs_time_switches_element_a_or_single_write(self) -> None:
@@ -881,7 +883,7 @@ class EmliteMediatorClient(object):
 
     def tariffs_time_switches_element_b_read(self) -> bytes:
         data = self._read_element(ObjectIdEnum.tariff_time_switch_element_b)
-        self.log.debug("element B switch settings", value=data.switch_settings)
+        self.log.info("element B switch settings", value=data.switch_settings)
         return cast(bytes, data.switch_settings)
 
     def tariffs_time_switches_element_b_write(self) -> None:

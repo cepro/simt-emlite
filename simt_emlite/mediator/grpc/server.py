@@ -180,7 +180,10 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
             context.set_details("EOFError")
         else:
             self.log.error(
-                "call failed", call_name=call_name, error=exception, exception=exception
+                "call failed",
+                call_name=call_name,
+                error=exception,
+                exception=traceback.format_exception(exception),
             )
             context.set_details("network failure or internal error")
 
