@@ -3,7 +3,7 @@ import datetime
 import logging
 from datetime import time
 from decimal import Decimal
-from typing import Any, List, TypedDict, cast
+from typing import Any, Dict, List, TypedDict, cast
 from zoneinfo import ZoneInfo
 
 import grpc
@@ -72,8 +72,8 @@ class TariffsActive(TypedDict):
     unit_rate_element_a: str
     unit_rate_element_b: str
 
-    threshold_mask: List[bool]
-    threshold_values: List[int]
+    threshold_mask: Dict[str, int]
+    threshold_values: Dict[str, bool]
 
     price_current: Decimal | None
     price_index_current: int | None
@@ -104,8 +104,8 @@ class TariffsFuture(TypedDict):
     unit_rate_element_a: str
     unit_rate_element_b: str
 
-    threshold_mask: List[bool]
-    threshold_values: List[int]
+    threshold_mask: Dict[str, int]
+    threshold_values: Dict[str, bool]
 
     activation_datetime: datetime.datetime
 
@@ -957,7 +957,11 @@ class EmliteMediatorClient(object):
             f"threshold values [1={threshold_values.th1} 2={threshold_values.th2} 3={threshold_values.th3} 4={threshold_values.th4} 5={threshold_values.th5} 6={threshold_values.th6} 7={threshold_values.th7}]"
         )
 
-    def _pluck_keys(self, rec: Any, key_prefix: str):
+    def _pluck_keys(
+        self,
+        rec: EmopMessage.TariffThresholdMaskRec | EmopMessage.TariffThresholdValuesRec,
+        key_prefix: str,
+    ) -> Dict[str, Any]:
         return {k: v for k, v in vars(rec).items() if k.startswith(key_prefix)}
 
     def _three_phase_intervals_read(
