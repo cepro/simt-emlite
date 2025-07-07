@@ -3,7 +3,28 @@ from pathlib import Path
 
 from Cython.Build import cythonize
 from setuptools import find_packages, setup
+from setuptools.command.build_py import build_py
 from setuptools.extension import Extension
+
+
+class CustomBuildPy(build_py):
+    """Custom build_py that excludes .py files when .so extensions exist"""
+
+    def find_package_modules(self, package, package_dir):
+        modules = super().find_package_modules(package, package_dir)
+
+        # Get list of extension modules
+        extensions = getattr(self.distribution, "ext_modules", [])
+        extension_names = {ext.name for ext in extensions}
+
+        # Filter out .py files that have corresponding .so extensions
+        filtered_modules = []
+        for pkg, module, module_file in modules:
+            module_name = f"{pkg}.{module}" if pkg else module
+            if module_name not in extension_names:
+                filtered_modules.append((pkg, module, module_file))
+
+        return filtered_modules
 
 
 def get_extensions(package_name):
@@ -48,6 +69,7 @@ def main():
             build_dir="build",
         ),
         packages=find_packages(),
+        cmdclass={"build_py": CustomBuildPy},
         zip_safe=False,
     )
 

@@ -69,14 +69,18 @@ Copy emlite.env.example to ~/.simt/emlite.env and set secrets and variables as n
 
 Or once already setup you can use `mediators env_set local` to point at the local env file. 
 
-## Cython build
+## Local build
 
 build-wheels github workflow will do a cython build and publish the package so you won't need to do it locally. but if needed you can do the following (change platform if not on linux):
 
-```
-poetry run cibuildwheel --platform linux --output-dir wheelhouse
-```
+```sh
+# setuptools build (without cibuildwheel):
+python -m build
 
+# cibuildwheel build (same as GitHub workflow):
+cibuildwheel --platform linux
+```
+ 
 # Tests
 
 ```

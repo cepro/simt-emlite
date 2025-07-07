@@ -2,6 +2,8 @@
 __pycache__
 mediator.env
 build
+temp_build
+wheelhouse
 dist
 *.swp
-simt_emlite.egg-info
+*.egg-info
