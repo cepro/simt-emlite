@@ -326,6 +326,13 @@ def args_parser() -> argparse.ArgumentParser:
         type=valid_log_level,
     )
 
+    parser.add_argument(
+        "--verbose",
+        help="Alias for '--log-level debug'",
+        required=False,
+        action="store_true",
+    )
+
     parser.add_argument("-s", help="Serial", required=False)
     parser.add_argument(
         "--serials",
@@ -674,6 +681,11 @@ emop -s EML1411222333 tariffs_future_write \\
 
 def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> None:
     log_level = kwargs.pop("log_level", None)
+
+    verbose = kwargs.pop("verbose", False)
+    if verbose is True:
+        log_level = logging.DEBUG
+
     try:
         cli = EMOPCLI(serial=serial, logging_level=log_level)
     except Exception:
