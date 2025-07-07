@@ -67,6 +67,7 @@ class EmliteMediatorGrpcClient:
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
+                self.log.info("send request - reading element")
                 rsp_obj = stub.readElement(
                     ReadElementRequest(objectId=obis),
                     timeout=TIMEOUT_SECONDS,
@@ -137,6 +138,7 @@ class EmliteMediatorGrpcClient:
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
+                self.log.info("send request - write element")
                 stub.writeElement(
                     WriteElementRequest(objectId=obis, payload=payload),
                     timeout=TIMEOUT_SECONDS,
@@ -176,6 +178,7 @@ class EmliteMediatorGrpcClient:
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
+                self.log.info("send request - message")
                 rsp_obj = stub.sendRawMessage(
                     SendRawMessageRequest(dataField=message),
                     timeout=TIMEOUT_SECONDS,
@@ -184,7 +187,7 @@ class EmliteMediatorGrpcClient:
                 self.log.error("sendRawMessage", details=e.details(), code=e.code())
                 raise e
 
-        payload_bytes = rsp_obj.response
+        payload_bytes: bytes = rsp_obj.response
         self.log.info(
             "send_message response received", response_payload=payload_bytes.hex()
         )
