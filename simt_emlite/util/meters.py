@@ -1,6 +1,10 @@
 from supabase import Client
 
 
+def is_twin_element(hardware: str) -> bool:
+    return hardware == "C1.w"
+
+
 def is_three_phase(hardware: str) -> bool:
     return hardware == "P1.ax" or hardware == "P1.cx"
 

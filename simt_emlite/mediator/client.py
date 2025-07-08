@@ -3,7 +3,7 @@ import datetime
 import logging
 from datetime import time
 from decimal import Decimal
-from typing import Any, Dict, List, TypedDict, cast
+from typing import Any, Dict, List, Tuple, TypedDict, cast
 from zoneinfo import ZoneInfo
 
 import grpc
@@ -51,6 +51,7 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.meters import is_three_phase, is_twin_element
 from simt_emlite.util.three_phase_intervals import (
     blocks_to_intervals_rec,
     export_three_phase_intervals_to_csv,
@@ -242,6 +243,25 @@ class EmliteMediatorClient(object):
             "received instantaneous active power (element b)", power_kwh=power_kwh
         )
         return float(power_kwh)
+
+    def read(
+        self,
+    ) -> (
+        Tuple[EmopMessage.ReadingRec, EmopMessage.ReadingRec | None]
+        | Dict[str, float | None]
+    ):
+        hardware = self.hardware()
+        is_3p = is_three_phase(hardware)
+        if is_3p:
+            return self.three_phase_read()
+        else:
+            element_a: EmopMessage.ReadingRec = self.read_element_a()
+            element_b: EmopMessage.ReadingRec | None = None
+            if is_twin_element(hardware):
+                element_b = self.read_element_b()
+            single_phase_reads = (element_a, element_b)
+            self.log.info(f"single phase read [{single_phase_reads}]")
+            return single_phase_reads
 
     def read_element_a(self) -> EmopMessage.ReadingRec:
         data = self._read_element(ObjectIdEnum.read_element_a)
@@ -440,11 +460,11 @@ class EmliteMediatorClient(object):
         log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
 
         hardware = self.hardware()
-        is_twin_element = hardware == "C1.w"
-        log_decoded = emop_decode_profile_log_2_response(is_twin_element, log_rsp)
+        is_twin = is_twin_element(hardware)
+        log_decoded = emop_decode_profile_log_2_response(is_twin, log_rsp)
         self.log.debug(
             f"profile_log_2 response [{str(log_decoded)}]",
-            is_twin_element=is_twin_element,
+            is_twin_element=is_twin,
         )
 
         return log_decoded

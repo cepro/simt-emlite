@@ -372,6 +372,7 @@ def args_parser() -> argparse.ArgumentParser:
         ("instantaneous_active_power_element_b", "Current active power (element b)"),
         ("read_element_a", "Current read on element A"),
         ("read_element_b", "Current read on element B"),
+        ("read", "Current read - will read all available for meter type"),
         ("backlight", "Backlight setting"),
         ("load_switch", "Load switch setting"),
         ("prepay_enabled", "Is prepay mode enabled?"),
