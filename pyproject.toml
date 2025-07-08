@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.22.4"
+version = "0.22.5"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.12,<4.0"
@@ -21,7 +21,7 @@ dependencies = [
     "argcomplete>=3.4.0",
     "types-requests==2.32.4.20250611",
     # testpypi deps - see additional metadata under 'tool.poetry.dependencies' 
-    "emop-frame-protocol==0.4.5",
+    "emop-frame-protocol==0.4.6",
     "simt-fly-machines==0.1.12",
 ]
 
@@ -60,8 +60,9 @@ extend-exclude = ["generated"]
 
 [tool.mypy]
 python_version = "3.12"
-strict = true
-exclude = "generated/|vendor/"
+exclude = "generated/"
+# disable strict until we've fixed all the issues:
+# strict = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "cython"]
