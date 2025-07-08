@@ -2,7 +2,7 @@ from supabase import Client
 
 
 def is_three_phase(hardware: str) -> bool:
-    return hardware == "P1.ax"
+    return hardware == "P1.ax" or hardware == "P1.cx"
 
 
 def is_three_phase_lookup(supabase: Client, meter_id: str) -> bool:
