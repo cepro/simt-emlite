@@ -47,7 +47,7 @@ jobs:
         run: poetry run lint
 
       - name: Static types check
-        run: poetry run mypy emop_frame_protocol
+        run: poetry run mypy simt_emlite
 
       - name: Test
         run: poetry run test
