@@ -72,7 +72,16 @@ class DockerAdapter(BaseAdapter):
         )
 
     def create(
-        self, cmd: str, meter_id: str, serial: str, ip_address: str, skip_confirm=False
+        self,
+        cmd: str,
+        meter_id: str,
+        serial: str,
+        ip_address: str,
+        # the following currently unused in this adapter
+        port: int | None = None,
+        additional_internal_port: int | None = None,
+        skip_confirm=False,
+        use_cert_auth=False,
     ) -> str:
         mediator_name = f"mediator-{serial}"
         container = self.docker_client.containers.run(

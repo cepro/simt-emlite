@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Dict, NamedTuple, Optional
+from typing import Any, Dict, NamedTuple, Optional, cast
 
 from httpx import ConnectError
 
@@ -43,7 +43,7 @@ class SyncerBase(ABC):
         self.emlite_client = emlite_client
         self.meter_id = meter_id
 
-        self.supabase_extra = None
+        self.supabase_extra: SupabaseClient | None = None
         if sync_extra is True:
             if not supabase_url_extra or not supabase_key_extra:
                 raise Exception(
@@ -101,11 +101,13 @@ class SyncerBase(ABC):
         except ConnectError as e:
             handle_supabase_faliure(self.log, e)
 
-        if sync_extra is True:
+        if sync_extra is True and self.supabase_extra:
             # sync to extra database and don't terminate if this fails
             try:
                 update_meter_shadows_when_healthy(
-                    self.supabase_extra, self.meter_id, update_props
+                    cast(SupabaseClient, self.supabase_extra),
+                    self.meter_id,
+                    update_props,
                 )
             except ConnectError as e:
                 self.log.error(

@@ -29,7 +29,7 @@ def update_meter_shadows_when_healthy(
 
 def handle_meter_unhealthy_status(
     supabase: SupabaseClient,
-    supabase_extra: SupabaseClient,
+    supabase_extra: SupabaseClient | None,
     logger,
     meter_id: str,
     exception: MediatorClientException,

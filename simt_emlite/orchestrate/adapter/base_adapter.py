@@ -32,6 +32,9 @@ class BaseAdapter(ABC):
         serial: str,
         ip_address: str,
         port: int | None = None,
+        additional_internal_port: int | None = None,
+        skip_confirm=False,
+        use_cert_auth=False,
     ) -> str:
         pass
 
