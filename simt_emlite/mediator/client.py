@@ -356,6 +356,41 @@ class EmliteMediatorClient(object):
         self.log.info("received three phase serial", serial=serial)
         return cast(str, serial)
 
+    def three_phase_read(
+        self,
+    ) -> Dict[str, float | None]:
+        active_import: EmopMessage.U4leValueRec | None = self._safe_read_element(
+            ObjectIdEnum.three_phase_total_active_import
+        )
+        active_export: EmopMessage.U4leValueRec | None = self._safe_read_element(
+            ObjectIdEnum.three_phase_total_active_export
+        )
+        reactive_import: EmopMessage.U4leValueRec | None = self._safe_read_element(
+            ObjectIdEnum.three_phase_total_reactive_import
+        )
+        reactive_export: EmopMessage.U4leValueRec | None = self._safe_read_element(
+            ObjectIdEnum.three_phase_total_reactive_export
+        )
+        apparent_import: EmopMessage.U4leValueRec | None = self._safe_read_element(
+            ObjectIdEnum.three_phase_total_apparent_import
+        )
+        apparent_export: EmopMessage.U4leValueRec | None = self._safe_read_element(
+            ObjectIdEnum.three_phase_total_apparent_export
+        )
+
+        reads_dict: Dict[str, float | None] = {
+            "active_import": self._scale_kilo_value(active_import),
+            "active_export": self._scale_kilo_value(active_export),
+            "reactive_import": self._scale_kilo_value(reactive_import),
+            "reactive_export": self._scale_kilo_value(reactive_export),
+            "apparent_import": self._scale_kilo_value(apparent_import),
+            "apparent_export": self._scale_kilo_value(apparent_export),
+        }
+
+        self.log.info(f"reads: {reads_dict}")
+
+        return reads_dict
+
     def three_phase_instantaneous_voltage(
         self,
     ) -> tuple[float, float | None, float | None]:
@@ -1012,3 +1047,15 @@ class EmliteMediatorClient(object):
         self.log.debug(f"three phase intervals block [{str(block)}]")
 
         return block
+
+    def _safe_read_element(self, element_id):
+        """Safely read an element, returning None if it fails."""
+        try:
+            return self._read_element(element_id)
+        except Exception as e:
+            element_name = getattr(element_id, "name", str(element_id))
+            logger.error(f"Failed to read element {element_name}. Exception: {e}")
+            return None
+
+    def _scale_kilo_value(self, rec: EmopMessage.U4leValueRec | None):
+        return rec.value / 1000 if rec else None
