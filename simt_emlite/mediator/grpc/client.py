@@ -79,9 +79,8 @@ class EmliteMediatorGrpcClient:
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
                     if "EOFError" in e.details():
-                        # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
                         self.log.warn(
-                            "EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
+                            "EOFError from meter",
                             object_id=obis_name,
                         )
                         raise EmliteEOFError(
@@ -150,9 +149,8 @@ class EmliteMediatorGrpcClient:
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
                     if "EOFError" in e.details():
-                        # TODO: need to fix these or retry - for now longer sleep between requests may resolve and we'll mark warn
                         self.log.warn(
-                            "EOFError from meter - logging warn - so far only seen with back to back 3p voltage requests",
+                            "EOFError from meter",
                             object_id=obis_name,
                         )
                         raise EmliteEOFError(

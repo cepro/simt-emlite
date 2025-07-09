@@ -19,10 +19,10 @@ class SyncerReads(SyncerBase):
         element_b_read = self.emlite_client.read_element_b()
 
         metrics = {
-            "import_a": element_a_read.import_active,
-            "import_b": element_b_read.import_active,
-            "export_a": element_a_read.export_active,
-            "export_b": element_b_read.export_active,
+            "import_a": element_a_read["import_active"],
+            "import_b": element_b_read["import_active"],
+            "export_a": element_a_read["export_active"],
+            "export_b": element_b_read["export_active"],
         }
 
         return UpdatesTuple(metrics, None)

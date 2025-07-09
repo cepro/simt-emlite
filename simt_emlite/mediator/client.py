@@ -254,44 +254,41 @@ class EmliteMediatorClient(object):
 
     def read(
         self,
-    ) -> (
-        Tuple[EmopMessage.ReadingRec, EmopMessage.ReadingRec | None]
-        | Dict[str, float | None]
-    ):
+    ) -> Tuple[Dict[str, float], Dict[str, float] | None] | Dict[str, float | None]:
         hardware = self.hardware()
         is_3p = is_three_phase(hardware)
         if is_3p:
             return self.three_phase_read()
         else:
-            element_a: EmopMessage.ReadingRec = self.read_element_a()
-            element_b: EmopMessage.ReadingRec | None = None
+            element_a: Dict[str, float] = self.read_element_a()
+            element_b: Dict[str, float] | None = None
             if is_twin_element(hardware):
                 element_b = self.read_element_b()
             single_phase_reads = (element_a, element_b)
             self.log.info(f"single phase read [{single_phase_reads}]")
             return single_phase_reads
 
-    def read_element_a(self) -> EmopMessage.ReadingRec:
+    def read_element_a(self) -> Dict[str, float]:
         data = self._read_element(ObjectIdEnum.read_element_a)
-        self.log.info(
-            "received read_element_a record",
-            import_active=data.import_active,
-            export_active=data.export_active,
-            import_reactive=data.import_reactive,
-            export_reactive=data.export_reactive,
-        )
-        return data
+        reads = {
+            "import_active": data.import_active / 1000,
+            "export_active": data.export_active / 1000,
+            "import_reactive": data.import_reactive / 1000,
+            "export_reactive": data.export_reactive / 1000,
+        }
+        self.log.info("received read_element_a record", reads=reads)
+        return reads
 
-    def read_element_b(self) -> EmopMessage.ReadingRec:
+    def read_element_b(self) -> Dict[str, float]:
         data = self._read_element(ObjectIdEnum.read_element_b)
-        self.log.info(
-            "received read_element_b record",
-            import_active=data.import_active,
-            export_active=data.export_active,
-            import_reactive=data.import_reactive,
-            export_reactive=data.export_reactive,
-        )
-        return data
+        reads = {
+            "import_active": data.import_active / 1000,
+            "export_active": data.export_active / 1000,
+            "import_reactive": data.import_reactive / 1000,
+            "export_reactive": data.export_reactive / 1000,
+        }
+        self.log.info("received read_element_b record", reads=reads)
+        return reads
 
     def daylight_savings_correction_enabled(self) -> bool:
         data = self._read_element(ObjectIdEnum.daylight_savings_correction_flag)
