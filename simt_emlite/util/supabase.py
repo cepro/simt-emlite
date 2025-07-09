@@ -1,5 +1,5 @@
 from supabase import Client, create_client
-from supabase.lib.client_options import ClientOptions
+from supabase.lib.client_options import SyncClientOptions
 
 SCHEMA_NAME = "flows"
 
@@ -10,7 +10,7 @@ def supa_client(
     role_key: str | None = None,
     schema: str | None = None,
 ) -> Client:
-    options = ClientOptions()
+    options = SyncClientOptions()
     options.schema = schema if schema is not None else SCHEMA_NAME
     options.auto_refresh_token = False
 
