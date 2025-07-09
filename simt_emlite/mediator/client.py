@@ -55,7 +55,6 @@ from simt_emlite.util.meters import (
     is_three_phase,
     is_twin_element,
     single_phase_hardware_str_to_registry_str,
-    three_phase_hardware_known_strings,
 )
 from simt_emlite.util.three_phase_intervals import (
     blocks_to_intervals_rec,
