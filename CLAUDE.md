@@ -10,7 +10,7 @@
 - gRPC code generation: `cd simt_emlite/mediator/grpc && python grpc_codegen.py`
 
 ## Code Style
-- Python 3.12+ with type hints required
+- Python 3.13+ with type hints required
 - snake_case for variables/functions, PascalCase for classes
 - Imports: stdlib first, third-party second, local imports last
 - Use absolute imports from root (e.g., `from simt_emlite.util.logging import get_logger`)

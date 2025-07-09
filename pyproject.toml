@@ -3,7 +3,7 @@ name = "simt-emlite"
 version = "0.22.5"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
-requires-python = ">=3.12,<4.0"
+requires-python = ">=3.13,<4.0"
 readme = "README.pypi.md"
 dependencies = [
     "grpcio==1.72.1",
@@ -59,7 +59,7 @@ grpcio-tools = "1.64.1"
 extend-exclude = ["generated"]
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 exclude = "generated/"
 # disable strict until we've fixed all the issues:
 # strict = true
