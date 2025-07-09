@@ -1,5 +1,14 @@
 from supabase import Client
 
+single_phase_hardware_str_to_registry_str = {
+    "6C": "C1.w",
+    "6Cw": "C1.w",
+    "6Bw": "B1.w",
+    "3Aw": "EMA1.w",
+}
+
+three_phase_hardware_known_strings = ["P1.ax", "P1.cx", "THREE_PHASE_UNKNOWN"]
+
 
 def is_twin_element(hardware: str) -> bool:
     return hardware == "C1.w"

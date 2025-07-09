@@ -5,15 +5,6 @@ from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-single_phase_hardware_str_to_registry_str = {
-    "6C": "C1.w",
-    "6Cw": "C1.w",
-    "6Bw": "B1.w",
-    "3Aw": "EMA1.w",
-}
-
-three_phase_hardware_known_strings = ["P1.ax", "P1.cx", "THREE_PHASE_UNKNOWN"]
-
 
 class SyncerHardware(SyncerBase):
     @override
@@ -26,14 +17,7 @@ class SyncerHardware(SyncerBase):
         )
         meter_registry_entry = result.data[0]
 
-        hardware_rsp = self.emlite_client.hardware()
-
-        if hardware_rsp not in three_phase_hardware_known_strings:
-            hardware = single_phase_hardware_str_to_registry_str[hardware_rsp]
-            if hardware is None:
-                hardware = "SINGLE_PHASE_UNKNOWN"
-        else:
-            hardware = hardware_rsp
+        hardware = self.emlite_client.hardware()
 
         registry_hardware = meter_registry_entry["hardware"]
         if registry_hardware == hardware:

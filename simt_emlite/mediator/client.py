@@ -51,7 +51,12 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.meters import is_three_phase, is_twin_element
+from simt_emlite.util.meters import (
+    is_three_phase,
+    is_twin_element,
+    single_phase_hardware_str_to_registry_str,
+    three_phase_hardware_known_strings,
+)
 from simt_emlite.util.three_phase_intervals import (
     blocks_to_intervals_rec,
     export_three_phase_intervals_to_csv,
@@ -172,6 +177,9 @@ class EmliteMediatorClient(object):
                 hardware = "THREE_PHASE_UNKNOWN"
         else:
             hardware = data.hardware.replace("\u0000", "").strip()
+            hardware = single_phase_hardware_str_to_registry_str[hardware]
+            if hardware is None:
+                hardware = "SINGLE_PHASE_UNKNOWN"
 
         self.log.info("hardware", hardware=hardware)
         return hardware
