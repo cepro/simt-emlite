@@ -20,9 +20,8 @@ dependencies = [
     "httpx==0.27.0",
     "argcomplete>=3.4.0",
     "types-requests==2.32.4.20250611",
-    # testpypi deps - see additional metadata under 'tool.poetry.dependencies' 
     "emop-frame-protocol==0.4.7",
-    "simt-fly-machines==0.1.12",
+    "simt-fly-machines==0.2.1",
 ]
 
 [project.scripts]
@@ -33,19 +32,8 @@ emop = "simt_emlite.cli.emop:main"
 mediators = "simt_emlite.cli.mediators:main"
 
 [tool.poetry]
-# Keeping Poetry-specific configurations
 packages = [{ include = "simt_emlite" }]
 exclude = ["tests", "*.env", "simt_emlite/**/*.py"]
-# Dependencies that require alternative sources
-
-[[tool.poetry.source]]
-name = "testpypi"
-url = "https://test.pypi.org/simple/"
-priority = "explicit"
-
-[tool.poetry.dependencies]
-emop-frame-protocol = { source = "testpypi" }
-simt-fly-machines = { source = "testpypi" }
 
 [tool.poetry.group.dev.dependencies]
 ruff = "0.11.2"
