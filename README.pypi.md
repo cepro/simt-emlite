@@ -6,21 +6,12 @@ This repository contains:
 - a CLI (emop) for sending messages to the meters
 - a CLI (mediators) for managing mediator servers
 
-# Install and Configure
-
-```sh
-# Install
-pip install    --extra-index-url https://test.pypi.org/simple/ simt-emlite
-
-# Upgrade
-pip install -U --extra-index-url https://test.pypi.org/simple/ simt-emlite
-```
+# Configure
 
 Configuration steps: 
 - create file ~/.simt/emlite.prod.env from Lastpass secret 'emop-cli-env-file (prod)'
 - create file ~/.simt/emlite.qa.env from Lastpass secret 'emop-cli-env-file (qa)'
 - ln -s ~/.simt/emlite.<qa|prod>.env ~/.simt/emlite.env
-
 
 see also https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8
 
