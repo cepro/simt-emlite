@@ -166,7 +166,7 @@ Mediators use TLS certificates for authentication which is configured at the gRP
 
 We generate certficates for a CA, server and clients as follows.
 
-This should be done separately for each environment - prod, qa and local.
+This should be done separately for each environment - prod, qa, local, custom, etc.
 
 Generated keys can be found in Lastpass under "Mediator Mutual TLS Certificates".
 

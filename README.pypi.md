@@ -11,7 +11,7 @@ This repository contains:
 Configuration steps: 
 - create file ~/.simt/emlite.prod.env from Lastpass secret 'emop-cli-env-file (prod)'
 - create file ~/.simt/emlite.qa.env from Lastpass secret 'emop-cli-env-file (qa)'
-- ln -s ~/.simt/emlite.<qa|prod>.env ~/.simt/emlite.env
+- ln -s ~/.simt/emlite.<qa|prod|custom>.env ~/.simt/emlite.env
 
 see also https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8
 

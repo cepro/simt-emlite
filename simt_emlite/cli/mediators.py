@@ -279,12 +279,12 @@ Go ahead and destroy ALL of these? (y/n): """)
         logging.info(config["env"])
 
     def env_set(self, env: str) -> None:
-        allowed_env = ["prod", "qa", "local"]
-        if env not in allowed_env:
-            logging.info(f"ERROR: env must be one of {allowed_env}")
+        try:
+            set_config(env)
+            logging.info(f"env set to {env}")
+        except Exception as e:
+            logging.error(f"ERROR: {e}")
             sys.exit(1)
-        set_config(env)
-        logging.info(f"env set to {env}")
 
     def _machine_by_serial(self, serial: str) -> str:
         meter = self._meter_by_serial(serial)
@@ -403,10 +403,7 @@ def main() -> None:
     subparsers.add_parser(
         "env_set",
         help="Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
-    ).add_argument(
-        "env",
-        choices=["prod", "qa", "local"],
-    )
+    ).add_argument("env")
 
     parser_list = subparsers.add_parser(
         "list",

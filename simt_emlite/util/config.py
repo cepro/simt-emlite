@@ -43,6 +43,9 @@ def set_config(env: str) -> None:
     target_path = os.path.join(config_path, "emlite.env")
     source_path = os.path.join(config_path, f"emlite.{env}.env")
 
+    if not os.path.exists(source_path):
+        raise Exception(f"Configuration file does not exist: {source_path}")
+
     if os.path.exists(target_path):
         os.unlink(target_path)
 
