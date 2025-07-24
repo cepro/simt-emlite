@@ -368,7 +368,7 @@ Go ahead and destroy ALL of these? (y/n): """)
 
     def _add_container_info_to_app_per_serial_meters(self, meters) -> None:
         single_app_meters = list(
-            filter(lambda m: m["single_meter_app"] is True, meters)
+            filter(lambda m: m.get("single_meter_app", False) is True, meters)
         )
         for meter in single_app_meters:
             containers_api = get_instance(
