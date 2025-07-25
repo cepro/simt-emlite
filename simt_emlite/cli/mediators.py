@@ -5,7 +5,7 @@ import logging
 import sys
 from datetime import datetime
 from json import dumps
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 from rich import box
 from rich.console import Console
@@ -26,6 +26,7 @@ SUPABASE_ANON_KEY: str | int | None = config["supabase_anon_key"]
 SUPABASE_URL: str | int | None = config["supabase_url"]
 
 FLY_API_TOKEN: str | int | None = config["fly_api_token"]
+FLY_REGION: str | None = cast(str | None, config["fly_region"])
 
 SOCKS_HOST: str | int | None = config["socks_host"]
 SOCKS_PORT: str | int | None = config["socks_port"]
@@ -189,6 +190,7 @@ class MediatorsCLI:
             is_single_meter_app=meter["single_meter_app"],
             esco=meter["esco"],
             serial=serial,
+            region=FLY_REGION,
         )
         containers_api.create(
             "simt_emlite.mediator.grpc.server",

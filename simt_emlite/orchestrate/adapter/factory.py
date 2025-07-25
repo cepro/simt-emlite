@@ -9,6 +9,7 @@ def get_instance(
     esco: str | None = None,
     serial: str | None = None,
     use_private_address: bool | None = None,
+    region: str | None = None,
 ) -> DockerAdapter | FlyAdapter:
     # ideally load these outside the function however due to the way we load
     # the env variables in the cli tool (in the body and not before the script
@@ -32,6 +33,7 @@ def get_instance(
             esco,
             serial,
             use_private_address,
+            region,
         )
     else:
         adapter = DockerAdapter(mediator_image)

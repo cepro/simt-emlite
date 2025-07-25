@@ -26,6 +26,7 @@ def load_config() -> Dict[str, str | int | None]:
         # fly
         "fly_api_token": os.environ.get("FLY_API_TOKEN"),
         "fly_dns_server": os.environ.get("FLY_DNS_SERVER"),
+        "fly_region": os.environ.get("FLY_REGION"),
         # emnify gateway socks proxy
         "socks_host": os.environ.get("SOCKS_HOST"),
         "socks_port": os.environ.get("SOCKS_PORT"),

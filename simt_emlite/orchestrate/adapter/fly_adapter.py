@@ -3,7 +3,7 @@ import sys
 from typing import List
 
 import dns.resolver
-from simt_fly_machines.api import API
+from simt_fly_machines.api import API, FLY_REGION_DEFAULT
 
 from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter
 from simt_emlite.orchestrate.adapter.container import (
@@ -56,6 +56,7 @@ class FlyAdapter(BaseAdapter):
         esco: str | None = None,
         serial: str | None = None,
         use_private_address: bool | None = None,
+        region: str | None = None,
     ):
         super().__init__()
 
@@ -65,6 +66,7 @@ class FlyAdapter(BaseAdapter):
         self.is_single_meter_app = is_single_meter_app
         self.esco = esco
         self.serial = serial
+        self.region = region if not None else FLY_REGION_DEFAULT
 
         if is_single_meter_app and serial is None:
             raise Exception("FlyAdapter needs a serial to work with a single meter app")
@@ -90,7 +92,7 @@ class FlyAdapter(BaseAdapter):
         metadata_filter: tuple[str, str] | None = None,
         status_filter: ContainerState | None = None,
     ) -> List[Container]:
-        machines = self.api.list(self.fly_app)
+        machines = self.api.list(self.fly_app, region=self.region)
 
         if "error" in machines:
             logger.warning(f"failed to get machines {machines}", fly_app=self.fly_app)
@@ -149,6 +151,7 @@ class FlyAdapter(BaseAdapter):
         if skip_confirm is not True:
             answer = input(f"""
 Fly App:    {self.fly_app}
+Region:     {self.region}
 Image:      {self.image}
 Name:       {machine_name}
 Metadata:   {metadata}
@@ -167,6 +170,7 @@ Create machine with these details (y/n): """)
             name=machine_name,
             env_vars=self._env_vars(ip_address, use_cert_auth),
             metadata=metadata,
+            extra_config={"region": self.region},
         )
         logger.info(f"create machine response {create_response}")
 

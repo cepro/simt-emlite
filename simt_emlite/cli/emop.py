@@ -27,7 +27,6 @@ SUPABASE_URL = config["supabase_url"]
 
 FLY_API_TOKEN = config["fly_api_token"]
 
-
 """
     This is a CLI wrapper around the mediator client.
 """

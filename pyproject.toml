@@ -21,7 +21,7 @@ dependencies = [
     "argcomplete>=3.4.0",
     "types-requests==2.32.4.20250611",
     "emop-frame-protocol==0.4.7",
-    "simt-fly-machines==0.2.1",
+    "simt-fly-machines==0.2.2",
 ]
 
 [project.scripts]
