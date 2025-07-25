@@ -8,7 +8,7 @@ import os
 import sys
 import traceback
 from decimal import Decimal
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage
@@ -26,6 +26,7 @@ SUPABASE_ANON_KEY = config["supabase_anon_key"]
 SUPABASE_URL = config["supabase_url"]
 
 FLY_API_TOKEN = config["fly_api_token"]
+FLY_REGION: str | None = cast(str | None, config["fly_region"])
 
 """
     This is a CLI wrapper around the mediator client.
@@ -90,6 +91,7 @@ class EMOPCLI(EmliteMediatorClient):
                     is_single_meter_app=is_single_meter_app,
                     esco=esco_code,
                     serial=serial,
+                    region=FLY_REGION,
                 )
                 mediator_address = containers.mediator_address(meter_id, serial)
                 if not mediator_address:

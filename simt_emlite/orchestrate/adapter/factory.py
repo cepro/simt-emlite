@@ -3,13 +3,15 @@ import os
 from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
 from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
 
+fly_region: str | None = os.environ.get("FLY_REGION")
+
 
 def get_instance(
     is_single_meter_app: bool = False,
     esco: str | None = None,
     serial: str | None = None,
     use_private_address: bool | None = None,
-    region: str | None = None,
+    region: str | None = fly_region,
 ) -> DockerAdapter | FlyAdapter:
     # ideally load these outside the function however due to the way we load
     # the env variables in the cli tool (in the body and not before the script

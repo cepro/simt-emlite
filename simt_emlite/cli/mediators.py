@@ -332,6 +332,7 @@ Go ahead and destroy ALL of these? (y/n): """)
             is_single_meter_app=meter["single_meter_app"],
             esco=meter["esco"],
             serial=serial,
+            region=FLY_REGION,
         )
         container = containers_api.get(meter["id"])
         if container is None:
@@ -352,7 +353,10 @@ Go ahead and destroy ALL of these? (y/n): """)
         # not across apps. there for first add info to all per-esco apps then
         # any per-serial apps (single meter per app)
         for esco_code in escos:
-            containers_api = get_instance(esco=esco_code)
+            containers_api = get_instance(
+                esco=esco_code,
+                region=FLY_REGION,
+            )
             containers = containers_api.list()
 
             esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
@@ -374,7 +378,9 @@ Go ahead and destroy ALL of these? (y/n): """)
         )
         for meter in single_app_meters:
             containers_api = get_instance(
-                is_single_meter_app=True, serial=meter["serial"]
+                is_single_meter_app=True,
+                serial=meter["serial"],
+                region=FLY_REGION,
             )
             containers = containers_api.list()
             container_matches = list(
