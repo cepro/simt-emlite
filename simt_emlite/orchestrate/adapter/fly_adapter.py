@@ -93,16 +93,19 @@ class FlyAdapter(BaseAdapter):
         status_filter: ContainerState | None = None,
     ) -> List[Container]:
         machines = self.api.list(self.fly_app, region=self.region)
+        logger.info(f"machines0 {machines}")
 
         if "error" in machines:
             logger.warning(f"failed to get machines {machines}", fly_app=self.fly_app)
             return []
 
         machines = list(filter(lambda m: m["name"].startswith("mediator-"), machines))
+        logger.info(f"machines {machines}")
 
         # machines in an odd state will have no config - they are in the
         #   machines listing but don't really exist (have asked fly about this)
         machines = list(filter(lambda m: m["config"] is not None, machines))
+        logger.info(f"machines2 {machines}")
 
         if metadata_filter:
             logger.debug(f"metadata filter [{metadata_filter}]")
