@@ -80,13 +80,22 @@ class SyncerEventLog(SyncerBase):
         logger.info("unseen events count", unseen_event_count=len(unseen_events))
 
         if len(unseen_events) > 0:
+            # Event id 0 is not valid but these were seen in a meter - filter out and warn of these
+            unseen_events_filtered = list(
+                filter(lambda e: e.event_id != 0, unseen_events)
+            )
+            if len(unseen_events_filtered) != len(unseen_events):
+                logger.warn("ignoring events with event_id 0")
+
             insert_recs = list(
                 map(
                     lambda e: event_rec_to_table_row(meter_id=self.meter_id, event=e),
-                    unseen_events,
+                    unseen_events_filtered,
                 )
             )
-            logger.info("records to insert", insert_recs=insert_recs)
+            logger.info(
+                f"{len(insert_recs)} records to insert", insert_recs=insert_recs
+            )
 
             response = (
                 self.supabase.table("meter_event_log").insert(insert_recs).execute()
