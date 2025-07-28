@@ -98,7 +98,13 @@ class SyncerEventLog(SyncerBase):
             )
 
             response = (
-                self.supabase.table("meter_event_log").insert(insert_recs).execute()
+                self.supabase.table("meter_event_log")
+                .upsert(
+                    insert_recs,
+                    on_conflict="meter_id,timestamp,event_type",
+                    ignore_duplicates=True,
+                )
+                .execute()
             )
             logger.info("supabase insert response", response=response)
 
