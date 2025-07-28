@@ -204,7 +204,9 @@ Create machine with these details (y/n): """)
             )
             print(f"wait_rsp [{id}]: {wait_rsp}")
 
-        destroy_rsp = self.api.destroy(self.fly_app, id, force=force)
+        destroy_rsp = self.api.destroy(
+            self.fly_app, id, force=force, region=self.region
+        )
         print(f"destroy_rsp [{id}]: {destroy_rsp}")
 
     def mediator_address(self, meter_id: str, serial: str) -> str | None:
