@@ -201,8 +201,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
         if datetime.now() < next_request_allowed_datetime:
             self.log.info(
-                "sleeping %s seconds between requests",
-                minimum_time_between_emlite_requests_seconds,
+                f"sleeping {minimum_time_between_emlite_requests_seconds} seconds between requests"
             )
             time.sleep(minimum_time_between_emlite_requests_seconds)
 

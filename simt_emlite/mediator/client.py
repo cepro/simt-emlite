@@ -175,11 +175,14 @@ class EmliteMediatorClient(object):
             else:
                 hardware = "THREE_PHASE_UNKNOWN"
         else:
-            hardware = data.hardware.replace("\u0000", "").strip()
-            hardware = single_phase_hardware_str_to_registry_str[hardware]
-            if hardware is None:
+            hardware_clean: str = data.hardware.replace("\u0000", "").strip()
+            hardware_optional: str | None = (
+                single_phase_hardware_str_to_registry_str.get(hardware_clean, None)
+            )
+            if hardware_optional is None:
                 hardware = "SINGLE_PHASE_UNKNOWN"
-
+            else:
+                hardware = hardware_optional
         self.log.info("hardware", hardware=hardware)
         return hardware
 
