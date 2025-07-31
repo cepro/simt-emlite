@@ -44,8 +44,6 @@ def handle_meter_unhealthy_status(
             {"health": "unhealthy", "health_details": exception.message, "csq": None}
         ).eq("id", meter_id).execute()
 
-    sys.exit(100)
-
 
 def handle_mediator_unknown_failure(logger, error) -> None:
     logger.error(

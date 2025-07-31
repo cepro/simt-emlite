@@ -2,6 +2,7 @@ import argparse
 import concurrent.futures
 import importlib
 import logging
+import os
 import sys
 from datetime import datetime
 from json import dumps
@@ -13,6 +14,7 @@ from rich.table import Table
 from rich.text import Text
 from supabase import Client as SupabaseClient
 
+from simt_emlite.jobs.meter_sync import MeterSyncJob
 from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
@@ -267,6 +269,56 @@ Go ahead and destroy ALL of these? (y/n): """)
     def stop_all(self) -> None:
         pass
 
+    def sync(self, serial: str) -> None:
+        """Run sync jobs for a specific meter by serial number."""
+        meter = self._meter_by_serial(serial)
+
+        # Get the mediator address for this meter
+        containers_api = get_instance(
+            is_single_meter_app=meter["single_meter_app"],
+            esco=meter["esco"],
+            serial=serial,
+            region=FLY_REGION,
+        )
+
+        mediator_address = containers_api.mediator_address(meter["id"], serial)
+        if mediator_address is None:
+            print(f"No mediator container exists for meter {serial}")
+            sys.exit(1)
+
+        # Get required environment variables
+        supabase_url = os.environ.get("SUPABASE_URL") or str(SUPABASE_URL)
+        supabase_key = os.environ.get("SUPABASE_ANON_KEY") or str(SUPABASE_ANON_KEY)
+        flows_role_key = os.environ.get("FLOWS_ROLE_KEY") or str(SUPABASE_ACCESS_TOKEN)
+
+        if not supabase_url or not supabase_key or not flows_role_key:
+            print(
+                "Missing required environment variables: SUPABASE_URL, SUPABASE_ANON_KEY, FLOWS_ROLE_KEY"
+            )
+            sys.exit(1)
+
+        for frequency in ["daily", "hourly", "12hourly"]:
+            print(
+                f"Syncing meter {serial} at {mediator_address} with syncers at frequency {frequency} [see flows.meter_metrics]\n"
+            )
+
+            # Create and run the sync job
+            job = MeterSyncJob(
+                meter_id=meter["id"],
+                mediator_address=mediator_address,
+                supabase_url=supabase_url,
+                supabase_key=supabase_key,
+                flows_role_key=flows_role_key,
+                run_frequency=frequency,
+            )
+
+            try:
+                job.sync()
+                print(f"\nSync completed successfully for meter {serial}\n")
+            except Exception as e:
+                print(f"Sync failed for meter {serial}: {e}")
+                sys.exit(1)
+
     # =================================
     #   Utils
     # =================================
@@ -477,6 +529,12 @@ def main() -> None:
         "destroy_all",
         help="Destroy all mediators for a given ESCO",
     ).add_argument("esco", help=ESCO_FILTER_HELP)
+
+    parser_sync = subparsers.add_parser(
+        "sync",
+        help="Run sync jobs for a specific meter by serial number",
+    )
+    parser_sync.add_argument("serial", help="Serial number of the meter to sync")
 
     kwargs = vars(parser.parse_args())
 
