@@ -51,7 +51,6 @@ def handle_mediator_unknown_failure(logger, error) -> None:
         error=error,
         exception=traceback.format_exception(error),
     )
-    sys.exit(101)
 
 
 def handle_supabase_faliure(logger, error) -> None:
@@ -60,7 +59,6 @@ def handle_supabase_faliure(logger, error) -> None:
         error=error,
         exception=traceback.format_exception(error),
     )
-    sys.exit(50)
 
 
 def check_environment_vars(

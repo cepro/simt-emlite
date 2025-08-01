@@ -100,6 +100,7 @@ class SyncerBase(ABC):
             )
         except ConnectError as e:
             handle_supabase_faliure(self.log, e)
+            return
 
         if sync_extra is True and self.supabase_extra:
             # sync to extra database and don't terminate if this fails

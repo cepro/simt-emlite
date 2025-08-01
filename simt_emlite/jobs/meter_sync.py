@@ -1,4 +1,5 @@
 import inspect
+import traceback
 
 from httpx import ConnectError
 
@@ -69,8 +70,16 @@ class MeterSyncJob:
             )
         except ConnectError as e:
             handle_supabase_faliure(self.log, e)
+            return
 
         for metric in query_result.data:
-            syncer_class = find_syncer_class(metric["name"])
-            syncer = syncer_class(self.supabase, self.emlite_client, self.meter_id)
-            syncer.sync()
+            try:
+                syncer_class = find_syncer_class(metric["name"])
+                syncer = syncer_class(self.supabase, self.emlite_client, self.meter_id)
+                syncer.sync()
+            except Exception as e:
+                self.log.error(
+                    f"failure occurred syncing metric {metric['name']}",
+                    error=e,
+                    exception=traceback.format_exception(e),
+                )
