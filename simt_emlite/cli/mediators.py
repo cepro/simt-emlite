@@ -219,7 +219,14 @@ Go ahead and create ALL of these? (y/n): """)
             print("\naborting ...\n")
             sys.exit(1)
 
-        for m in mediators:
+        mediators_with_serials = list(
+            filter(lambda m: m["serial"] is not None, mediators)
+        )
+        if len(mediators_with_serials) != len(mediators):
+            print(
+                f"\nWARN: {len(mediators) - len(mediators_with_serials)} mediators found without serials. skipping ...\n"
+            )
+        for m in mediators_with_serials:
             self.create(m["serial"], skip_confirm=True)
 
     def start_one(self, serial: str) -> None:
