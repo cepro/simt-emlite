@@ -2,7 +2,7 @@ from typing_extensions import override
 
 from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.meters import is_three_phase_lookup
+from simt_emlite.util.meters import get_hardware, is_three_phase_lookup
 
 logger = get_logger(__name__, __file__)
 
@@ -10,9 +10,14 @@ logger = get_logger(__name__, __file__)
 class SyncerReads(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
+        # skip until we know the hardware type
+        hardware = get_hardware(self.supabase, self.meter_id)
+        if hardware is None or hardware == "":
+            return UpdatesTuple(None, None)
+
+        # skip until we implement 3p reads
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
-            # for now skip it but later we want to try do 3p reads
             return UpdatesTuple(None, None)
 
         element_a_read = self.emlite_client.read_element_a()

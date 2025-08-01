@@ -19,7 +19,12 @@ def is_three_phase(hardware: str) -> bool:
 
 
 def is_three_phase_lookup(supabase: Client, meter_id: str) -> bool:
+    hardware = get_hardware(supabase, meter_id)
+    return is_three_phase(hardware)
+
+
+def get_hardware(supabase: Client, meter_id: str) -> str:
     result = (
         supabase.table("meter_registry").select("hardware").eq("id", meter_id).execute()
     )
-    return is_three_phase(result.data[0]["hardware"])
+    return result.data[0]["hardware"]
