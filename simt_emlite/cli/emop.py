@@ -706,7 +706,7 @@ def run_command_for_serials(
 ) -> None:
     for serial in serial_list:
         logging.info(f"\nrunning '{command}' for meter {serial} ...\n")
-        run_command(serial, command, kwargs)
+        run_command(serial, command, kwargs.copy())
 
 
 def main() -> None:
