@@ -260,7 +260,7 @@ class EmliteMediatorClient(object):
         hardware = self.hardware()
         is_3p = is_three_phase(hardware)
         if is_3p:
-            return self.three_phase_read()
+            return self.three_phase_read(hardware)
         else:
             element_a: Dict[str, float] = self.read_element_a()
             element_b: Dict[str, float] | None = None
@@ -383,9 +383,10 @@ class EmliteMediatorClient(object):
         self.log.info("received three phase serial", serial=serial)
         return cast(str, serial)
 
-    def three_phase_read(
-        self,
-    ) -> Dict[str, float | None]:
+    def three_phase_read(self, hardware: str | None) -> Dict[str, float | None]:
+        if not hardware:
+            hardware = self.hardware()
+
         active_import: EmopMessage.U4leValueRec | None = self._safe_read_element(
             ObjectIdEnum.three_phase_total_active_import
         )
@@ -406,12 +407,12 @@ class EmliteMediatorClient(object):
         )
 
         reads_dict: Dict[str, float | None] = {
-            "active_import": self._scale_kilo_value(active_import),
-            "active_export": self._scale_kilo_value(active_export),
-            "reactive_import": self._scale_kilo_value(reactive_import),
-            "reactive_export": self._scale_kilo_value(reactive_export),
-            "apparent_import": self._scale_kilo_value(apparent_import),
-            "apparent_export": self._scale_kilo_value(apparent_export),
+            "active_import": self._scale_value(active_import, hardware),
+            "active_export": self._scale_value(active_export, hardware),
+            "reactive_import": self._scale_value(reactive_import, hardware),
+            "reactive_export": self._scale_value(reactive_export, hardware),
+            "apparent_import": self._scale_value(apparent_import, hardware),
+            "apparent_export": self._scale_value(apparent_export, hardware),
         }
 
         self.log.info(f"reads: {reads_dict}")
@@ -1084,5 +1085,15 @@ class EmliteMediatorClient(object):
             logger.error(f"Failed to read element {element_name}. Exception: {e}")
             return None
 
+    def _scale_value(self, rec: EmopMessage.U4leValueRec | None, hardware: str):
+        return (
+            self._scale_10k_value(rec)
+            if hardware == "P1.cx"
+            else self._scale_kilo_value(rec)
+        )
+
+    def _scale_10k_value(self, rec: EmopMessage.U4leValueRec | None):
+        return rec.value / 10_000 if rec else None
+
     def _scale_kilo_value(self, rec: EmopMessage.U4leValueRec | None):
-        return rec.value / 1000 if rec else None
+        return rec.value / 1_000 if rec else None
