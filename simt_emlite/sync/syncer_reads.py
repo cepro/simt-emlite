@@ -18,7 +18,12 @@ class SyncerReads(SyncerBase):
         # skip until we implement 3p reads
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
-            return UpdatesTuple(None, None)
+            three_phase_read = self.emlite_client.three_phase_read(hardware=None)
+            metrics = {
+                "import_a": three_phase_read["active_import"],
+                "import_b": three_phase_read["active_export"],
+            }
+            return UpdatesTuple(metrics, None)
 
         element_a_read = self.emlite_client.read_element_a()
         element_b_read = self.emlite_client.read_element_b()

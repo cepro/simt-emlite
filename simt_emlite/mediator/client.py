@@ -460,8 +460,10 @@ class EmliteMediatorClient(object):
 
     def profile_log_1(self, timestamp: datetime.datetime) -> EmopProfileLog1Response:
         log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_1)
-        log_decoded = emop_decode_profile_log_1_response(log_rsp)
-        self.log.debug(f"profile_log_1 response [{str(log_decoded)}]")
+        log_decoded: EmopProfileLog1Response = emop_decode_profile_log_1_response(
+            log_rsp
+        )
+        self.log.info(f"profile_log_1 response [{str(log_decoded)}]")
         return log_decoded
 
     def profile_log_2(self, timestamp: datetime.datetime) -> EmopProfileLog2Response:
@@ -469,8 +471,10 @@ class EmliteMediatorClient(object):
 
         hardware = self.hardware()
         is_twin = is_twin_element(hardware)
-        log_decoded = emop_decode_profile_log_2_response(is_twin, log_rsp)
-        self.log.debug(
+        log_decoded: EmopProfileLog2Response = emop_decode_profile_log_2_response(
+            is_twin, log_rsp
+        )
+        self.log.info(
             f"profile_log_2 response [{str(log_decoded)}]",
             is_twin_element=is_twin,
         )
