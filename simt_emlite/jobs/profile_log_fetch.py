@@ -5,6 +5,9 @@ import traceback
 from typing import cast
 from zoneinfo import ZoneInfo
 
+# mypy: disable-error-code="import-untyped"
+from emop_frame_protocol.emop_data import EmopData
+
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
@@ -101,7 +104,6 @@ class ProfileLogFetchJob:
             self.log.info("Fetching profile_log_1", timestamp=timestamp)
 
             # Fetch raw profile_log response first for debugging
-            from emop_frame_protocol.emop_data import EmopData
 
             raw_response = self.emlite_client._profile_log(
                 timestamp, EmopData.RecordFormat.profile_log_1
