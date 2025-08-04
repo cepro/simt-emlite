@@ -212,7 +212,11 @@ def valid_iso_datetime(timestamp: str | None) -> datetime.datetime:
     if timestamp is None:
         raise argparse.ArgumentTypeError("event log idx cannot be None")
     try:
-        return datetime.datetime.fromisoformat(timestamp)
+        dt = datetime.datetime.fromisoformat(timestamp)
+        # Ensure timezone-aware datetime for epoch conversion
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        return dt
     except ValueError:
         raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
 
