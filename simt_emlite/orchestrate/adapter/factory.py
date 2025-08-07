@@ -18,13 +18,28 @@ def get_instance(
     # is invoked) this module gets executed before env loading as imports are
     # above. better would be a wrapper around the cli that sets up all env
     # variables first so consider moving to that.
+    env = os.environ.get("ENV")
     fly_api_token = os.environ.get("FLY_API_TOKEN")
+    fly_app_name = os.environ.get("FLY_APP_NAME")
     fly_dns_server = os.environ.get("FLY_DNS_SERVER") or "fdaa::3"
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")
+
     if not mediator_image:
         raise Exception("MEDIATOR_IMAGE not set")
 
     adapter: DockerAdapter | FlyAdapter
+
+    # make an exception for a short time while running 2 instances against one esco
+    # mgf will replace cepro and we can go back to simply mediators-<esco> naming
+    #
+    # local test: check env
+    # fly deployed test: check fly_app_name
+    if env == "mgf" or (
+        fly_app_name is not None and fly_app_name.startswith("mediators-mgf-")
+    ):
+        app_name_suffix = f"mgf-{esco}"
+    else:
+        app_name_suffix = esco or "unknown"
 
     if fly_api_token is not None:
         adapter = FlyAdapter(
@@ -32,7 +47,7 @@ def get_instance(
             fly_dns_server,
             mediator_image,
             is_single_meter_app,
-            esco,
+            app_name_suffix,
             serial,
             use_private_address,
             region,

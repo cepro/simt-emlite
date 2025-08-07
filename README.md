@@ -108,7 +108,7 @@ See the notes on the mediators CLI above for how to list these machines.
 ```sh
 ESCO=wlce
 APP=mediators-$ESCO
-fly app create $APP --org cepro
+fly app create $APP --org <myorg>
 fly ips allocate-v6 --private -a $APP
 ```
 
@@ -125,7 +125,7 @@ APP=mediator-$SERIAL
 cp fly/fly-tls-auth.toml.template fly/fly-$SERIAL.toml
 
 # create app by using lunch - no machines created at this point
-fly launch --config fly/fly-$SERIAL.toml --image hello-world --no-deploy --org cepro
+fly launch --config fly/fly-$SERIAL.toml --image hello-world --no-deploy --org <myorg>
 
 fly ips allocate-v4 -a $APP
 

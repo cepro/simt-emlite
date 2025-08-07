@@ -161,7 +161,7 @@ if __name__ == "__main__":
         "--esco",
         required=True,
         action="store",
-        help="Apply sync to meters in this esco only",
+        help="Check meters in this esco only",
     )
     args = parser.parse_args()
 

@@ -13,6 +13,9 @@ Configuration steps:
 - create file ~/.simt/emlite.qa.env from Lastpass secret 'emop-cli-env-file (qa)'
 - ln -s ~/.simt/emlite.<qa|prod|custom>.env ~/.simt/emlite.env
 
+NOTE:
+- FLY_DNS_SERVER needs the DNS that wireguard uses (on Linux look under `resolvectl status` for the interface and DNS)
+
 see also https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8
 
 # Use
