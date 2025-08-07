@@ -101,25 +101,13 @@ class ProfileLogFetchJob:
                 tzinfo=ZoneInfo("UTC")
             )
 
-            self.log.info("Fetching profile_log_1", timestamp=timestamp)
-
-            # Fetch raw profile_log response first for debugging
-
-            raw_response = self.emlite_client._profile_log(
-                timestamp, EmopData.RecordFormat.profile_log_1
-            )
-
-            self.log.info(
-                "Raw response bytes", hex=raw_response.hex(), length=len(raw_response)
-            )
-
-            # Now decode it
-            response = self.emlite_client.profile_log_1(timestamp)
+            self.log.info("Fetching profile_log_2", timestamp=timestamp)
+            response = self.emlite_client.profile_log_2(timestamp)
 
             # Print the response to stdout
             print(str(response))
 
-            self.log.info("Successfully fetched and printed profile_log_1")
+            self.log.info("Successfully fetched and printed profile_log_2")
 
         except MediatorClientException as e:
             self.log.error(
@@ -137,7 +125,7 @@ class ProfileLogFetchJob:
             raise
         except Exception as e:
             self.log.error(
-                "Unknown failure during profile_log_1 fetch",
+                "Unknown failure during profile_log_2 fetch",
                 error=e,
                 exception=traceback.format_exception(e),
             )
@@ -146,19 +134,19 @@ class ProfileLogFetchJob:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Fetch profile_log_1 for a single day and print to stdout"
+        description="Fetch profile_log_2 for a single day and print to stdout"
     )
     parser.add_argument(
         "--day",
         required=True,
         action="store",
-        help="Day to fetch profile_log_1 for (format: YYYY-MM-DD, e.g., 2025-08-01)",
+        help="Day to fetch profile_log_2 for (format: YYYY-MM-DD, e.g., 2025-08-01)",
     )
     parser.add_argument(
         "--serial",
         required=True,
         action="store",
-        help="Meter serial number to fetch profile_log_1 for",
+        help="Meter serial number to fetch profile_log_2 for",
     )
 
     args = parser.parse_args()
