@@ -34,7 +34,7 @@ class PushTopupTokensAllJob:
         self.containers = get_instance(esco=esco)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.backend_supabase = supa_client(
-            supabase_url, supabase_key, public_backend_role_key, schema="public"
+            supabase_url, supabase_key, public_backend_role_key, schema="myenergy"
         )
 
     def run_job(self, topup):
