@@ -21,13 +21,5 @@ class SyncerPrepayBalance(SyncerBase):
         if is_three_phase(result.data[0]["hardware"]):
             return UpdatesTuple(None, None)
 
-        enabled = result.data[0]["prepay_enabled"]
-        if enabled is not True:
-            logger.info(
-                "prepay not enabled, skipping balance lookup ...",
-                meter_id=self.meter_id,
-            )
-            return UpdatesTuple(None, None)
-
         balance = self.emlite_client.prepay_balance()
         return UpdatesTuple({"balance": str(balance)}, None)
