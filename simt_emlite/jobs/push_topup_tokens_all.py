@@ -108,7 +108,7 @@ class PushTopupTokensAllJob:
             )
             return False
 
-    def run(self):
+    def run(self, status: str = "wait_token_push"):
         self.log.info("Starting token push job...")
 
         # query for topups with wait_token_push status
@@ -137,26 +137,13 @@ class PushTopupTokensAllJob:
             )
 
             # topups in wait_token_push status for supply meters in esco
-            topups_result = (
-                self.backend_supabase.table("topups")
-                .select("id, meter, token, status, meters(serial)")
-                .eq("status", "wait_token_push")
-                .is_("used_at", "null")
-                .in_("meter", supply_meters_for_esco)
-                .execute()
-            )
+            topups_result = self._get_topups_query(status, supply_meters_for_esco)
         else:
-            # Query all topups with wait_token_push status across all ESCOs
-            topups_result = (
-                self.backend_supabase.table("topups")
-                .select("id, meter, token, status, meters(serial)")
-                .eq("status", "wait_token_push")
-                .is_("used_at", "null")
-                .execute()
-            )
+            # Query all topups with status across all ESCOs
+            topups_result = self._get_topups_query(status)
 
         if len(topups_result.data) == 0:
-            self.log.info("No topups in status wait_token_push")
+            self.log.info(f"No topups in status {status}")
             return
 
         topups = topups_result.data
@@ -236,6 +223,19 @@ class PushTopupTokensAllJob:
             self.log.error("Environment variable PUBLIC_BACKEND_ROLE_KEY not set.")
             sys.exit(4)
 
+    def _get_topups_query(self, status: str, meters: list[str] | None = None):
+        """Query topups table with optional meter filter"""
+        query = (
+            self.backend_supabase.table("topups")
+            .select("id, meter, token, status, meters(serial)")
+            .eq("status", status)
+            .is_("used_at", "null")
+        )
+        
+        if meters:
+            query = query.in_("meter", meters)
+            
+        return query.execute()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -249,4 +249,5 @@ if __name__ == "__main__":
     esco = args.esco if hasattr(args, "esco") else None
 
     runner = PushTopupTokensAllJob(esco=esco)
-    runner.run()
+    runner.run("wait_token_push")
+    runner.run("failed_token_push")
