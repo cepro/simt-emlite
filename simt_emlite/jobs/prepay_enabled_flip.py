@@ -2,10 +2,17 @@ import argparse
 import concurrent.futures
 import os
 import sys
+import traceback
+from typing import Any, Dict
 
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
+from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.mediator_client_exception import (
+    MediatorClientException,
+)
+from simt_emlite.util.supabase import Client as SupabaseClient
 
 logger = get_logger(__name__, __file__)
 
@@ -22,12 +29,64 @@ meter_names = [name.strip() for name in meter_names_str.split(",")]
 meter_names_len = len(meter_names)
 
 
+
+
+class PrepayEnabledFlipJob:
+    def __init__(
+        self,
+        *,
+        meter: Dict[str, Any],
+        mediator_address: str,
+        supabase: SupabaseClient,
+    ):
+        self.meter = meter
+        self.mediator_address = mediator_address
+        self.supabase = supabase
+
+        self.emlite_client = EmliteMediatorClient(
+            mediator_address=mediator_address,
+            meter_id=meter["meter_id"],
+        )
+
+        global logger
+        self.log = logger.bind(
+            serial=meter["serial"],
+            meter_id=meter["meter_id"],
+            mediator_address=mediator_address,
+        )
+
+    def update(self) -> bool:
+        """
+        Update the prepay_enabled flag on the meter.
+        Returns True if successful, False if failed.
+        """
+
+        try:
+            self.emlite_client.prepay_enabled_write(False)
+            self.log.info("prepay disabled")
+            return True
+        except MediatorClientException as e:
+            self.log.error(
+                "Mediator client failure",
+                error=e,
+                exception=traceback.format_exception(e),
+            )
+        except Exception as e:
+            self.log.error(
+                "Unknown failure during prepay_enabled flag disable",
+                error=e,
+                exception=traceback.format_exception(e),
+            )
+
+        return False
+
+
 """
     Disable prepay enabled flags for given set of meters.
 """
 
 
-class PrepayEnabledFlipJob:
+class PrepayEnabledFlipAllJob:
     def __init__(self, esco=None):
         global logger
         self.log = logger.bind(esco=esco)
@@ -40,34 +99,37 @@ class PrepayEnabledFlipJob:
 
     def run_job(self, meter_row) -> bool:
         self.log.info(f"run_job for meter_row {meter_row}")
-        return False
-        # mediator_address = self.containers.mediator_address(meter_id, serial)
-        # if mediator_address is None:
-        #     self.log.error(f"No mediator container exists for meter {serial}")
-        #     return False
 
-        # try:
-        #     self.log.info(
-        #         "run_job",
-        #         meter_id=meter_id,
-        #         serial=serial,
-        #         mediator_address=mediator_address,
-        #     )
+        meter_id = meter_row['id']
+        serial = meter_row['serial']
+        
+        mediator_address = self.containers.mediator_address(meter_id, serial)
+        if mediator_address is None:
+            self.log.error(f"No mediator container exists for meter {serial}")
+            return False
 
-        #     job = FutureTariffsUpdateJob(
-        #         tariff=tariff,
-        #         mediator_address=mediator_address,
-        #         supabase=self.backend_supabase,
-        #     )
+        try:
+            self.log.info(
+                "run_job",
+                meter_id=meter_id,
+                serial=serial,
+                mediator_address=mediator_address,
+            )
 
-        #     return job.update()
-        # except Exception as e:
-        #     self.log.error(
-        #         "Failure occurred pushing token",
-        #         error=e,
-        #         exception=traceback.format_exception(e),
-        #     )
-        #     return False
+            job = PrepayEnabledFlipJob(
+                meter=meter_row,
+                mediator_address=mediator_address,
+                supabase=self.flows_supabase,
+            )
+
+            return job.update()
+        except Exception as e:
+            self.log.error(
+                "Failure occurred pushing token",
+                error=e,
+                exception=traceback.format_exception(e),
+            )
+            return False
 
     def run(self):
         self.log.info("Starting prepay_enabled_flip job...")
@@ -92,10 +154,8 @@ class PrepayEnabledFlipJob:
         ) as executor:
             futures = [executor.submit(self.run_job, meter) for meter in meters_to_disable]
 
-        results = concurrent.futures.wait(futures)
-
         success_count = 0
-        for future in results.done:
+        for future in concurrent.futures.as_completed(futures):
             try:
                 if future.result():
                     success_count += 1
@@ -128,5 +188,5 @@ if __name__ == "__main__":
 
     esco = args.esco if hasattr(args, "esco") else None
 
-    runner = PrepayEnabledFlipJob(esco=esco)
+    runner = PrepayEnabledFlipAllJob(esco=esco)
     runner.run()
