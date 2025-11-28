@@ -45,13 +45,13 @@ class PrepayEnabledFlipJob:
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=meter["meter_id"],
+            meter_id=meter["id"],
         )
 
         global logger
         self.log = logger.bind(
             serial=meter["serial"],
-            meter_id=meter["meter_id"],
+            meter_id=meter["id"],
             mediator_address=mediator_address,
         )
 
