@@ -15,13 +15,11 @@ import datetime
 import logging
 import sys
 import time
-from typing import Any, Dict, List, cast
 
 # mypy: disable-error-code="import-untyped"
 from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
 
 from simt_emlite.mediator.client import EmliteMediatorClient
-from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
