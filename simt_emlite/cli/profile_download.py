@@ -15,13 +15,14 @@ import datetime
 import logging
 import sys
 import time
+from typing import List
 
 # mypy: disable-error-code="import-untyped"
 from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.smip.smip_csv import SMIPCSV
+from simt_emlite.smip.smip_csv import SMIPCSV, SMIPCSVRecord
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
 from simt_emlite.util.timestamp import parse_meter_timestamp, TimestampConversionError
@@ -40,7 +41,7 @@ class ProfileDownloader:
         self.client = None
         self.supabase = None
         self.output_dir = output_dir
-        self.profile_records = []  # Store records for CSV writing
+        self.profile_records: List[dict] = []  # Store records for CSV writing
 
         # Validate that output_dir is a directory or can be created
         self._validate_output_directory()
