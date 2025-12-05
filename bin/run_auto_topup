@@ -1,0 +1,3 @@
+#!/bin/sh
+. `dirname $0`/library.sh
+runDocker simt_emlite.jobs.auto_topup_job $@

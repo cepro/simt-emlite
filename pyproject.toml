@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.23.13"
+version = "0.24.0"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.13,<4.0"
@@ -30,6 +30,7 @@ lint = "simt_emlite:run_linter"
 build-cython = "scripts.build_cython:main"
 emop = "simt_emlite.cli.emop:main"
 mediators = "simt_emlite.cli.mediators:main"
+profile_download = "simt_emlite.cli.profile_download:main"
 
 [tool.poetry]
 packages = [{ include = "simt_emlite" }]
