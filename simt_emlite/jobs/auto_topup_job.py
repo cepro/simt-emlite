@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import traceback
@@ -6,6 +7,7 @@ from httpx import ConnectError
 
 from simt_emlite.jobs.util import handle_supabase_faliure
 from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
@@ -14,6 +16,8 @@ logger = get_logger(__name__, __file__)
 supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 public_backend_role_key: str | None = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
+flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
+fly_region: str | None = os.environ.get("FLY_REGION")
 
 
 class AutoTopupJob:
@@ -26,6 +30,10 @@ class AutoTopupJob:
         self.backend_supabase = supa_client(
             supabase_url, supabase_key, public_backend_role_key, schema="myenergy"
         )
+        self.flows_supabase = supa_client(
+            supabase_url, supabase_key, flows_role_key, schema="flows"
+        )
+        self.FLY_REGION = fly_region
 
     def run(self):
         """
@@ -71,7 +79,61 @@ class AutoTopupJob:
                     if auto_topup_enabled:
                         # Get latest balance from meter via EMOP to confirm it's still below minimum
                         try:
-                            latest_balance = EmliteMediatorClient(meter_id=meter["serial"]).prepay_balance()
+                            # Look up meter details from meter_registry
+                            result = (
+                                self.flows_supabase.table("meter_registry")
+                                .select("id,esco,single_meter_app")
+                                .eq("serial", meter["serial"])
+                                .execute()
+                            )
+                            if len(result.data) == 0:
+                                self.log.warning(
+                                    "Meter not found in meter_registry",
+                                    serial=meter["serial"],
+                                )
+                                continue
+
+                            meter_registry = result.data[0]
+                            meter_id = meter_registry["id"]
+                            esco_id = meter_registry["esco"]
+                            is_single_meter_app = meter_registry["single_meter_app"]
+
+                            esco_code = None
+                            if esco_id is not None:
+                                result = (
+                                    self.flows_supabase.table("escos")
+                                    .select("code")
+                                    .eq("id", esco_id)
+                                    .execute()
+                                )
+                                if len(result.data) > 0:
+                                    esco_code = result.data[0]["code"]
+
+                            # Get mediator address
+                            containers = get_instance(
+                                is_single_meter_app=is_single_meter_app,
+                                esco=esco_code,
+                                serial=meter["serial"],
+                                region=self.FLY_REGION,
+                            )
+                            mediator_address = containers.mediator_address(meter_id, meter["serial"])
+                            if not mediator_address:
+                                self.log.warning(
+                                    "Unable to get mediator address",
+                                    meter_id=meter["id"],
+                                    serial=meter["serial"],
+                                )
+                                continue
+
+                            # Initialize client with proper setup
+                            emlite_client = EmliteMediatorClient(
+                                mediator_address=mediator_address,
+                                meter_id=meter_id,
+                                use_cert_auth=is_single_meter_app,
+                                logging_level=logging.INFO,
+                            )
+
+                            latest_balance = emlite_client.prepay_balance()
                             self.log.info(
                                 "Fetched latest prepay balance from meter",
                                 meter_id=meter["id"],
@@ -164,6 +226,10 @@ class AutoTopupJob:
         if not public_backend_role_key:
             self.log.error("Environment variable PUBLIC_BACKEND_ROLE_KEY not set.")
             sys.exit(3)
+
+        if not fly_region:
+            self.log.error("Environment variable FLY_REGION not set.")
+            sys.exit(4)
 
 
 if __name__ == "__main__":
