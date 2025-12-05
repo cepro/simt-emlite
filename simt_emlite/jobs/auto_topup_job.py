@@ -5,6 +5,7 @@ import traceback
 from httpx import ConnectError
 
 from simt_emlite.jobs.util import handle_supabase_faliure
+from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
@@ -68,24 +69,52 @@ class AutoTopupJob:
                 # Check if meter balance is below wallet minimum_balance
                 if meter_balance is not None and meter_balance < wallet_minimum:
                     if auto_topup_enabled:
-                        meters_needing_topup.append(
-                            {
-                                "meter_id": meter["id"],
-                                "serial": meter["serial"],
-                                "meter_balance": meter_balance,
-                                "wallet_id": wallet["id"],
-                                "wallet_minimum_balance": wallet_minimum,
-                                "wallet_target_balance": wallet.get("target_balance"),
-                                "wallet_current_balance": wallet.get("balance"),
-                            }
-                        )
-                        self.log.info(
-                            "Meter needs topup",
-                            meter_id=meter["id"],
-                            serial=meter["serial"],
-                            meter_balance=meter_balance,
-                            wallet_minimum_balance=wallet_minimum,
-                        )
+                        # Get latest balance from meter via EMOP to confirm it's still below minimum
+                        try:
+                            latest_balance = EmliteMediatorClient(meter_id=meter["serial"]).prepay_balance()
+                            self.log.info(
+                                "Fetched latest prepay balance from meter",
+                                meter_id=meter["id"],
+                                serial=meter["serial"],
+                                latest_balance=latest_balance,
+                                wallet_minimum_balance=wallet_minimum,
+                            )
+
+                            # Only append if balance is still below minimum
+                            if latest_balance < wallet_minimum:
+                                meters_needing_topup.append(
+                                    {
+                                        "meter_id": meter["id"],
+                                        "serial": meter["serial"],
+                                        "meter_balance": latest_balance,
+                                        "wallet_id": wallet["id"],
+                                        "wallet_minimum_balance": wallet_minimum,
+                                        "wallet_target_balance": wallet.get("target_balance"),
+                                        "wallet_current_balance": wallet.get("balance"),
+                                    }
+                                )
+                                self.log.info(
+                                    "Meter needs topup",
+                                    meter_id=meter["id"],
+                                    serial=meter["serial"],
+                                    meter_balance=latest_balance,
+                                    wallet_minimum_balance=wallet_minimum,
+                                )
+                            else:
+                                self.log.info(
+                                    "Meter balance is now above minimum (likely topped up)",
+                                    meter_id=meter["id"],
+                                    serial=meter["serial"],
+                                    latest_balance=latest_balance,
+                                    wallet_minimum_balance=wallet_minimum,
+                                )
+                        except Exception as e:
+                            self.log.warning(
+                                "Failed to fetch latest balance from meter",
+                                meter_id=meter["id"],
+                                serial=meter["serial"],
+                                error=e,
+                            )
                     else:
                         self.log.info(
                             "Meter below minimum but auto_topup disabled",

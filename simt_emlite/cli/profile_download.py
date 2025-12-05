@@ -26,6 +26,7 @@ from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.timestamp import parse_meter_timestamp, TimestampConversionError
 
 # Set up logging
 logging.basicConfig(
@@ -43,6 +44,9 @@ class ProfileDownloader:
         self.output_dir = output_dir
         self.profile_records = []  # Store records for CSV writing
 
+        # Validate that output_dir is a directory or can be created
+        self._validate_output_directory()
+
         # Load configuration
         config = load_config()
         self.supabase_url = config["supabase_url"]
@@ -52,6 +56,23 @@ class ProfileDownloader:
 
         # Initialize Supabase client
         self._init_supabase()
+
+    def _validate_output_directory(self):
+        """Validate that the output directory exists and is writable, or can be created"""
+        import os
+
+        # Check if the path exists
+        if os.path.exists(self.output_dir):
+            # If it exists, it must be a directory
+            if not os.path.isdir(self.output_dir):
+                raise ValueError(f"Output path '{self.output_dir}' exists but is not a directory. Please provide a directory path, not a file path.")
+        else:
+            # If it doesn't exist, try to create it
+            try:
+                os.makedirs(self.output_dir, exist_ok=True)
+                logger.info(f"Created output directory: {self.output_dir}")
+            except OSError as e:
+                raise ValueError(f"Cannot create output directory '{self.output_dir}': {e}. Please provide a valid directory path.")
 
     def _init_supabase(self):
         """Initialize Supabase client and get meter info"""
@@ -168,11 +189,11 @@ class ProfileDownloader:
                 serial=self.serial,
                 output_dir=self.output_dir,
                 profile_records=self.profile_records,
-                date=datetime.datetime.combine(self.date, datetime.time.min)
+                date=self.date
             )
             logger.info(f"Successfully wrote {len(self.profile_records)} records to CSV file")
         except Exception as e:
-            logger.error(f"Failed to write CSV output: {e}")
+            logger.error(f"Failed to write CSV output: {e}", exc_info=True)
             raise
 
     def _collect_profile_records(self, response: EmopProfileLog1Response, timestamp: datetime.datetime):
@@ -185,8 +206,19 @@ class ProfileDownloader:
 
         for record in response.records:
             # Convert record to dict format for CSV writing
+            try:
+                # Use timestamp utility to handle various timestamp formats
+                timestamp = parse_meter_timestamp(
+                    record.timestamp,
+                    reference_date=self.date
+                )
+            except TimestampConversionError as e:
+                logger.error(f"Failed to parse timestamp {record.timestamp}: {e}")
+                # Use current time as fallback to avoid breaking the entire process
+                timestamp = datetime.datetime.now(datetime.timezone.utc)
+
             record_dict = {
-                'timestamp': record.timestamp,
+                'timestamp': timestamp,
                 'import_a': record.import_a,
                 'import_b': record.import_b,
                 'status': record.status,
@@ -233,7 +265,7 @@ def main():
     parser.add_argument(
         "--output",
         "-o",
-        help="Output directory for CSV files (default: output)",
+        help="Output directory for CSV files (default: output). Must be a directory path, not a file path.",
         default="output",
         type=str
     )
