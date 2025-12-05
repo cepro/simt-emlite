@@ -22,7 +22,7 @@ from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Respo
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.smip.smip_csv import SMIPCSV, SMIPCSVRecord
+from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
 from simt_emlite.util.supabase import supa_client
 from simt_emlite.util.timestamp import parse_meter_timestamp, TimestampConversionError
