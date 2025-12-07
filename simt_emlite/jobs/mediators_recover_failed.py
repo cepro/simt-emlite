@@ -18,9 +18,10 @@ supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
+env_code: str | None = os.environ.get("ENV")
 
 """
-    Run simt-emlite job mediators_recover_failed to recreated any failed state 
+    Run simt-emlite job mediators_recover_failed to recreate any failed state 
     mediator machines.
  
     See this Notion task for some background:
@@ -46,7 +47,7 @@ class MediatorsRecoverFailedJob:
     def run(self):
         self.log.info("starting ...")
 
-        machines = self.containers.api.list(app=f"mediators-{self.esco}")
+        machines = self.containers.api.list(app=f"mediators-{env_code}-{self.esco}")
         machines = list(
             filter(
                 lambda m: m["state"] is not None
