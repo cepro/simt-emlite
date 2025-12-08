@@ -47,7 +47,9 @@ class MediatorsRecoverFailedJob:
     def run(self):
         self.log.info("starting ...")
 
+        self.log.info(f"app is mediators-{env_code}-{self.esco}")
         machines = self.containers.api.list(app=f"mediators-{env_code}-{self.esco}")
+        self.log.info(f"machines {machines}")
         machines = list(
             filter(
                 lambda m: m["state"] is not None
