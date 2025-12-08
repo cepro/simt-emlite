@@ -2,6 +2,7 @@ import os
 
 from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
 from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
+from simt_emlite.orchestrate.adapter.adapter_utils import build_app_name
 
 fly_region: str | None = os.environ.get("FLY_REGION")
 
@@ -28,29 +29,17 @@ def get_instance(
         raise Exception("MEDIATOR_IMAGE not set")
 
     adapter: DockerAdapter | FlyAdapter
-
-    # make an exception for a short time while running 2 instances against one esco
-    # mgf will replace cepro and we can go back to simply mediators-<esco> naming
-    #
-    # local test: check env
-    # fly deployed test: check fly_app_name
-    if env == "mgf" or (
-        fly_app_name is not None and fly_app_name.startswith("mediators-mgf-")
-    ):
-        app_name_suffix = f"mgf-{esco}"
-    else:
-        app_name_suffix = esco or "unknown"
-
+    
     if fly_api_token is not None:
         adapter = FlyAdapter(
             fly_api_token,
             fly_dns_server,
             mediator_image,
             is_single_meter_app,
-            app_name_suffix,
+            build_app_name(is_single_meter_app, serial, esco, env),
             serial,
             use_private_address,
-            region,
+            region
         )
     else:
         adapter = DockerAdapter(mediator_image)

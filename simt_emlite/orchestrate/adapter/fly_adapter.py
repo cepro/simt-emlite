@@ -53,34 +53,22 @@ class FlyAdapter(BaseAdapter):
         dns_server: str,
         image: str,
         is_single_meter_app: bool = False,
-        esco: str | None = None,
+        app_name: str | None = None,
         serial: str | None = None,
         use_private_address: bool | None = None,
-        region: str | None = None,
+        region: str | None = None
     ):
         super().__init__()
-
         self.api = API(api_token)
         self.dns_server = dns_server
         self.image = image
         self.is_single_meter_app = is_single_meter_app
-        self.esco = esco
+        self.fly_app = app_name
         self.serial = serial
-        self.region = region if not None else FLY_REGION_DEFAULT
+        self.region = region if region is not None else FLY_REGION_DEFAULT
 
         if is_single_meter_app and serial is None:
             raise Exception("FlyAdapter needs a serial to work with a single meter app")
-
-        if not is_single_meter_app and esco is None:
-            raise Exception(
-                "FlyAdapter needs an esco to work with a non single meter app"
-            )
-
-        self.fly_app = (
-            f"mediator-{serial}".lower()
-            if is_single_meter_app
-            else f"mediators-{esco}".lower()
-        )
 
         # default to public for single meter apps and private for everything else
         self.use_private_address = use_private_address

@@ -113,13 +113,16 @@ fly ips allocate-v6 --private -a $APP
 ```
 
 ## Create App for a single meter with TLS Auth
+
+NOTE: mark `flows.meter_registry.single_meter_app` to True for these meters.
+
 An alternative setup that we are trialing to expose access to a single
 meter from outside of the fly cepro vpn involves deploying a single
 app for a single mediator. For that setup see the section below about creating certificates and then run the following:
 ```sh
 # lowercase letters required therefore 'eml'
 SERIAL=eml123456789
-APP=mediator-$SERIAL
+APP=mediator-<orgcode>-$SERIAL
 
 # copy the template and edit the place holders inside
 cp fly/fly-tls-auth.toml.template fly/fly-$SERIAL.toml
@@ -132,9 +135,9 @@ fly ips allocate-v4 -a $APP
 # private address also created for syncer jobs running inside the private network
 fly ips allocate-v6 --private -a $APP
 
-fly secrets set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
-fly secrets set MEDIATOR_SERVER_KEY="$(cat mediators-server.key | base64 --wrap=0)"
-fly secrets set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
+fly secrets --config fly/fly-$SERIAL.toml set MEDIATOR_SERVER_CERT="$(cat mediators-server.cert | base64 --wrap=0)"
+fly secrets --config fly/fly-$SERIAL.toml set MEDIATOR_SERVER_KEY="$(cat mediators-server-private.key | base64 --wrap=0)"
+fly secrets --config fly/fly-$SERIAL.toml set MEDIATOR_CA_CERT="$(cat mediators-ca.cert | base64 --wrap=0)"
 ```
 
 ### Create Mediator Container for either type of app
