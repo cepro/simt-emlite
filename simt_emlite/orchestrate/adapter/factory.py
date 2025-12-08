@@ -21,7 +21,6 @@ def get_instance(
     # variables first so consider moving to that.
     env = os.environ.get("ENV")
     fly_api_token = os.environ.get("FLY_API_TOKEN")
-    fly_app_name = os.environ.get("FLY_APP_NAME")
     fly_dns_server = os.environ.get("FLY_DNS_SERVER") or "fdaa::3"
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")
 
