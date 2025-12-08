@@ -114,9 +114,9 @@ class MediatorsRecoverFailedJob:
             self.log.info("destroy success", machine_id=machine_id)
         else:
             raise Exception(
-                "destroy failed (possibly failed if no repsonse)",
-                machine_id=machine_id,
-                attempt=self._destroy_failed_mediator.statistics["attempt_number"],
+                "destroy failed (possibly failed if no response)",
+                machine_id,
+                self._destroy_failed_mediator.statistics["attempt_number"],
             )
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(10))
@@ -133,9 +133,9 @@ class MediatorsRecoverFailedJob:
             self.log.info("recreated mediator success", serial=meter_serial)
         else:
             raise Exception(
-                "destroy failed (possibly failed if no repsonse)",
-                serial=meter_serial,
-                attempt=self._recreate_failed_mediator.statistics["attempt_number"],
+                "create failed (possibly failed if no response)",
+                meter_serial,
+                self._recreate_failed_mediator.statistics["attempt_number"],
             )
 
     def _check_environment(self):

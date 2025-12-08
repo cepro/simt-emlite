@@ -200,7 +200,7 @@ Create machine with these details (y/n): """)
     def mediator_address(self, meter_id: str, serial: str) -> str | None:
         machines = self.list(("meter_id", meter_id))
         if len(machines) == 0:
-            print("no match")
+            print(f"no match for meters with id {meter_id}")
             return None
         return self.get_app_address(machines[0])
 
