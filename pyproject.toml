@@ -20,7 +20,7 @@ dependencies = [
     "httpx==0.27.0",
     "argcomplete>=3.4.0",
     "types-requests==2.32.4.20250611",
-    "emop-frame-protocol==0.4.8",
+    "emop-frame-protocol==0.4.9",
     "simt-fly-machines==0.2.3",
 ]
 
