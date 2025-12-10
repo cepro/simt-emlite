@@ -9,7 +9,6 @@ import csv
 import os
 from datetime import datetime
 from typing import List, Optional
-from dataclasses import dataclass
 
 from .smip_filename import SMIPFilename, ElementMarker
 from .smip_csv_record import SMIPCSVRecord

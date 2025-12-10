@@ -76,5 +76,106 @@ class TestSMIPCSV(unittest.TestCase):
         self.assertAlmostEqual(123.500, rec2.import_value, places=3)
         self.assertAlmostEqual(567.900, rec2.export_value, places=3)
 
+    def test_write_smip_file(self):
+        """Test writing SMIP records to a file"""
+        import tempfile
+        import os
+
+        # Create test records
+        from datetime import datetime, timezone
+        records = [
+            SMIPCSVRecord(
+                timestamp=datetime(2023, 12, 10, 14, 30, 0, tzinfo=timezone.utc),
+                import_value=123.45,
+                export_value=56.78
+            ),
+            SMIPCSVRecord(
+                timestamp=datetime(2023, 12, 10, 15, 0, 0, tzinfo=timezone.utc),
+                import_value=234.56,
+                export_value=67.89
+            ),
+            SMIPCSVRecord(
+                timestamp=datetime(2023, 12, 10, 15, 30, 0, tzinfo=timezone.utc),
+                import_value=345.67,
+                export_value=78.90
+            )
+        ]
+
+        # Create temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Write records to file
+            SMIPCSV.write(
+                serial="EML123456789",
+                output_file_path=temp_dir,
+                records=records
+            )
+
+            # Check that file was created
+            expected_filename = "EML123456789-20231210.csv"
+            expected_filepath = os.path.join(temp_dir, expected_filename)
+            self.assertTrue(os.path.exists(expected_filepath))
+
+            # Read the file and verify content
+            with open(expected_filepath, 'r') as f:
+                content = f.read()
+
+            # Check header
+            self.assertIn("Timestamp,Import,Export", content)
+
+            # Check that all records are present
+            self.assertIn("2023-12-10T14:30:00+00:00", content)
+            self.assertIn("2023-12-10T15:00:00+00:00", content)
+            self.assertIn("2023-12-10T15:30:00+00:00", content)
+
+            # Check that values are present (written as-is in kWh)
+            self.assertIn("123.45", content)
+            self.assertIn("234.56", content)
+            self.assertIn("345.67", content)
+
+    def test_write_smip_file_with_element_marker(self):
+        """Test writing SMIP records with element marker"""
+        import tempfile
+        import os
+
+        # Create test records
+        from datetime import datetime, timezone
+        records = [
+            SMIPCSVRecord(
+                timestamp=datetime(2023, 12, 10, 14, 30, 0, tzinfo=timezone.utc),
+                import_value=123.45,
+                export_value=56.78
+            ),
+            SMIPCSVRecord(
+                timestamp=datetime(2023, 12, 10, 15, 0, 0, tzinfo=timezone.utc),
+                import_value=234.56,
+                export_value=67.89
+            )
+        ]
+
+        # Create temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Write records to file with element marker
+            SMIPCSV.write(
+                serial="EML123456789",
+                output_file_path=temp_dir,
+                records=records,
+                element_marker="A"
+            )
+
+            # Check that file was created with element marker
+            expected_filename = "EML123456789-A-20231210.csv"
+            expected_filepath = os.path.join(temp_dir, expected_filename)
+            self.assertTrue(os.path.exists(expected_filepath))
+
+            # Read the file and verify content
+            with open(expected_filepath, 'r') as f:
+                content = f.read()
+
+            # Check header includes Element column
+            self.assertIn("Timestamp,Import,Export,Element", content)
+
+            # Check that element marker is present
+            self.assertIn("A", content)
+
 if __name__ == '__main__':
     unittest.main()
