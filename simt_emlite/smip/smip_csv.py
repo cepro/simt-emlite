@@ -153,3 +153,91 @@ class SMIPCSV:
 
         # Write to CSV
         SMIPCSV.write(serial, output_dir, csv_records, element_marker)
+
+    @staticmethod
+    def read(csv_string: str) -> List[SMIPCSVRecord]:
+        """
+        Read records from a CSV string in SMIP format.
+
+        Args:
+            csv_string: CSV data as a string
+
+        Returns:
+            List of SMIPCSVRecord objects
+        """
+        import io
+        return SMIPCSV._read_internal(io.StringIO(csv_string))
+
+    @staticmethod
+    def read_from_file(file_path: str) -> List[SMIPCSVRecord]:
+        """
+        Read records from a CSV file in SMIP format.
+
+        Args:
+            file_path: Path to CSV file
+
+        Returns:
+            List of SMIPCSVRecord objects
+        """
+        with open(file_path, 'r') as file:
+            return SMIPCSV._read_internal(file)
+
+    @staticmethod
+    def _read_internal(file_obj) -> List[SMIPCSVRecord]:
+        """
+        Internal method to read records from a file-like object.
+
+        Args:
+            file_obj: File-like object to read from
+
+        Returns:
+            List of SMIPCSVRecord objects
+        """
+        records = []
+
+        # Read and discard the header line
+        file_obj.readline()
+
+        for line in file_obj:
+            line = line.strip()
+            if not line:
+                continue
+
+            # Parse the CSV line
+            parts = line.split(',')
+            if len(parts) < 3:
+                continue
+
+            timestamp_str = parts[0].strip('"')
+            import_str = parts[1]
+            export_str = parts[2]
+
+            # Skip records with NA values
+            if import_str == SMIPCSVRecord.NA_VALUE or export_str == SMIPCSVRecord.NA_VALUE:
+                continue
+
+            # Skip records with -1 values
+            if import_str == "-1" or export_str == "-1":
+                continue
+
+            try:
+                # Parse timestamp
+                timestamp = datetime.strptime(timestamp_str, SMIPCSVRecord.TIMESTAMP_FORMAT)
+
+                # Convert values from Wh to kWh (divide by 1000)
+                import_value = float(import_str) / 1000.0
+                export_value = float(export_str) / 1000.0
+
+                # Create record
+                record = SMIPCSVRecord(
+                    timestamp=timestamp,
+                    import_value=import_value,
+                    export_value=export_value
+                )
+                records.append(record)
+
+            except (ValueError, IndexError):
+                # Skip malformed records
+                continue
+
+        return records
