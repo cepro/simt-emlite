@@ -504,7 +504,7 @@ class EmliteMediatorClient(object):
         self.log.info(f"profile log request [{data_field_bytes.hex()}]")
         response_bytes = self._send_message(data_field_bytes)
 
-        return response_bytes[4:]
+        return response_bytes
 
     """
         See Section 1 of the EMP1 ax and cx Communication Protocol Specification v1_0.pdf.
