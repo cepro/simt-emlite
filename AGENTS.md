@@ -1,13 +1,17 @@
 # SIMT-EMLITE Development Guide
 
 ## Commands
-- Install: `poetry install` 
+- Install: `poetry install`
 - Run all tests: `poetry run test` or `bin/test`
 - Run single test: `python -m unittest tests/simt_emlite/sync/test_syncer_base.py`
 - Lint: `poetry run lint` or `bin/lint`
 - Build: `poetry build`
 - Publish: `poetry publish --build -r test-pypi`
 - gRPC code generation: `cd simt_emlite/mediator/grpc && python grpc_codegen.py`
+
+## Shell Scripting
+- Use `/bin/sh` POSIX shell only for maximum compatibility
+- Use `. ./script.sh` instead of `source script.sh` to source files (`.` is POSIX-compliant, `source` is bash-specific)
 
 ## Code Style
 - Python 3.13+ with type hints required
