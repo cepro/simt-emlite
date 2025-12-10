@@ -8,10 +8,8 @@ from datetime import date
 from simt_emlite.smip.smip_filename import SMIPFilename, ElementMarker, IngestionMarker
 
 class TestSMIPFilename(unittest.TestCase):
-    """Test cases for SMIPFilename class"""
 
     def setUp(self):
-        """Set up test data"""
         self.PREFIX = "EML1112223334"
         self.DATE = date(2020, 1, 1)
         self.DATE_FORMATTED = self.DATE.strftime('%Y%m%d')
@@ -21,18 +19,14 @@ class TestSMIPFilename(unittest.TestCase):
         self.filename_el_b = SMIPFilename(self.PREFIX, self.DATE, ElementMarker.B)
 
     def test_constructed_by_details(self):
-        """Test construction by details"""
-        # Test prefix
         self.assertEqual(self.PREFIX, self.filename_no_el.get_prefix())
         self.assertEqual(self.PREFIX, self.filename_el_a.get_prefix())
         self.assertEqual(self.PREFIX, self.filename_el_b.get_prefix())
 
-        # Test date
         self.assertEqual(self.DATE, self.filename_no_el.get_day())
         self.assertEqual(self.DATE, self.filename_el_a.get_day())
         self.assertEqual(self.DATE, self.filename_el_b.get_day())
 
-        # Test element markers
         self.assertIsNone(self.filename_no_el.get_element_marker())
         self.assertEqual(ElementMarker.A, self.filename_el_a.get_element_marker())
         self.assertEqual(ElementMarker.B, self.filename_el_b.get_element_marker())

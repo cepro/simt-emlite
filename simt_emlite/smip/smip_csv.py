@@ -12,13 +12,7 @@ from typing import List, Optional
 from dataclasses import dataclass
 
 from .smip_filename import SMIPFilename, ElementMarker
-
-@dataclass
-class SMIPCSVRecord:
-    """Represents a single record in the SMIP CSV format"""
-    timestamp: datetime
-    import_value: Optional[float]
-    export_value: Optional[float]
+from .smip_csv_record import SMIPCSVRecord
 
 class SMIPCSV:
     """
@@ -119,20 +113,43 @@ class SMIPCSV:
 
             # For profile log 1, we typically have import values
             # For twin element meters, we need to handle A/B registers
-            import_value = None
+            import_a = record.get('import_a')
+            import_b = record.get('import_b')
+            
             if element_marker == 'A':
-                import_value = record.get('import_a')
+                # Single element A meter - use import_a
+                if import_a is not None:
+                    csv_records.append(SMIPCSVRecord(
+                        timestamp=timestamp,
+                        import_value=import_a,
+                        export_value=record.get('export')  # Export values if available
+                    ))
             elif element_marker == 'B':
-                import_value = record.get('import_b')
+                # Single element B meter - use import_b
+                if import_b is not None:
+                    csv_records.append(SMIPCSVRecord(
+                        timestamp=timestamp,
+                        import_value=import_b,
+                        export_value=record.get('export')  # Export values if available
+                    ))
             else:
-                # For single element meters, use import_a or combined value
-                import_value = record.get('import_a') or record.get('import')
-
-            csv_records.append(SMIPCSVRecord(
-                timestamp=timestamp,
-                import_value=import_value,
-                export_value=record.get('export')  # Export values if available
-            ))
+                # No element marker specified - prioritize import_a, but include import_b if available
+                # For meters with both import_a and import_b, include both values
+                if import_a is not None:
+                    csv_records.append(SMIPCSVRecord(
+                        timestamp=timestamp,
+                        import_value=import_a,
+                        export_value=record.get('export')  # Export values if available
+                    ))
+                
+                # Also include import_b as a separate record if it's different from import_a
+                # This handles twin element meters where both registers have meaningful data
+                if import_b is not None and import_b != import_a:
+                    csv_records.append(SMIPCSVRecord(
+                        timestamp=timestamp,
+                        import_value=import_b,
+                        export_value=record.get('export')  # Export values if available
+                    ))
 
         # Write to CSV
         SMIPCSV.write(serial, output_dir, csv_records, element_marker)

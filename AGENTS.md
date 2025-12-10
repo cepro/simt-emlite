@@ -9,6 +9,10 @@
 - Publish: `poetry publish --build -r test-pypi`
 - gRPC code generation: `cd simt_emlite/mediator/grpc && python grpc_codegen.py`
 
+## Python
+
+Activate the .venv before running python.
+
 ## Shell Scripting
 - Use `/bin/sh` POSIX shell only for maximum compatibility
 - Use `. ./script.sh` instead of `source script.sh` to source files (`.` is POSIX-compliant, `source` is bash-specific)
