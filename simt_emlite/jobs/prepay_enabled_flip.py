@@ -20,16 +20,6 @@ supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 
-meter_names_str = os.environ.get("PREPAY_DISABLED_METER_NAMES")
-if meter_names_str is None:
-    print('ERROR: PREPAY_DISABLED_METER_NAMES not defined')
-    sys.exit(1)
-
-meter_names = [name.strip() for name in meter_names_str.split(",")]
-meter_names_len = len(meter_names)
-
-
-
 
 class PrepayEnabledFlipJob:
     def __init__(
@@ -137,8 +127,7 @@ class PrepayEnabledFlipAllJob:
         meters_result = (
             self.flows_supabase.table("meter_registry")
             .select("*")
-            .in_("name", meter_names)
-            .neq("prepay_enabled", False) # already disabled
+            .neq("prepay_enabled", True)
             .execute()
         )
 
@@ -150,7 +139,7 @@ class PrepayEnabledFlipAllJob:
         self.log.info(f"Processing {len(meters_to_disable)} meters")
 
         with concurrent.futures.ThreadPoolExecutor(
-            max_workers=5
+            max_workers=15
         ) as executor:
             futures = [executor.submit(self.run_job, meter) for meter in meters_to_disable]
 

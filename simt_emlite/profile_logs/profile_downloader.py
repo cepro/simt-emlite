@@ -22,18 +22,19 @@ from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
-from simt_emlite.util.supabase import supa_client
-from simt_emlite.util.timestamp import parse_meter_timestamp, TimestampConversionError
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.timestamp import TimestampConversionError, parse_meter_timestamp
 
 logger = get_logger(__name__, __file__)
+
 
 class ProfileDownloader:
     def __init__(self, serial: str, date: datetime.date, output_dir: str = "output"):
         self.serial = serial
         self.date = date
         self.output_dir = output_dir
-        
+
         self.client = None
         self.supabase = None
         self.profile_records: List[dict] = []  # Store records for CSV writing
@@ -60,18 +61,24 @@ class ProfileDownloader:
         if os.path.exists(self.output_dir):
             # If it exists, it must be a directory
             if not os.path.isdir(self.output_dir):
-                raise ValueError(f"Output path '{self.output_dir}' exists but is not a directory. Please provide a directory path, not a file path.")
+                raise ValueError(
+                    f"Output path '{self.output_dir}' exists but is not a directory. Please provide a directory path, not a file path."
+                )
         else:
             # If it doesn't exist, try to create it
             try:
                 os.makedirs(self.output_dir, exist_ok=True)
                 logger.info(f"Created output directory: {self.output_dir}")
             except OSError as e:
-                raise ValueError(f"Cannot create output directory '{self.output_dir}': {e}. Please provide a valid directory path.")
+                raise ValueError(
+                    f"Cannot create output directory '{self.output_dir}': {e}. Please provide a valid directory path."
+                )
 
     def _init_supabase(self):
         """Initialize Supabase client and get meter info"""
-        if not all([self.supabase_url, self.supabase_anon_key, self.supabase_access_token]):
+        if not all(
+            [self.supabase_url, self.supabase_anon_key, self.supabase_access_token]
+        ):
             raise Exception(
                 "SUPABASE_URL, SUPABASE_ANON_KEY and/or SUPABASE_ACCESS_TOKEN not set"
             )
@@ -79,7 +86,7 @@ class ProfileDownloader:
         self.supabase = supa_client(
             str(self.supabase_url),
             str(self.supabase_anon_key),
-            str(self.supabase_access_token)
+            str(self.supabase_access_token),
         )
 
     def _fetch_meter_info(self):
@@ -98,7 +105,9 @@ class ProfileDownloader:
         self.esco_id = meter_data["esco"]
         self.is_single_meter_app = meter_data["single_meter_app"]
 
-        logger.info(f"Found meter [{self.serial}]. id: [{self.meter_id}], is_single_meter_app=[{self.is_single_meter_app}]")
+        logger.info(
+            f"Found meter [{self.serial}]. id: [{self.meter_id}], is_single_meter_app=[{self.is_single_meter_app}]"
+        )
 
     def _fetch_esco_code(self):
         self.esco_code = None
@@ -141,8 +150,12 @@ class ProfileDownloader:
             self._init_emlite_client()
 
         # Convert date to datetime for the day (ensure timezone-aware)
-        start_datetime = datetime.datetime.combine(self.date, datetime.time.min).replace(tzinfo=datetime.timezone.utc)
-        end_datetime = datetime.datetime.combine(self.date, datetime.time.max).replace(tzinfo=datetime.timezone.utc)
+        start_datetime = datetime.datetime.combine(
+            self.date, datetime.time.min
+        ).replace(tzinfo=datetime.timezone.utc)
+        end_datetime = datetime.datetime.combine(self.date, datetime.time.max).replace(
+            tzinfo=datetime.timezone.utc
+        )
 
         logger.info(f"Downloading profile log 1 data for {self.date}")
 
@@ -172,6 +185,9 @@ class ProfileDownloader:
 
         logger.info("Profile log 1 download completed")
 
+        # Convert all collected raw records before writing to CSV
+        self._convert_profile_records()
+
         # Write collected records to CSV
         self._write_csv_output()
 
@@ -187,42 +203,72 @@ class ProfileDownloader:
                 serial=self.serial,
                 output_dir=self.output_dir,
                 profile_records=self.profile_records,
-                date=self.date
+                date=self.date,
             )
-            logger.info(f"Successfully wrote {len(self.profile_records)} records to CSV file")
+            logger.info(
+                f"Successfully wrote {len(self.profile_records)} records to CSV file"
+            )
         except Exception as e:
             logger.error(f"Failed to write CSV output: {e}", exc_info=True)
             raise
 
-    # TODO split this in to collect and conversion steps:
-    #       just put records in an array first
-    #       second function coverts all records at CSV at the end
-    def _collect_profile_records(self, response: EmopProfileLog1Response, timestamp: datetime.datetime):
-        """Collect profile log 1 response data for CSV writing"""
+    def _collect_profile_records(
+        self, response: EmopProfileLog1Response, timestamp: datetime.datetime
+    ):
+        """Collect raw profile log 1 response data without conversion"""
         if not response or not response.records:
             logger.warning(f"No data received for timestamp {timestamp}")
             return
 
         logger.info(f"Received {len(response.records)} records for {timestamp}")
 
+        # Store raw records for later conversion
         for record in response.records:
+            # Debug: Log the raw timestamp type and value
+            logger.debug(
+                f"Raw timestamp type: {type(record.timestamp)}, value: {record.timestamp}"
+            )
+
+            # Store raw record data with timestamp for later conversion
+            raw_record = {
+                "raw_timestamp": record.timestamp,
+                "import_a": record.import_a,
+                "import_b": record.import_b,
+                "status": record.status,
+                "export": getattr(record, "export", None),  # Add export if available
+            }
+            self.profile_records.append(raw_record)
+
+    def _convert_profile_records(self):
+        """Convert all collected raw profile records to final format for CSV writing"""
+        if not self.profile_records:
+            logger.warning("No profile records to convert")
+            return
+
+        converted_records = []
+        for raw_record in self.profile_records:
             # Convert record to dict format for CSV writing
             try:
                 # Use timestamp utility to handle various timestamp formats
-                timestamp = parse_meter_timestamp(
-                    record.timestamp,
-                    reference_date=self.date
+                parsed_timestamp = parse_meter_timestamp(
+                    raw_record["raw_timestamp"], reference_date=self.date
                 )
+                logger.debug(f"Parsed timestamp: {parsed_timestamp}")
             except TimestampConversionError as e:
-                logger.error(f"Failed to parse timestamp {record.timestamp}: {e}")
+                logger.error(
+                    f"Failed to parse timestamp {raw_record['raw_timestamp']}: {e}"
+                )
                 # Use current time as fallback to avoid breaking the entire process
-                timestamp = datetime.datetime.now(datetime.timezone.utc)
+                parsed_timestamp = datetime.datetime.now(datetime.timezone.utc)
 
-            record_dict = {
-                'timestamp': timestamp,
-                'import_a': record.import_a,
-                'import_b': record.import_b,
-                'status': record.status,
-                'export': getattr(record, 'export', None)  # Add export if available
+            converted_record = {
+                "timestamp": parsed_timestamp,
+                "import_a": raw_record["import_a"],
+                "import_b": raw_record["import_b"],
+                "status": raw_record["status"],
+                "export": raw_record.get("export", None),
             }
-            self.profile_records.append(record_dict)
+            converted_records.append(converted_record)
+
+        # Replace raw records with converted ones
+        self.profile_records = converted_records
