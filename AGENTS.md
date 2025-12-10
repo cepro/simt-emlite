@@ -13,6 +13,8 @@
 
 Activate the .venv before running python.
 
+Write unit tests with `unittest`. See existing tests under `tests` and follow a similar layout and style.
+
 ## Shell Scripting
 - Use `/bin/sh` POSIX shell only for maximum compatibility
 - Use `. ./script.sh` instead of `source script.sh` to source files (`.` is POSIX-compliant, `source` is bash-specific)
