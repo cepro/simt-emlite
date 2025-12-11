@@ -13,14 +13,15 @@ Usage:
 import datetime
 import logging
 import time
-from typing import List
+from typing import Callable, List
+from supabase import Client as SupabaseClient
+
+from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
+from emop_frame_protocol.emop_profile_log_2_response import EmopProfileLog2Response
 
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.profile_logs.profile_converter import (
-    convert_profile_records,  # type: ignore
-)
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
@@ -35,9 +36,8 @@ class ProfileDownloader:
         self.date = date
         self.output_dir = output_dir
 
-        self.client = None
-        self.supabase = None
-        self.profile_records: List[dict] = []  # Store records for CSV writing
+        self.client: EmliteMediatorClient | None = None
+        self.supabase: SupabaseClient | None = None
 
         self._validate_output_directory()
 
@@ -144,8 +144,18 @@ class ProfileDownloader:
 
         logger.info(f"Connected to mediator at {mediator_address}")
 
-    def download_profile_log_1_day(self):
-        """Download profile log 1 data for a single day in chunks"""
+    def _download_profile_log_day(
+        self,
+        log_fn: str
+    ) -> List[EmopProfileLog1Response | EmopProfileLog2Response]:
+        """Generic function to download profile log data for a single day in chunks
+
+        Args:
+            log_fn: Name of the log function on the Emlite client. Used to fetch records but also for logging.
+
+        Returns:
+            List of profile records
+        """
         if not self.client:
             self._init_emlite_client()
 
@@ -157,11 +167,14 @@ class ProfileDownloader:
             tzinfo=datetime.timezone.utc
         )
 
-        logger.info(f"Downloading profile log 1 data for {self.date}")
+        logger.info(f"Downloading {log_fn} data for {self.date}")
+
+        fetch_func: Callable[[datetime.datetime], EmopProfileLog1Response | EmopProfileLog2Response] = getattr(self.client, log_fn)
 
         # Download in 2-hour chunks (4 x 30-minute intervals per chunk)
         current_time = start_datetime
         chunk_size = datetime.timedelta(hours=2)
+        profile_records: List = []
 
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
@@ -169,14 +182,14 @@ class ProfileDownloader:
             logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
 
             try:
-                # Download profile log 1 for this chunk
-                response = self.client.profile_log_1(current_time)
+                # Download profile log for this chunk
+                response = fetch_func(current_time)
                 if response and response.records:
                     logger.info(
                         f"Received {len(response.records)} records for {current_time}"
                     )
                     for record in response.records:
-                        self.profile_records.append(record)
+                        profile_records.append(record)
 
             except Exception as e:
                 logger.error(f"Error downloading chunk {current_time}: {e}")
@@ -188,13 +201,17 @@ class ProfileDownloader:
             # Small delay between chunks to avoid overwhelming the meter
             time.sleep(1)
 
-        logger.info("Profile log 1 download completed")
+        logger.info(f"{log_fn} download completed")
 
-        # Convert all collected raw records before writing to CSV
-        converted_records = convert_profile_records(self.profile_records)
+        return profile_records
 
-        # Write collected records to CSV
-        self._write_csv_output(converted_records)
+    def download_profile_log_1_day(self) -> List:
+        """Download profile log 1 data for a single day in chunks"""
+        return self._download_profile_log_day("profile_log_1")
+
+    def download_profile_log_2_day(self) -> List:
+        """Download profile log 2 data for a single day in chunks"""
+        return self._download_profile_log_day("profile_log_2")
 
     def _write_csv_output(self, records: List[dict]):
         try:
@@ -202,11 +219,11 @@ class ProfileDownloader:
             SMIPCSV.write_from_profile_records(
                 serial=self.serial,
                 output_dir=self.output_dir,
-                profile_records=self.profile_records,
+                profile_records=records,
                 date=self.date,
             )
             logger.info(
-                f"Successfully wrote {len(self.profile_records)} records to CSV file"
+                f"Successfully wrote {len(records)} records to CSV file"
             )
         except Exception as e:
             logger.error(f"Failed to write CSV output: {e}", exc_info=True)
