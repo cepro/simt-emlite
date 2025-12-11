@@ -40,7 +40,7 @@ class SMIPCSV:
             element_marker: Optional element marker ('A' or 'B') for twin element meters
         """
         # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+        os.makedirs(output_file_path, exist_ok=True)
 
         # Determine element marker enum if provided
         element = None
