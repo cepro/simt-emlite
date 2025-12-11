@@ -12,8 +12,7 @@ Usage:
 
 import datetime
 import logging
-import time
-from typing import Callable, List
+from typing import Callable, Dict, List
 from supabase import Client as SupabaseClient
 
 from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
@@ -147,14 +146,14 @@ class ProfileDownloader:
     def _download_profile_log_day(
         self,
         log_fn: str
-    ) -> List[EmopProfileLog1Response | EmopProfileLog2Response]:
+    ) -> Dict[datetime.datetime, object]:
         """Generic function to download profile log data for a single day in chunks
 
         Args:
             log_fn: Name of the log function on the Emlite client. Used to fetch records but also for logging.
 
         Returns:
-            List of profile records
+            Dict of timestamp to profile record
         """
         if not self.client:
             self._init_emlite_client()
@@ -174,7 +173,7 @@ class ProfileDownloader:
         # Download in 2-hour chunks (4 x 30-minute intervals per chunk)
         current_time = start_datetime
         chunk_size = datetime.timedelta(hours=2)
-        profile_records: List = []
+        profile_records: Dict[datetime.datetime, object] = {}
 
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
@@ -188,8 +187,16 @@ class ProfileDownloader:
                     logger.info(
                         f"Received {len(response.records)} records for {current_time}"
                     )
+                    # future time out of range - see #382 - meters will return the next
+                    # available data even if that is months ahead
+                    if response.records[0].timestamp > end_datetime:
+                        logger.warning(
+                            "Future date returned - skipping remainder for this period"
+                        )
+                        return profile_records
+
                     for record in response.records:
-                        profile_records.append(record)
+                        profile_records[record.timestamp] = record
 
             except Exception as e:
                 logger.error(f"Error downloading chunk {current_time}: {e}")
@@ -198,18 +205,15 @@ class ProfileDownloader:
             # Move to next chunk
             current_time = chunk_end
 
-            # Small delay between chunks to avoid overwhelming the meter
-            time.sleep(1)
-
         logger.info(f"{log_fn} download completed")
 
         return profile_records
 
-    def download_profile_log_1_day(self) -> List:
+    def download_profile_log_1_day(self) -> Dict[datetime.datetime, object]:
         """Download profile log 1 data for a single day in chunks"""
         return self._download_profile_log_day("profile_log_1")
 
-    def download_profile_log_2_day(self) -> List:
+    def download_profile_log_2_day(self) -> Dict[datetime.datetime, object]:
         """Download profile log 2 data for a single day in chunks"""
         return self._download_profile_log_day("profile_log_2")
 
