@@ -141,7 +141,7 @@ class PrepayEnabledFlipAllJob:
         meters_result = (
             self.flows_supabase.table("meter_registry")
             .select("*")
-            .eq("esco_id", esco_id)
+            .eq("esco", esco_id)
             .eq("prepay_enabled", True)
             .neq("hardware", "P1.ax")
             .neq("hardware", "P1.cx")
