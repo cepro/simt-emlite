@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.25.4"
+version = "0.25.5"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.13,<4.0"
@@ -51,6 +51,7 @@ extend-exclude = ["generated"]
 [tool.mypy]
 python_version = "3.13"
 exclude = "generated/"
+mypy_path = "stubs"
 # disable strict until we've fixed all the issues:
 # strict = true
 check_untyped_defs = true

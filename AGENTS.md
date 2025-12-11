@@ -12,6 +12,8 @@
 
 ## Python
 
+Poetry is used to manage dependencies and run scripts.
+
 Activate the .venv before running python.
 
 Write unit tests with `unittest`. See existing tests under `tests` and follow a similar layout and style.

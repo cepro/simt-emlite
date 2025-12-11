@@ -177,5 +177,74 @@ class TestSMIPCSV(unittest.TestCase):
             # Check that element marker is present
             self.assertIn("A", content)
 
+    def test_write_from_smip_readings(self):
+        """Test writing SMIPReading objects to a file"""
+        import tempfile
+        import os
+
+        from datetime import datetime, timezone
+        from simt_emlite.smip.smip_reading import SMIPReading
+
+        # Create test SMIPReading objects
+        readings = [
+            SMIPReading(
+                serial="EML123456789",
+                register=1,
+                timestamp=datetime(2023, 12, 10, 14, 30, 0, tzinfo=timezone.utc),
+                imp=123.45,
+                exp=56.78,
+                errorCode=0
+            ),
+            SMIPReading(
+                serial="EML123456789",
+                register=1,
+                timestamp=datetime(2023, 12, 10, 15, 0, 0, tzinfo=timezone.utc),
+                imp=234.56,
+                exp=67.89,
+                errorCode=0
+            ),
+            SMIPReading(
+                serial="EML123456789",
+                register=1,
+                timestamp=datetime(2023, 12, 10, 15, 30, 0, tzinfo=timezone.utc),
+                imp=345.67,
+                exp=78.90,
+                errorCode=0
+            )
+        ]
+
+        # Create temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Write readings to file
+            SMIPCSV.write_from_smip_readings(
+                serial="EML123456789",
+                output_dir=temp_dir,
+                readings=readings,
+                element_marker="A"
+            )
+
+            # Check that file was created with element marker
+            expected_filename = "EML123456789-A-20231210.csv"
+            expected_filepath = os.path.join(temp_dir, expected_filename)
+            self.assertTrue(os.path.exists(expected_filepath))
+
+            # Read the file and verify content
+            with open(expected_filepath, 'r') as f:
+                content = f.read()
+
+            # Check header includes Element column
+            self.assertIn("Timestamp,Import,Export,Element", content)
+
+            # Check that all records are present
+            self.assertIn("2023-12-10T14:30:00+00:00", content)
+            self.assertIn("2023-12-10T15:00:00+00:00", content)
+            self.assertIn("2023-12-10T15:30:00+00:00", content)
+
+            # Check that values are present (written as-is in kWh)
+            self.assertIn("123.45", content)
+            self.assertIn("234.56", content)
+            self.assertIn("345.67", content)
+
+
 if __name__ == '__main__':
     unittest.main()

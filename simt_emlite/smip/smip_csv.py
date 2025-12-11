@@ -12,6 +12,7 @@ from typing import List, Optional
 
 from .smip_csv_record import SMIPCSVRecord
 from .smip_filename import ElementMarker, SMIPFilename
+from .smip_reading import SMIPReading
 
 
 class SMIPCSV:
@@ -263,3 +264,34 @@ class SMIPCSV:
                 continue
 
         return records
+
+    @staticmethod
+    def write_from_smip_readings(
+        serial: str,
+        output_dir: str,
+        readings: List[SMIPReading],
+        element_marker: Optional[str] = None,
+    ) -> None:
+        """
+        Write SMIPReading objects to a CSV file in SMIP format.
+
+        Converts SMIPReading objects to SMIPCSVRecord objects and writes them to a file.
+
+        Args:
+            serial: Meter serial number
+            output_dir: Directory to write CSV file to
+            readings: List of SMIPReading objects to write
+            element_marker: Optional element marker ('A' or 'B') for twin element meters
+        """
+        # Convert SMIPReading objects to SMIPCSVRecord objects
+        csv_records = [
+            SMIPCSVRecord(
+                timestamp=reading.timestamp,
+                import_value=reading.imp,
+                export_value=reading.exp,
+            )
+            for reading in readings
+        ]
+
+        # Write to CSV using the existing write method
+        SMIPCSV.write(serial, output_dir, csv_records, element_marker)

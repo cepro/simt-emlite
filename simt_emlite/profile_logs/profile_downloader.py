@@ -12,16 +12,18 @@ Usage:
 
 import datetime
 import logging
-from typing import Callable, Dict, List, cast
+from typing import Callable, Dict, cast
 from supabase import Client as SupabaseClient
 
 from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
 from emop_frame_protocol.emop_profile_log_2_response import EmopProfileLog2Response
 
+from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
+from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
+
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
@@ -33,23 +35,32 @@ class ProfileDownloader:
     def __init__(self, serial: str, date: datetime.date, output_dir: str = "output"):
         self.serial = serial
         self.date = date
+
         self.output_dir = output_dir
-
-        self.client: EmliteMediatorClient | None = None
-        self.supabase: SupabaseClient = self._init_supabase()
-
         self._validate_output_directory()
 
-        # Load configuration
         config = load_config()
         self.supabase_url = config["supabase_url"]
         self.supabase_anon_key = config["supabase_anon_key"]
         self.supabase_access_token = config["supabase_access_token"]
         self.fly_region = config["fly_region"]
+        self.env = config["env"]
 
-        # Load meter info
+        self._check_config()
+
+        self.client: EmliteMediatorClient | None = None
+        self.supabase: SupabaseClient = self._init_supabase()
+
         self._fetch_meter_info()
         self._fetch_esco_code()
+
+    def _check_config(self):
+        if not all(
+            [self.supabase_url, self.supabase_anon_key, self.supabase_access_token]
+        ):
+            raise Exception(
+                "Environment variables SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_ACCESS_TOKEN not set."
+            )
 
     def _validate_output_directory(self):
         """Validate that the output directory exists and is writable, or can be created"""
@@ -132,6 +143,7 @@ class ProfileDownloader:
             esco=self.esco_code,
             serial=self.serial,
             region=cast(str | None, self.fly_region),
+            env=cast(str | None, self.env),
         )
 
         mediator_address = containers.mediator_address(self.meter_id, self.serial)
@@ -150,7 +162,7 @@ class ProfileDownloader:
     def _download_profile_log_day(
         self,
         log_fn: str
-    ) -> Dict[datetime.datetime, object]:
+    ) -> Dict[datetime.datetime, EmopProfileLog1Record | EmopProfileLog2Record]:
         """Generic function to download profile log data for a single day in chunks
 
         Args:
@@ -177,7 +189,7 @@ class ProfileDownloader:
         # Download in 2-hour chunks (4 x 30-minute intervals per chunk)
         current_time = start_datetime
         chunk_size = datetime.timedelta(hours=2)
-        profile_records: Dict[datetime.datetime, object] = {}
+        profile_records: Dict[datetime.datetime, EmopProfileLog1Record | EmopProfileLog2Record] = {}
 
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
@@ -191,19 +203,19 @@ class ProfileDownloader:
                     logger.info(
                         f"Received {len(response.records)} records for {current_time}"
                     )
-                    # future time out of range - see #382 - meters will return the next
+                    # future time out of range - see unfuddle #382 - meters will return the next
                     # available data even if that is months ahead
-                    if response.records[0].timestamp > end_datetime:
+                    if response.records[0].timestamp_datetime > end_datetime:
                         logger.warning(
                             "Future date returned - skipping remainder for this period"
                         )
                         return profile_records
 
                     for record in response.records:
-                        profile_records[record.timestamp] = record
+                        profile_records[record.timestamp_datetime] = record
 
             except Exception as e:
-                logger.error(f"Error downloading chunk {current_time}: {e}")
+                logger.error(f"Error downloading chunk {current_time}: {e}", exc_info=True)
                 break
 
             # Move to next chunk
@@ -213,26 +225,10 @@ class ProfileDownloader:
 
         return profile_records
 
-    def download_profile_log_1_day(self) -> Dict[datetime.datetime, object]:
+    def download_profile_log_1_day(self) -> Dict[datetime.datetime, EmopProfileLog1Record]:
         """Download profile log 1 data for a single day in chunks"""
-        return self._download_profile_log_day("profile_log_1")
+        return cast(Dict[datetime.datetime, EmopProfileLog1Record], self._download_profile_log_day("profile_log_1"))
 
-    def download_profile_log_2_day(self) -> Dict[datetime.datetime, object]:
+    def download_profile_log_2_day(self) -> Dict[datetime.datetime, EmopProfileLog2Record]:
         """Download profile log 2 data for a single day in chunks"""
-        return self._download_profile_log_day("profile_log_2")
-
-    def _write_csv_output(self, records: List[dict]):
-        try:
-            # Write CSV using our SMIP CSV writer
-            SMIPCSV.write_from_profile_records(
-                serial=self.serial,
-                output_dir=self.output_dir,
-                profile_records=records,
-                date=self.date,
-            )
-            logger.info(
-                f"Successfully wrote {len(records)} records to CSV file"
-            )
-        except Exception as e:
-            logger.error(f"Failed to write CSV output: {e}", exc_info=True)
-            raise
+        return cast(Dict[datetime.datetime, EmopProfileLog2Record], self._download_profile_log_day("profile_log_2"))

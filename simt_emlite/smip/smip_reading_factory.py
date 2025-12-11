@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 SMIP Reading Factory
 
@@ -6,7 +5,10 @@ Creates SMIPReading objects from profile log records.
 """
 
 import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
+
+from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
+from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 
 from .smip_reading import SMIPReading
 
@@ -14,8 +16,8 @@ from .smip_reading import SMIPReading
 def create_smip_reading_from_profile(
     serial: str,
     timestamp: datetime.datetime,
-    log1_record: Optional[Any],
-    log2_record: Optional[Any],
+    log1_record: Optional[EmopProfileLog1Record],
+    log2_record: Optional[EmopProfileLog2Record],
     is_element_a: bool,
 ) -> SMIPReading:
     """
@@ -34,17 +36,17 @@ def create_smip_reading_from_profile(
     import_value: Optional[float] = None
     if log1_record is not None:
         import_value = float(
-            log1_record.total_active_import_a
+            log1_record.import_a
             if is_element_a
-            else log1_record.total_active_import_b
+            else log1_record.import_b
         )
 
     export_value: Optional[float] = None
     if log2_record is not None:
         export_value = float(
-            log2_record.total_active_export_a
+            log2_record.active_export_a
             if is_element_a
-            else log2_record.total_active_export_b
+            else log2_record.active_export_b
         )
 
     return SMIPReading(
@@ -61,8 +63,8 @@ def create_smip_readings(
     serial: str,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    log1_records: Dict[datetime.datetime, Any],
-    log2_records: Dict[datetime.datetime, Any],
+    log1_records: Dict[datetime.datetime, EmopProfileLog1Record],
+    log2_records: Dict[datetime.datetime, EmopProfileLog2Record],
     is_twin_element: bool = False,
     interval_minutes: int = 30,
 ) -> Tuple[List[SMIPReading], List[SMIPReading]]:
