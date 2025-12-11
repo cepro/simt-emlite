@@ -6,12 +6,13 @@ This class handles writing profile log data to CSV files in the SMIP format.
 """
 
 import csv
+import datetime
 import os
-from datetime import datetime
 from typing import List, Optional
 
-from .smip_filename import SMIPFilename, ElementMarker
 from .smip_csv_record import SMIPCSVRecord
+from .smip_filename import ElementMarker, SMIPFilename
+
 
 class SMIPCSV:
     """
@@ -26,7 +27,7 @@ class SMIPCSV:
         serial: str,
         output_file_path: str,
         records: List[SMIPCSVRecord],
-        element_marker: Optional[str] = None
+        element_marker: Optional[str] = None,
     ) -> None:
         """
         Write records to a CSV file in SMIP format.
@@ -43,9 +44,9 @@ class SMIPCSV:
         # Determine element marker enum if provided
         element = None
         if element_marker:
-            if element_marker.upper() == 'A':
+            if element_marker.upper() == "A":
                 element = ElementMarker.A
-            elif element_marker.upper() == 'B':
+            elif element_marker.upper() == "B":
                 element = ElementMarker.B
 
         # Create SMIP filename
@@ -54,7 +55,7 @@ class SMIPCSV:
             record_date = records[0].timestamp.date()
         else:
             # If no records, use today's date
-            record_date = datetime.now().date()
+            record_date = datetime.datetime.now().date()
 
         smip_filename = SMIPFilename(serial, record_date, element)
         filename = smip_filename.filename()
@@ -63,21 +64,21 @@ class SMIPCSV:
         full_csv_path = os.path.join(output_file_path, filename)
 
         # Write CSV file
-        with open(full_csv_path, 'w', newline='') as csvfile:
+        with open(full_csv_path, "w", newline="") as csvfile:
             writer = csv.writer(csvfile)
 
             # Write header
-            header = ['Timestamp', 'Import', 'Export']
+            header = ["Timestamp", "Import", "Export"]
             if element_marker:
-                header.append('Element')
+                header.append("Element")
             writer.writerow(header)
 
             # Write records
             for record in records:
                 row = [
                     record.timestamp.isoformat(),
-                    str(record.import_value) if record.import_value is not None else '',
-                    str(record.export_value) if record.export_value is not None else ''
+                    str(record.import_value) if record.import_value is not None else "",
+                    str(record.export_value) if record.export_value is not None else "",
                 ]
                 if element_marker:
                     row.append(element_marker)
@@ -88,8 +89,8 @@ class SMIPCSV:
         serial: str,
         output_dir: str,
         profile_records: List[dict],
-        date: datetime,
-        element_marker: Optional[str] = None
+        date: datetime.date,
+        element_marker: Optional[str] = None,
     ) -> None:
         """
         Convert profile log records to SMIPCSV format and write to file.
@@ -105,50 +106,66 @@ class SMIPCSV:
         csv_records = []
         for record in profile_records:
             # Convert timestamp to datetime if it's not already
-            if isinstance(record['timestamp'], str):
-                timestamp = datetime.fromisoformat(record['timestamp'])
+            if isinstance(record["timestamp"], str):
+                timestamp = datetime.datetime.fromisoformat(record["timestamp"])
             else:
-                timestamp = record['timestamp']
+                timestamp = record["timestamp"]
 
             # For profile log 1, we typically have import values
             # For twin element meters, we need to handle A/B registers
-            import_a = record.get('import_a')
-            import_b = record.get('import_b')
-            
-            if element_marker == 'A':
+            import_a = record.get("import_a")
+            import_b = record.get("import_b")
+
+            if element_marker == "A":
                 # Single element A meter - use import_a
                 if import_a is not None:
-                    csv_records.append(SMIPCSVRecord(
-                        timestamp=timestamp,
-                        import_value=import_a,
-                        export_value=record.get('export')  # Export values if available
-                    ))
-            elif element_marker == 'B':
+                    csv_records.append(
+                        SMIPCSVRecord(
+                            timestamp=timestamp,
+                            import_value=import_a,
+                            export_value=record.get(
+                                "export"
+                            ),  # Export values if available
+                        )
+                    )
+            elif element_marker == "B":
                 # Single element B meter - use import_b
                 if import_b is not None:
-                    csv_records.append(SMIPCSVRecord(
-                        timestamp=timestamp,
-                        import_value=import_b,
-                        export_value=record.get('export')  # Export values if available
-                    ))
+                    csv_records.append(
+                        SMIPCSVRecord(
+                            timestamp=timestamp,
+                            import_value=import_b,
+                            export_value=record.get(
+                                "export"
+                            ),  # Export values if available
+                        )
+                    )
             else:
                 # No element marker specified - prioritize import_a, but include import_b if available
                 # For meters with both import_a and import_b, include both values
                 if import_a is not None:
-                    csv_records.append(SMIPCSVRecord(
-                        timestamp=timestamp,
-                        import_value=import_a,
-                        export_value=record.get('export')  # Export values if available
-                    ))
-                
+                    csv_records.append(
+                        SMIPCSVRecord(
+                            timestamp=timestamp,
+                            import_value=import_a,
+                            export_value=record.get(
+                                "export"
+                            ),  # Export values if available
+                        )
+                    )
+
                 # Also include import_b as a separate record if it's different from import_a
                 # This handles twin element meters where both registers have meaningful data
                 if import_b is not None and import_b != import_a:
-                    csv_records.append(SMIPCSVRecord(
-                        timestamp=timestamp,
-                        import_value=import_b,
-                        export_value=record.get('export')  # Export values if available
-                    ))
+                    csv_records.append(
+                        SMIPCSVRecord(
+                            timestamp=timestamp,
+                            import_value=import_b,
+                            export_value=record.get(
+                                "export"
+                            ),  # Export values if available
+                        )
+                    )
 
         # Write to CSV
         SMIPCSV.write(serial, output_dir, csv_records, element_marker)
@@ -165,6 +182,7 @@ class SMIPCSV:
             List of SMIPCSVRecord objects
         """
         import io
+
         return SMIPCSV._read_internal(io.StringIO(csv_string))
 
     @staticmethod
@@ -178,7 +196,7 @@ class SMIPCSV:
         Returns:
             List of SMIPCSVRecord objects
         """
-        with open(file_path, 'r') as file:
+        with open(file_path, "r") as file:
             return SMIPCSV._read_internal(file)
 
     @staticmethod
@@ -203,7 +221,7 @@ class SMIPCSV:
                 continue
 
             # Parse the CSV line
-            parts = line.split(',')
+            parts = line.split(",")
             if len(parts) < 3:
                 continue
 
@@ -212,7 +230,10 @@ class SMIPCSV:
             export_str = parts[2]
 
             # Skip records with NA values
-            if import_str == SMIPCSVRecord.NA_VALUE or export_str == SMIPCSVRecord.NA_VALUE:
+            if (
+                import_str == SMIPCSVRecord.NA_VALUE
+                or export_str == SMIPCSVRecord.NA_VALUE
+            ):
                 continue
 
             # Skip records with -1 values
@@ -221,7 +242,9 @@ class SMIPCSV:
 
             try:
                 # Parse timestamp
-                timestamp = datetime.strptime(timestamp_str, SMIPCSVRecord.TIMESTAMP_FORMAT)
+                timestamp = datetime.datetime.strptime(
+                    timestamp_str, SMIPCSVRecord.TIMESTAMP_FORMAT
+                )
 
                 # Convert values from Wh to kWh (divide by 1000)
                 import_value = float(import_str) / 1000.0
@@ -231,7 +254,7 @@ class SMIPCSV:
                 record = SMIPCSVRecord(
                     timestamp=timestamp,
                     import_value=import_value,
-                    export_value=export_value
+                    export_value=export_value,
                 )
                 records.append(record)
 

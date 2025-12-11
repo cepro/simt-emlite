@@ -16,7 +16,6 @@ import time
 from typing import List
 
 # mypy: disable-error-code="import-untyped"
-
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.profile_logs.profile_converter import (
@@ -192,17 +191,12 @@ class ProfileDownloader:
         logger.info("Profile log 1 download completed")
 
         # Convert all collected raw records before writing to CSV
-        self._convert_profile_records()
+        converted_records = convert_profile_records(self.profile_records)
 
         # Write collected records to CSV
-        self._write_csv_output()
+        self._write_csv_output(converted_records)
 
-    def _write_csv_output(self):
-        """Write collected profile records to CSV file"""
-        if not self.profile_records:
-            logger.warning("No profile records to write to CSV")
-            return
-
+    def _write_csv_output(self, records: List[dict]):
         try:
             # Write CSV using our SMIP CSV writer
             SMIPCSV.write_from_profile_records(
@@ -217,11 +211,3 @@ class ProfileDownloader:
         except Exception as e:
             logger.error(f"Failed to write CSV output: {e}", exc_info=True)
             raise
-
-    def _convert_profile_records(self):
-        """Convert all collected raw profile records to final format for CSV writing"""
-        if not self.profile_records:
-            logger.warning("No profile records to convert")
-            return
-
-        self.profile_records = convert_profile_records(self.profile_records, self.date)

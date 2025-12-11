@@ -8,7 +8,7 @@ This module provides functions to convert raw profile log records to a final for
 from typing import List
 
 # mypy: disable-error-code="import-untyped"
-from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Record
+from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.util import emop_epoch_seconds_to_datetime
 
 from simt_emlite.util.logging import get_logger
@@ -23,6 +23,7 @@ def convert_profile_records(raw_records: List[EmopProfileLog1Record]) -> List[di
         return []
 
     converted_records = []
+    raw_record: EmopProfileLog1Record
     for raw_record in raw_records:
         converted_record = {
             "timestamp": emop_epoch_seconds_to_datetime(raw_record.timestamp),
