@@ -43,6 +43,7 @@ cython = "3.1.2"
 build = "1.2.2.post1"
 cibuildwheel = "3.0.0"
 grpcio-tools = "1.73.1"
+pre-commit = "^4.5.0"
 
 [tool.ruff]
 extend-exclude = ["generated"]
@@ -56,4 +57,3 @@ exclude = "generated/"
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "cython"]
 build-backend = "setuptools.build_meta"
-

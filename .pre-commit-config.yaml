@@ -1,0 +1,38 @@
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Local hooks for your project-specific commands
+  - repo: local
+    hooks:
+      - id: poetry-lint
+        name: Poetry Lint (ruff)
+        entry: poetry run lint
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+      - id: poetry-test
+        name: Poetry Test (unittest)
+        entry: poetry run test
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+      - id: mypy
+        name: MyPy Type Checking
+        entry: mypy simt_emlite/
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
