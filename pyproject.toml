@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.25.1"
+version = "0.25.2"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.13,<4.0"
@@ -20,7 +20,7 @@ dependencies = [
     "httpx==0.27.0",
     "argcomplete>=3.4.0",
     "types-requests==2.32.4.20250611",
-    "emop-frame-protocol==0.4.11",
+    "emop-frame-protocol==0.4.12",
     "simt-fly-machines==0.2.4",
 ]
 
