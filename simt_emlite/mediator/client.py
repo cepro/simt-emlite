@@ -510,7 +510,7 @@ class EmliteMediatorClient(object):
         See Section 1 of the EMP1 ax and cx Communication Protocol Specification v1_0.pdf.
 
         NOTE: If the start & end times are both earlier than the first available record,
-              only the first record will be returned. 
+              only the first record will be returned.
               If the start & end times are both later than the last record, only the last
               record will be returned.
     """

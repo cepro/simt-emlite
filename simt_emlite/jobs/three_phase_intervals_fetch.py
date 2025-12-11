@@ -117,13 +117,13 @@ class ThreePhaseIntervalsFetchJob:
         """Generate list of date strings from start_day to end_day (inclusive)"""
         if self.day:
             return [self.day]
-        
+
         if not self.start_day or not self.end_day:
             raise ValueError("Either --day or both --start-day and --end-day must be provided")
 
         start_date = datetime.datetime.strptime(self.start_day, "%Y-%m-%d").date()
         end_date = datetime.datetime.strptime(self.end_day, "%Y-%m-%d").date()
-        
+
         if start_date > end_date:
             raise ValueError("start_day must be before or equal to end_day")
 
@@ -132,31 +132,31 @@ class ThreePhaseIntervalsFetchJob:
         while current_date <= end_date:
             dates.append(current_date.strftime("%Y-%m-%d"))
             current_date += datetime.timedelta(days=1)
-        
+
         return dates
 
     def fetch_intervals(self):
         try:
             dates = self._generate_date_range()
-            
+
             for day_str in dates:
                 day_dt = self._parse_day(day_str)
                 csv_filename = self._generate_csv_filename(day_str)
-                
+
                 self.log.info("Fetching three_phase_intervals", day=day_str, csv_file=csv_filename)
-                
+
                 # Call three_phase_intervals with day parameter (start_time and end_time will be ignored)
                 intervals = self.emlite_client.three_phase_intervals(
                     day=day_dt,
                     start_time=None,  # Will be ignored when day is provided
-                    end_time=None,    # Will be ignored when day is provided  
+                    end_time=None,    # Will be ignored when day is provided
                     csv=csv_filename,
                     include_statuses=self.include_statuses,
                 )
-                
-                self.log.info("Successfully fetched three_phase_intervals", 
-                             day=day_str, 
-                             csv_file=csv_filename, 
+
+                self.log.info("Successfully fetched three_phase_intervals",
+                             day=day_str,
+                             csv_file=csv_filename,
                              interval_count=len(intervals.intervals))
 
         except MediatorClientException as e:
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Fetch three_phase_intervals for day(s) and save as CSV files"
     )
-    
+
     # Serial and folder are required
     parser.add_argument(
         "--serial",
@@ -199,7 +199,7 @@ if __name__ == "__main__":
         action="store",
         help="Folder to save CSV files in",
     )
-    
+
     # Date options - either single day or range
     date_group = parser.add_mutually_exclusive_group(required=True)
     date_group.add_argument(
@@ -212,14 +212,14 @@ if __name__ == "__main__":
         action="store",
         help="Start day for date range (format: YYYY-MM-DD, e.g., 2025-08-01). Must be used with --end-day",
     )
-    
+
     # End day only valid with start day
     parser.add_argument(
         "--end-day",
         action="store",
         help="End day for date range (format: YYYY-MM-DD, e.g., 2025-08-05). Must be used with --start-day",
     )
-    
+
     # Optional flag for including statuses
     parser.add_argument(
         "--include-statuses",
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    
+
     # Validate that start-day and end-day are used together
     if (args.start_day and not args.end_day) or (args.end_day and not args.start_day):
         parser.error("--start-day and --end-day must be used together")

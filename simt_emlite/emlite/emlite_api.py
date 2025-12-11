@@ -22,10 +22,10 @@ crc16 = crcmod.predefined.mkCrcFun("crc-ccitt-false")
 
 """
     This class sends bytes to the meters using the EmliteNet module.
-    
+
     Bytes are packed and unpacked, to and from EMOP frames and EMOP data
     fields.
-    
+
     While this class is responsible for building the frames and data fields it
     has no knowledge of the structure of the payload embedded in the data
     field. Caller should build those payloads and pass them into this API.

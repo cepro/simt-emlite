@@ -27,7 +27,7 @@ jobs:
       - name: Extract Git Tag
         id: extract_tag
         run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      
+
       - uses: superfly/flyctl-actions/setup-flyctl@1.5
         with:
           version: 0.2.55

@@ -2,7 +2,7 @@
 
 #
 # Compile a kaitai struct file to python
-# 
+#
 # Usage: kaitai_compile <file.ksy>
 #
 
@@ -33,4 +33,3 @@ echo "\nGenerating png file from graphviz file ..."
 BASEFILE=`basename $KAITAI_FILE`
 BASEFILE_NO_EXT=${BASEFILE%.*}
 dot -Tpng graphviz/$BASEFILE_NO_EXT.dot -o $BASEFILE_NO_EXT.png
-

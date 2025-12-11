@@ -32,28 +32,28 @@ logger = get_logger(__name__, __file__)
 
 """
     Wait this amount of time between requests to avoid the emlite meter
-    returning "connection refused" errors. 
+    returning "connection refused" errors.
 """
 minimum_time_between_emlite_requests_seconds = 2
 
 """
-    Allow one request to the meter at a time only. 
+    Allow one request to the meter at a time only.
 """
 max_workers = 1
 
 """
-    Address details of the Emlite meter. 
+    Address details of the Emlite meter.
 """
 emlite_host = os.environ.get("EMLITE_HOST")
 emlite_port = os.environ.get("EMLITE_PORT") or "8080"
 
 """
-    Port to listen on. 
+    Port to listen on.
 """
 listen_port = os.environ.get("LISTEN_PORT") or "50051"
 
 """
-    Auth Certificates and Keys. 
+    Auth Certificates and Keys.
 """
 server_cert_b64 = os.environ.get("MEDIATOR_SERVER_CERT")
 server_key_b64 = os.environ.get("MEDIATOR_SERVER_KEY")
@@ -66,7 +66,7 @@ use_cert_auth = (
 )
 
 """
-    Inactive shutdown properties 
+    Inactive shutdown properties
 """
 
 inactivity_seconds = int(os.environ.get("MEDIATOR_INACTIVITY_SECONDS") or "0")
@@ -92,7 +92,7 @@ server = None
     Only one emlite meter request can be processed at a time so this server
     will queue incoming gRPC requests and process them one at a time.
     This is achieved by simply setting max_workers=1 on the grpc server.
-     
+
     Additionally there will be a wait of minimum_time_between_emlite_requests_seconds
     between back to back requests. Therefore client requests will have to wait
     a little if a number of requests are in the queue.

@@ -231,10 +231,10 @@ class PushTopupTokensAllJob:
             .eq("status", status)
             .is_("used_at", "null")
         )
-        
+
         if meters:
             query = query.in_("meter", meters)
-            
+
         return query.execute()
 
 if __name__ == "__main__":

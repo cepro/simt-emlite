@@ -1,6 +1,7 @@
 # SIMT-EMLITE Development Guide
 
 ## Commands
+
 - Install: `poetry install`
 - Run all tests: `poetry run test` or `bin/test`
 - Run single test: `python -m unittest tests/simt_emlite/sync/test_syncer_base.py`
@@ -16,10 +17,12 @@ Activate the .venv before running python.
 Write unit tests with `unittest`. See existing tests under `tests` and follow a similar layout and style.
 
 ## Shell Scripting
+
 - Use `/bin/sh` POSIX shell only for maximum compatibility
 - Use `. ./script.sh` instead of `source script.sh` to source files (`.` is POSIX-compliant, `source` is bash-specific)
 
 ## Code Style
+
 - Python 3.13+ with type hints required
 - snake_case for variables/functions, PascalCase for classes
 - Imports: stdlib first, third-party second, local imports last

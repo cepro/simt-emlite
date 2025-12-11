@@ -550,13 +550,13 @@ emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" -
         description="""Supported settings:
 
   Single Phase Meters:
-  
+
     normal_sp = off until button pressed on meter
     always_on_sp = light always on (lcd burnout!)
     always_off_sp = light never on
 
   Three Phase Meters:
-  
+
     30_seconds_turn_off_3p = turn off after 30 seconds
     always_on_3p = light always on (lcd burnout!)
     always_off_3p = light never on

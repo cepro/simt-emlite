@@ -18,7 +18,7 @@ services:
   # Drop the gateway for now and go straight to the mediators:
   #  - in fly context this means setting up a wireguard tunnel
   #  - locally we simply connect to mediator docker container
-   
+
   # mediator-gateway:
   #   image: simt-mediator-gateway
   #   environment:

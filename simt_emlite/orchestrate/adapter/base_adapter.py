@@ -104,7 +104,7 @@ class BaseAdapter(ABC):
         MEDIATOR_SERVER_CERT = os.environ.get("MEDIATOR_SERVER_CERT")
         MEDIATOR_SERVER_KEY = os.environ.get("MEDIATOR_SERVER_KEY")
         MEDIATOR_CA_CERT = os.environ.get("MEDIATOR_CA_CERT")
-        
+
         have_certs = (
             MEDIATOR_SERVER_CERT is not None
             and MEDIATOR_SERVER_KEY is not None

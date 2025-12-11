@@ -21,7 +21,7 @@ see https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab
 ## Use
 
 ### emop
-```sh 
+```sh
 emop env_show
 emop env_set prod
 
@@ -30,7 +30,7 @@ emop --help
 emop csq EML2137580826
 emop profile_log_1 --timestamp 2024-07-19T00:00 EML1411042768
 
-emop prepay_balance EML2137580826 
+emop prepay_balance EML2137580826
 emop -s EML2244826972 prepay_send_token "99992385202946455555"
 
 emop -s EML2244826972 tariffs_future_write --from-ts "2024-08-21T05:20:00" --unit-rate "0.175725" --standing-charge "0.503925" --ecredit-availability "10.0" --debt-recovery-rate "0.25" --emergency-credit "15.00"
@@ -40,7 +40,7 @@ emop -s EML2244826972 tariffs_future_write --from-ts "2024-08-21T05:20:00" --uni
 ```sh
 mediators list
 mediators list --esco wlce      # show only mediators from the Waterlilies esco
-mediators list --exists False   # show all meters that don't yet have a mediator 
+mediators list --exists False   # show all meters that don't yet have a mediator
 
 mediators create EML2137580826
 mediators destroy EML2137580826
@@ -67,7 +67,7 @@ see also emlite.env below
 
 Copy emlite.env.example to ~/.simt/emlite.env and set secrets and variables as needed.
 
-Or once already setup you can use `mediators env_set local` to point at the local env file. 
+Or once already setup you can use `mediators env_set local` to point at the local env file.
 
 ## Local build
 
@@ -80,7 +80,7 @@ python -m build
 # cibuildwheel build (same as GitHub workflow):
 cibuildwheel --platform linux
 ```
- 
+
 # Tests
 
 ```
@@ -184,7 +184,7 @@ openssl req -new -x509 \
   -days 3650 -out mediators-ca.cert
 ```
 
-### Server Certificate 
+### Server Certificate
 
 ```sh
 openssl genrsa -out mediators-server-private.key 4096
@@ -249,4 +249,3 @@ openssl x509 -req \
   -CAcreateserial \
   -out mediators-client-cepro.cert -days 365 -sha256
 ```
-

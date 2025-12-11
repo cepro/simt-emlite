@@ -28,7 +28,7 @@ def get_instance(
         raise Exception("MEDIATOR_IMAGE not set")
 
     adapter: DockerAdapter | FlyAdapter
-    
+
     if fly_api_token is not None:
         adapter = FlyAdapter(
             fly_api_token,
