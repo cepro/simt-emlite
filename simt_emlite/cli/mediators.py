@@ -37,6 +37,8 @@ SOCKS_PASSWORD: str | int | None = config["socks_password"]
 
 SIMT_EMLITE_IMAGE: str | int | None = config["simt_emlite_image"]
 
+ENV: str | int | None = config["env"]
+
 """
     This is a CLI for managing Emlite mediator processes.
 """
@@ -193,6 +195,7 @@ class MediatorsCLI:
             esco=meter["esco"],
             serial=serial,
             region=FLY_REGION,
+            env=cast(str | None, ENV)
         )
         containers_api.create(
             "simt_emlite.mediator.grpc.server",
@@ -286,6 +289,7 @@ Go ahead and destroy ALL of these? (y/n): """)
             esco=meter["esco"],
             serial=serial,
             region=FLY_REGION,
+            env=cast(str | None, ENV),
         )
 
         mediator_address = containers_api.mediator_address(meter["id"], serial)
@@ -392,6 +396,7 @@ Go ahead and destroy ALL of these? (y/n): """)
             esco=meter["esco"],
             serial=serial,
             region=FLY_REGION,
+            env=cast(str | None, ENV),
         )
         container = containers_api.get(meter["id"])
         if container is None:
@@ -415,6 +420,7 @@ Go ahead and destroy ALL of these? (y/n): """)
             containers_api = get_instance(
                 esco=esco_code,
                 region=FLY_REGION,
+                env=cast(str | None, ENV),
             )
             containers = containers_api.list()
 
@@ -440,6 +446,7 @@ Go ahead and destroy ALL of these? (y/n): """)
                 is_single_meter_app=True,
                 serial=meter["serial"],
                 region=FLY_REGION,
+                env=cast(str | None, ENV),
             )
             containers = containers_api.list()
             container_matches = list(

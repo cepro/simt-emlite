@@ -28,6 +28,8 @@ SUPABASE_URL = config["supabase_url"]
 FLY_API_TOKEN = config["fly_api_token"]
 FLY_REGION: str | None = cast(str | None, config["fly_region"])
 
+ENV: str | None = cast(str | None, config["env"])
+
 """
     This is a CLI wrapper around the mediator client.
 """
@@ -92,6 +94,7 @@ class EMOPCLI(EmliteMediatorClient):
                     esco=esco_code,
                     serial=serial,
                     region=FLY_REGION,
+                    env=cast(str | None, ENV),
                 )
                 mediator_address = containers.mediator_address(meter_id, serial)
                 if not mediator_address:

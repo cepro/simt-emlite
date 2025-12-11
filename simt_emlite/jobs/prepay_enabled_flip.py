@@ -125,9 +125,19 @@ class PrepayEnabledFlipAllJob:
     def run(self):
         self.log.info("Starting prepay_enabled_flip job...")
 
+        escos = (
+            self.supabase.table("escos").select("id").ilike("code", self.esco).execute()
+        )
+        if len(escos.data) == 0:
+            self.log.error("no esco found for " + self.esco)
+            sys.exit(10)
+
+        esco_id = list(escos.data)[0]["id"]
+
         meters_result = (
             self.flows_supabase.table("meter_registry")
             .select("*")
+            .eq("esco_id", esco_id)
             .eq("prepay_enabled", True)
             .neq("hardware", "P1.ax")
             .neq("hardware", "P1.cx")
