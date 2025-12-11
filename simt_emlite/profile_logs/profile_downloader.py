@@ -16,15 +16,16 @@ import time
 from typing import List
 
 # mypy: disable-error-code="import-untyped"
-from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
+from simt_emlite.profile_logs.profile_converter import (
+    convert_profile_records,  # type: ignore
+)
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
-from simt_emlite.util.timestamp import TimestampConversionError, parse_meter_timestamp
 
 logger = get_logger(__name__, __file__)
 
@@ -171,7 +172,12 @@ class ProfileDownloader:
             try:
                 # Download profile log 1 for this chunk
                 response = self.client.profile_log_1(current_time)
-                self._collect_profile_records(response, current_time)
+                if response and response.records:
+                    logger.info(
+                        f"Received {len(response.records)} records for {current_time}"
+                    )
+                    for record in response.records:
+                        self.profile_records.append(record)
 
             except Exception as e:
                 logger.error(f"Error downloading chunk {current_time}: {e}")
@@ -212,63 +218,10 @@ class ProfileDownloader:
             logger.error(f"Failed to write CSV output: {e}", exc_info=True)
             raise
 
-    def _collect_profile_records(
-        self, response: EmopProfileLog1Response, timestamp: datetime.datetime
-    ):
-        """Collect raw profile log 1 response data without conversion"""
-        if not response or not response.records:
-            logger.warning(f"No data received for timestamp {timestamp}")
-            return
-
-        logger.info(f"Received {len(response.records)} records for {timestamp}")
-
-        # Store raw records for later conversion
-        for record in response.records:
-            # Debug: Log the raw timestamp type and value
-            logger.debug(
-                f"Raw timestamp type: {type(record.timestamp)}, value: {record.timestamp}"
-            )
-
-            # Store raw record data with timestamp for later conversion
-            raw_record = {
-                "raw_timestamp": record.timestamp,
-                "import_a": record.import_a,
-                "import_b": record.import_b,
-                "status": record.status,
-                "export": getattr(record, "export", None),  # Add export if available
-            }
-            self.profile_records.append(raw_record)
-
     def _convert_profile_records(self):
         """Convert all collected raw profile records to final format for CSV writing"""
         if not self.profile_records:
             logger.warning("No profile records to convert")
             return
 
-        converted_records = []
-        for raw_record in self.profile_records:
-            # Convert record to dict format for CSV writing
-            try:
-                # Use timestamp utility to handle various timestamp formats
-                parsed_timestamp = parse_meter_timestamp(
-                    raw_record["raw_timestamp"], reference_date=self.date
-                )
-                logger.debug(f"Parsed timestamp: {parsed_timestamp}")
-            except TimestampConversionError as e:
-                logger.error(
-                    f"Failed to parse timestamp {raw_record['raw_timestamp']}: {e}"
-                )
-                # Use current time as fallback to avoid breaking the entire process
-                parsed_timestamp = datetime.datetime.now(datetime.timezone.utc)
-
-            converted_record = {
-                "timestamp": parsed_timestamp,
-                "import_a": raw_record["import_a"],
-                "import_b": raw_record["import_b"],
-                "status": raw_record["status"],
-                "export": raw_record.get("export", None),
-            }
-            converted_records.append(converted_record)
-
-        # Replace raw records with converted ones
-        self.profile_records = converted_records
+        self.profile_records = convert_profile_records(self.profile_records, self.date)
