@@ -27,6 +27,10 @@ class AutoTopupJob:
 
         self._check_environment()
 
+        # Narrow types after environment check
+        assert supabase_url is not None
+        assert supabase_key is not None
+
         self.backend_supabase = supa_client(
             supabase_url, supabase_key, public_backend_role_key, schema="myenergy"
         )

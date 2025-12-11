@@ -36,9 +36,6 @@ class MeterSyncAllJob:
         esco=None,
         serials=None,
     ):
-        if not supabase_url or not supabase_key:
-            raise Exception("SUPABASE_URL and SUPABASE_KEY not set")
-
         self.esco = esco
 
         # '-public' suffix means sync only public or single_meter_app meters
@@ -50,6 +47,10 @@ class MeterSyncAllJob:
         self.log = logger.bind(esco=self.esco)
 
         self._check_environment()
+
+        # Narrow types after environment check
+        assert supabase_url is not None
+        assert supabase_key is not None
 
         self.serials = serials
         self.filter_fn = filter_fn
@@ -80,6 +81,12 @@ class MeterSyncAllJob:
                 meter_id=meter_id,
                 mediator_address=mediator_address,
             )
+
+            # Narrow types after environment check
+            assert supabase_url is not None
+            assert supabase_key is not None
+            assert flows_role_key is not None
+
             job = MeterSyncJob(
                 meter_id=meter_id,
                 mediator_address=mediator_address,

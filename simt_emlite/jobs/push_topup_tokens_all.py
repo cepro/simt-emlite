@@ -31,6 +31,10 @@ class PushTopupTokensAllJob:
 
         self._check_environment()
 
+        # Narrow types after environment check
+        assert supabase_url is not None
+        assert supabase_key is not None
+
         self.esco = esco
         self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)

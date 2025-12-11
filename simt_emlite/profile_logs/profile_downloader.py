@@ -12,7 +12,7 @@ Usage:
 
 import datetime
 import logging
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, cast
 from supabase import Client as SupabaseClient
 
 from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
@@ -36,7 +36,7 @@ class ProfileDownloader:
         self.output_dir = output_dir
 
         self.client: EmliteMediatorClient | None = None
-        self.supabase: SupabaseClient | None = None
+        self.supabase: SupabaseClient = self._init_supabase()
 
         self._validate_output_directory()
 
@@ -48,7 +48,6 @@ class ProfileDownloader:
         self.fly_region = config["fly_region"]
 
         # Load meter info
-        self._init_supabase()
         self._fetch_meter_info()
         self._fetch_esco_code()
 
@@ -73,7 +72,7 @@ class ProfileDownloader:
                     f"Cannot create output directory '{self.output_dir}': {e}. Please provide a valid directory path."
                 )
 
-    def _init_supabase(self):
+    def _init_supabase(self) -> SupabaseClient:
         """Initialize Supabase client and get meter info"""
         if not all(
             [self.supabase_url, self.supabase_anon_key, self.supabase_access_token]
@@ -82,7 +81,12 @@ class ProfileDownloader:
                 "SUPABASE_URL, SUPABASE_ANON_KEY and/or SUPABASE_ACCESS_TOKEN not set"
             )
 
-        self.supabase = supa_client(
+        # Narrow types after environment check
+        assert self.supabase_url is not None
+        assert self.supabase_anon_key is not None
+        assert self.supabase_access_token is not None
+
+        return supa_client(
             str(self.supabase_url),
             str(self.supabase_anon_key),
             str(self.supabase_access_token),
@@ -127,7 +131,7 @@ class ProfileDownloader:
             is_single_meter_app=self.is_single_meter_app,
             esco=self.esco_code,
             serial=self.serial,
-            region=self.fly_region,
+            region=cast(str | None, self.fly_region),
         )
 
         mediator_address = containers.mediator_address(self.meter_id, self.serial)

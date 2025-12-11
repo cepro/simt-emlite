@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "0.25.3"
+version = "0.25.4"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@cepro.energy" }]
 requires-python = ">=3.13,<4.0"
@@ -53,6 +53,7 @@ python_version = "3.13"
 exclude = "generated/"
 # disable strict until we've fixed all the issues:
 # strict = true
+check_untyped_defs = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "cython"]

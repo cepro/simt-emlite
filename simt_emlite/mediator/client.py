@@ -517,9 +517,9 @@ class EmliteMediatorClient(object):
 
     def three_phase_intervals(
         self,
-        day: datetime.datetime,
-        start_time: datetime.datetime,
-        end_time: datetime.datetime,
+        day: datetime.datetime | None,
+        start_time: datetime.datetime | None,
+        end_time: datetime.datetime | None,
         csv: str,
         include_statuses: bool = False,
     ) -> ThreePhaseIntervals:
@@ -536,6 +536,9 @@ class EmliteMediatorClient(object):
 
         # otherwise check start and end times
         else:
+            if start_time is None or end_time is None:
+                raise Exception("start_time and end_time must be provided")
+
             if start_time >= end_time:
                 raise Exception("start_time must come before end_time")
 

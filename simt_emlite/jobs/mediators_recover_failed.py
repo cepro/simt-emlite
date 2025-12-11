@@ -4,11 +4,12 @@ import sys
 import time
 import traceback
 
+
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.orchestrate.adapter.fly_adapter import FLY_STATUS
+from simt_emlite.orchestrate.adapter.fly_adapter import FLY_STATUS, FlyAdapter
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
@@ -39,6 +40,10 @@ class MediatorsRecoverFailedJob:
 
         self._check_environment()
 
+        # Narrow types after environment check
+        assert supabase_url is not None
+        assert supabase_key is not None
+
         self.esco = esco
 
         self.containers = get_instance(esco=esco, env=env_code)
@@ -47,9 +52,12 @@ class MediatorsRecoverFailedJob:
     def run(self):
         self.log.info("starting ...")
 
-        # can probablt just use FLY_APP_NAME here:
+        # can probably just use FLY_APP_NAME here:
         app_name = f"mediators-{env_code}-{self.esco}"
         self.log.info(f"app is {app_name}")
+
+        if not isinstance(self.containers, FlyAdapter):
+            raise Exception("This job only works with FlyAdapter")
 
         machines = self.containers.api.list(app=app_name)
         self.log.info(f"machines {machines}")
@@ -121,12 +129,12 @@ class MediatorsRecoverFailedJob:
             raise Exception(
                 "destroy failed (possibly failed if no response)",
                 machine_id,
-                self._destroy_failed_mediator.statistics["attempt_number"],
+                self._destroy_failed_mediator.statistics["attempt_number"],  # type: ignore[attr-defined]
             )
 
     @retry(stop=stop_after_attempt(3), wait=wait_fixed(10))
     def _recreate_failed_mediator(self, meter_serial, ip_address, meter_id, port):
-        create_rsp = self.containers.create(
+        container_id: str = self.containers.create(
             cmd="simt_emlite.mediator.grpc.server",
             serial=meter_serial,
             ip_address=ip_address,
@@ -134,13 +142,13 @@ class MediatorsRecoverFailedJob:
             port=port,
             skip_confirm=True,
         )
-        if create_rsp is not None and "ok" in create_rsp and create_rsp["ok"] is True:
+        if container_id is not None:
             self.log.info("recreated mediator success", serial=meter_serial)
         else:
             raise Exception(
                 "create failed (possibly failed if no response)",
                 meter_serial,
-                self._recreate_failed_mediator.statistics["attempt_number"],
+                self._recreate_failed_mediator.statistics["attempt_number"],  # type: ignore[attr-defined]
             )
 
     def _check_environment(self):

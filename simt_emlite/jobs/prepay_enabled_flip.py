@@ -78,11 +78,15 @@ class PrepayEnabledFlipJob:
 
 
 class PrepayEnabledFlipAllJob:
-    def __init__(self, esco=None):
+    def __init__(self, esco=None) -> None:
         global logger
         self.log = logger.bind(esco=esco)
 
         self._check_environment()
+
+        # Narrow types after environment check
+        assert supabase_url is not None
+        assert supabase_key is not None
 
         self.esco = esco
         self.containers = get_instance(esco=esco, env=env)
@@ -126,7 +130,7 @@ class PrepayEnabledFlipAllJob:
         self.log.info("Starting prepay_enabled_flip job...")
 
         escos = (
-            self.supabase.table("escos").select("id").ilike("code", self.esco).execute()
+            self.flows_supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
         if len(escos.data) == 0:
             self.log.error("no esco found for " + self.esco)
