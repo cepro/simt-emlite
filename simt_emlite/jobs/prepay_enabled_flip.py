@@ -5,14 +5,14 @@ import sys
 import traceback
 from typing import Any, Dict
 
-from simt_emlite.orchestrate.adapter.factory import get_instance
-from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
+from simt_emlite.orchestrate.adapter.factory import get_instance
+from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import Client as SupabaseClient
+from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -90,9 +90,9 @@ class PrepayEnabledFlipAllJob:
     def run_job(self, meter_row) -> bool:
         self.log.info(f"run_job for meter_row {meter_row}")
 
-        meter_id = meter_row['id']
-        serial = meter_row['serial']
-        
+        meter_id = meter_row["id"]
+        serial = meter_row["serial"]
+
         mediator_address = self.containers.mediator_address(meter_id, serial)
         if mediator_address is None:
             self.log.error(f"No mediator container exists for meter {serial}")
@@ -127,7 +127,9 @@ class PrepayEnabledFlipAllJob:
         meters_result = (
             self.flows_supabase.table("meter_registry")
             .select("*")
-            .neq("prepay_enabled", True)
+            .eq("prepay_enabled", True)
+            .neq("hardware", "P1.ax")
+            .neq("hardware", "P1.cx")
             .execute()
         )
 
@@ -138,10 +140,10 @@ class PrepayEnabledFlipAllJob:
         meters_to_disable = meters_result.data
         self.log.info(f"Processing {len(meters_to_disable)} meters")
 
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=15
-        ) as executor:
-            futures = [executor.submit(self.run_job, meter) for meter in meters_to_disable]
+        with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+            futures = [
+                executor.submit(self.run_job, meter) for meter in meters_to_disable
+            ]
 
         success_count = 0
         for future in concurrent.futures.as_completed(futures):
@@ -165,6 +167,7 @@ class PrepayEnabledFlipAllJob:
         if not flows_role_key:
             self.log.error("Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
