@@ -19,6 +19,7 @@ logger = get_logger(__name__, __file__)
 supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
+env: str | None = os.environ.get("ENV")
 
 
 class PrepayEnabledFlipJob:
@@ -84,7 +85,7 @@ class PrepayEnabledFlipAllJob:
         self._check_environment()
 
         self.esco = esco
-        self.containers = get_instance(esco=esco)
+        self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run_job(self, meter_row) -> bool:

@@ -41,15 +41,19 @@ class MediatorsRecoverFailedJob:
 
         self.esco = esco
 
-        self.containers = get_instance(esco=esco)
+        self.containers = get_instance(esco=esco, env=env_code)
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run(self):
         self.log.info("starting ...")
 
-        self.log.info(f"app is mediators-{env_code}-{self.esco}")
-        machines = self.containers.api.list(app=f"mediators-{env_code}-{self.esco}")
+        # can probablt just use FLY_APP_NAME here:
+        app_name = f"mediators-{env_code}-{self.esco}"
+        self.log.info(f"app is {app_name}")
+
+        machines = self.containers.api.list(app=app_name)
         self.log.info(f"machines {machines}")
+
         machines = list(
             filter(
                 lambda m: m["state"] is not None
@@ -59,6 +63,7 @@ class MediatorsRecoverFailedJob:
         )
         self.log.info(f"failed state machine records [{machines}]")
         self.log.info(f"{len(machines)} machines in failed state")
+
         if len(machines) == 0:
             sys.exit()
 

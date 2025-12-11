@@ -10,6 +10,7 @@ fly_region: str | None = os.environ.get("FLY_REGION")
 def get_instance(
     is_single_meter_app: bool = False,
     esco: str | None = None,
+    env: str | None = None,
     serial: str | None = None,
     use_private_address: bool | None = None,
     region: str | None = fly_region,
@@ -19,7 +20,6 @@ def get_instance(
     # is invoked) this module gets executed before env loading as imports are
     # above. better would be a wrapper around the cli that sets up all env
     # variables first so consider moving to that.
-    env = os.environ.get("ENV")
     fly_api_token = os.environ.get("FLY_API_TOKEN")
     fly_dns_server = os.environ.get("FLY_DNS_SERVER") or "fdaa::3"
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")

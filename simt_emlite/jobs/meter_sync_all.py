@@ -16,6 +16,7 @@ supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 15)
+env: str | None = os.environ.get("ENV")
 
 
 def filter_connected(meter):
@@ -64,9 +65,10 @@ class MeterSyncAllJob:
                     is_single_meter_app=is_single_meter_app,
                     serial=serial,
                     use_private_address=True,
+                    env=env
                 )
             else:
-                containers_api = get_instance(esco=esco)
+                containers_api = get_instance(esco=esco, env=env)
 
             mediator_address = containers_api.mediator_address(meter_id, serial)
             if mediator_address is None:

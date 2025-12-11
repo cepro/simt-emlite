@@ -16,6 +16,7 @@ supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 public_backend_role_key: str | None = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
 max_parallel_jobs: int | None = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
+env: str | None = os.environ.get("ENV")
 
 
 """
@@ -31,7 +32,7 @@ class PushTopupTokensAllJob:
         self._check_environment()
 
         self.esco = esco
-        self.containers = get_instance(esco=esco)
+        self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.backend_supabase = supa_client(
             supabase_url, supabase_key, public_backend_role_key, schema="myenergy"
