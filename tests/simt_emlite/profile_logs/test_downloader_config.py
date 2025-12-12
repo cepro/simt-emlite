@@ -16,6 +16,8 @@ class TestDownloaderConfig(unittest.TestCase):
             "rootfolder": "/tmp/downloads",
             "sleepseconds": "10",
             "testmode": "no",
+            "esco": "WLCE",
+
             # Group 1
             "downmanroad41.folder": "downmanroad41",
             "downmanroad41.port": "46226",
@@ -44,6 +46,8 @@ class TestDownloaderConfig(unittest.TestCase):
         return {
             "rootfolder": "/tmp/downloads",
             "sleepseconds": "10",
+            "esco": "WLCE",
+
             # Default properties
             "default.port": "8080",
             "default.prefix": "xyz",
@@ -71,6 +75,11 @@ class TestDownloaderConfig(unittest.TestCase):
             dc.get_sleep_seconds()
         )
 
+        self.assertEqual(
+            config_props[DownloaderConfig.PROPERTY_ESCO],
+            dc.get_esco()
+        )
+
         groups = dc.get_groups()
         group_names = groups.keys()
         self.assertIn(self.GROUP1, group_names)
@@ -94,6 +103,11 @@ class TestDownloaderConfig(unittest.TestCase):
         self.assertEqual(
             config_props[DownloaderConfig.PROPERTY_ROOT_FOLDER],
             str(dc.get_root_folder())
+        )
+
+        self.assertEqual(
+            config_props[DownloaderConfig.PROPERTY_ESCO],
+            dc.get_esco()
         )
 
         groups = dc.get_groups()

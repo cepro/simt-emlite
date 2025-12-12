@@ -11,11 +11,12 @@ repos:
       - id: debug-statements
 
   # Local hooks for your project-specific commands
+  # Note: Using .venv/bin paths directly to work with VS Code source control
   - repo: local
     hooks:
       - id: poetry-lint
         name: Poetry Lint (ruff)
-        entry: poetry run lint
+        entry: .venv/bin/poetry run lint
         language: system
         types: [python]
         pass_filenames: false
@@ -23,7 +24,7 @@ repos:
 
       - id: poetry-test
         name: Poetry Test (unittest)
-        entry: poetry run test
+        entry: .venv/bin/poetry run test
         language: system
         types: [python]
         pass_filenames: false
@@ -31,7 +32,7 @@ repos:
 
       - id: mypy
         name: MyPy Type Checking
-        entry: mypy simt_emlite/
+        entry: .venv/bin/mypy simt_emlite/
         language: system
         types: [python]
         pass_filenames: false

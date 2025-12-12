@@ -13,10 +13,10 @@ Usage:
 import datetime
 import logging
 from typing import Dict, cast
-from supabase import Client as SupabaseClient
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
+from supabase import Client as SupabaseClient
 
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.mediator.client import EmliteMediatorClient
@@ -33,8 +33,15 @@ logger = get_logger(__name__, __file__)
 
 
 class ProfileDownloader:
-    def __init__(self, serial: str, date: datetime.date, output_dir: str = "output"):
+    def __init__(
+        self,
+        date: datetime.date,
+        output_dir: str = "output",
+        serial: str | None = None,
+        name: str | None = None,
+    ) -> None:
         self.serial = serial
+        self.name = name
         self.date = date
 
         self.output_dir = output_dir
@@ -47,7 +54,7 @@ class ProfileDownloader:
         self.fly_region = config["fly_region"]
         self.env = config["env"]
 
-        self._check_config()
+        self._check_config_and_args()
 
         self.client: EmliteMediatorClient | None = None
         self.supabase: SupabaseClient = self._init_supabase()
@@ -55,7 +62,10 @@ class ProfileDownloader:
         self._fetch_meter_info()
         self._fetch_esco_code()
 
-    def _check_config(self):
+    def _check_config_and_args(self):
+        if self.name is None and self.serial is None:
+            raise Exception("Must provide at least one of meter name or serial.")
+
         if not all(
             [self.supabase_url, self.supabase_anon_key, self.supabase_access_token]
         ):
@@ -105,19 +115,25 @@ class ProfileDownloader:
         )
 
     def _fetch_meter_info(self):
-        result = (
-            self.supabase.table("meter_registry")
-            .select("id,esco,single_meter_app,hardware")
-            .eq("serial", self.serial)
-            .execute()
+        query = self.supabase.table("meter_registry").select(
+            "id,esco,single_meter_app,hardware,serial,name"
         )
+        if self.serial:
+            query.eq("serial", self.serial)
+        else:
+            query.eq("name", self.name)
+        result = query.execute()
 
         if len(result.data) == 0:
-            raise Exception(f"Meter {self.serial} not found in registry")
+            raise Exception(
+                f"Meter not found in registry for [serial={self.serial}, name={self.name}]"
+            )
 
         meter_data = result.data[0]
         self.meter_id = meter_data["id"]
         self.esco_id = meter_data["esco"]
+        self.name = meter_data["name"]
+        self.serial = meter_data["serial"]
         self.is_single_meter_app = meter_data["single_meter_app"]
         self.hardware: str = meter_data.get("hardware", "")
         self.is_twin_element: bool = is_twin_element(self.hardware)
@@ -157,6 +173,8 @@ class ProfileDownloader:
             env=cast(str | None, self.env),
         )
 
+        assert self.serial is not None
+
         mediator_address = containers.mediator_address(self.meter_id, self.serial)
         if not mediator_address:
             raise Exception("Unable to get mediator address")
@@ -170,7 +188,9 @@ class ProfileDownloader:
 
         logger.info(f"Connected to mediator at {mediator_address}")
 
-    def download_profile_log_1_day(self) -> Dict[datetime.datetime, EmopProfileLog1Record]:
+    def download_profile_log_1_day(
+        self,
+    ) -> Dict[datetime.datetime, EmopProfileLog1Record]:
         """Download profile log 1 data for a single day in chunks
 
         Returns:
@@ -219,7 +239,9 @@ class ProfileDownloader:
                         profile_records[record.timestamp_datetime] = record
 
             except Exception as e:
-                logger.error(f"Error downloading chunk {current_time}: {e}", exc_info=True)
+                logger.error(
+                    f"Error downloading chunk {current_time}: {e}", exc_info=True
+                )
                 break
 
             # Move to next chunk
@@ -229,7 +251,9 @@ class ProfileDownloader:
 
         return profile_records
 
-    def download_profile_log_2_day(self) -> Dict[datetime.datetime, EmopProfileLog2Record]:
+    def download_profile_log_2_day(
+        self,
+    ) -> Dict[datetime.datetime, EmopProfileLog2Record]:
         """Download profile log 2 data for a single day in chunks.
 
         Profile log 2 returns different numbers of records depending on meter type:

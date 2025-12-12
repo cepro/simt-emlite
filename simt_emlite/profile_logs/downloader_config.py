@@ -17,6 +17,7 @@ class DownloaderConfig:
     PROPERTY_ROOT_FOLDER = "rootfolder"
     PROPERTY_SLEEPSECONDS = "sleepseconds"
     PROPERTY_TESTMODE = "testmode"
+    PROPERTY_ESCO = "esco"
 
     def __init__(self, properties: dict[str, str]):
         root_folder_str = properties.get(self.PROPERTY_ROOT_FOLDER)
@@ -32,9 +33,12 @@ class DownloaderConfig:
 
         test_mode_str = properties.get(self.PROPERTY_TESTMODE)
 
+        esco_str = properties.get(self.PROPERTY_ESCO)
+
         self.root_folder = Path(root_folder_str)
         self.sleep_seconds = int(sleep_seconds_str)
         self.test_mode = test_mode_str == "yes"
+        self.esco = esco_str
 
         self.groups = self.groups_from_properties(properties, default_props)
 
@@ -55,6 +59,9 @@ class DownloaderConfig:
 
     def get_test_mode(self):
         return self.test_mode
+
+    def get_esco(self):
+        return self.esco
 
     @staticmethod
     def groups_from_properties(all_props, default_props):
