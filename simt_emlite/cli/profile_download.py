@@ -119,7 +119,7 @@ def download_single_day(
             serial=downloader.serial,
             output_dir=output_dir,
             readings=readings_a,
-            element_marker="A",
+            element_marker="A" if downloader.is_twin_element else None,
         )
         print(f"Wrote {len(readings_a)} readings to CSV in {output_dir}")
 

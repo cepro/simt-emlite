@@ -66,24 +66,38 @@ class SMIPCSV:
 
         # Write CSV file
         with open(full_csv_path, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
 
-            # Write header
-            header = ["Timestamp", "Import", "Export"]
-            if element_marker:
-                header.append("Element")
+            # Build column name with optional element marker (e.g., "EML123456789-A")
+            column_name = f"{serial}-{element_marker}" if element_marker else serial
+
+            # Write header with quoted column names
+            header = ["created_at", column_name, f"{column_name}_rev"]
             writer.writerow(header)
 
-            # Write records
+            # Write records (no quoting for data rows)
             for record in records:
-                row = [
-                    record.timestamp.isoformat(),
-                    str(record.import_value) if record.import_value is not None else "",
-                    str(record.export_value) if record.export_value is not None else "",
-                ]
-                if element_marker:
-                    row.append(element_marker)
-                writer.writerow(row)
+                # Format timestamp as "YYYY-MM-DD HH:MM:SS+0000" (no T, no colon in timezone)
+                ts = record.timestamp
+                # Format with strftime to get the base, then handle timezone
+                timestamp_str = ts.strftime("%Y-%m-%d %H:%M:%S%z")
+                # Remove colon from timezone offset (+00:00 -> +0000)
+                # strftime %z already gives +0000 format in Python
+
+                # Format values as integers (no decimal places)
+                import_str = (
+                    str(int(record.import_value))
+                    if record.import_value is not None
+                    else ""
+                )
+                export_str = (
+                    str(int(record.export_value))
+                    if record.export_value is not None
+                    else ""
+                )
+
+                # Write the raw line directly to avoid quoting data rows
+                csvfile.write(f"{timestamp_str},{import_str},{export_str}\n")
 
     @staticmethod
     def write_from_profile_records(
