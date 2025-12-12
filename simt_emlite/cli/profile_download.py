@@ -16,6 +16,7 @@ Usage:
 
 import argparse
 import datetime
+import os
 import sys
 import traceback
 from typing import Dict
@@ -159,10 +160,12 @@ def run_config_mode(config_file: str) -> None:
             f"Processing {group_name}: [ Retrieving from {start_date} to {end_date} ]"
         )
 
-        # Use the group's folder or root folder for output
-        output_dir = (
-            str(group.folder) if group.folder else str(config.get_root_folder())
-        )
+        # Build the output path by joining rootfolder with the group's folder
+        root_folder = config.get_root_folder()
+        if group.folder:
+            output_dir = os.path.join(str(root_folder), str(group.folder))
+        else:
+            output_dir = str(root_folder)
 
         # Apply year adjustment if configured
         if adjust_year and adjust_years:
