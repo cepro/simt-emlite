@@ -23,7 +23,10 @@ from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.meters import is_twin_element
+from simt_emlite.util.meters import (
+    is_three_phase,
+    is_twin_element,
+)
 from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
@@ -118,6 +121,12 @@ class ProfileDownloader:
         self.is_single_meter_app = meter_data["single_meter_app"]
         self.hardware: str = meter_data.get("hardware", "")
         self.is_twin_element: bool = is_twin_element(self.hardware)
+
+        if is_three_phase(self.hardware):
+            raise NotImplementedError(
+                f"Three-phase meters are not currently supported. "
+                f"Meter {self.serial} has hardware type '{self.hardware}'."
+            )
 
         logger.info(
             f"Found meter [{self.serial}]. id: [{self.meter_id}], "
