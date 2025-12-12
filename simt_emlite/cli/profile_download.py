@@ -26,6 +26,7 @@ from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 
 # mypy: disable-error-code="import-untyped"
+from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
 from simt_emlite.smip.smip_csv import SMIPCSV
@@ -68,71 +69,81 @@ def download_single_day(
     """
     print(f"Starting profile download for serial {serial} on date {date}")
 
-    downloader = ProfileDownloader(
-        date=date,
-        output_dir=output_dir,
-        serial=serial,
-        name=name,
-    )
-
-    # TODO: consider restoring the override logic which would cause download
-    #       to go ahead even if file exists here:
-    find_result: SMIPFileFinderResult = downloader.find_download_file()
-    if find_result.found:
-        print(
-            f"skipping ... file already exists for serial [{downloader.serial}] [{find_result.smip_file}]"
-        )
-        return
-
-    log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
-        downloader.download_profile_log_1_day()
-    )
-    log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = (
-        downloader.download_profile_log_2_day()
-    )
-
-    # Create start and end datetime for the day (timezone-aware)
-    start_time = datetime.datetime.combine(date, datetime.time.min).replace(
-        tzinfo=datetime.timezone.utc
-    )
-    end_time = datetime.datetime.combine(date, datetime.time.max).replace(
-        tzinfo=datetime.timezone.utc
-    )
-
-    assert downloader.serial is not None
-
-    # Create SMIP readings from the downloaded profile logs
-    readings_a, readings_b = create_smip_readings(
-        serial=downloader.serial,
-        start_time=start_time,
-        end_time=end_time,
-        log1_records=log_1_records,
-        log2_records=log_2_records,
-        is_twin_element=downloader.is_twin_element,
-    )
-
-    print(f"Created {len(readings_a)} SMIP readings for element A")
-
-    # Write readings to CSV
-    if readings_a:
-        SMIPCSV.write_from_smip_readings(
-            serial=downloader.serial,
+    try:
+        downloader = ProfileDownloader(
+            date=date,
             output_dir=output_dir,
-            readings=readings_a,
-            element_marker="A" if downloader.is_twin_element else None,
+            serial=serial,
+            name=name,
         )
-        print(f"Wrote {len(readings_a)} readings to CSV in {output_dir}")
 
-    if readings_b:
-        SMIPCSV.write_from_smip_readings(
+        # TODO: consider restoring the override logic which would cause download
+        #       to go ahead even if file exists here:
+        find_result: SMIPFileFinderResult = downloader.find_download_file()
+        if find_result.found:
+            print(
+                f"skipping ... file already exists for serial [{downloader.serial}] [{find_result.smip_file}]"
+            )
+            return
+
+        log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
+            downloader.download_profile_log_1_day()
+        )
+        log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = (
+            downloader.download_profile_log_2_day()
+        )
+
+        # Create start and end datetime for the day (timezone-aware)
+        start_time = datetime.datetime.combine(date, datetime.time.min).replace(
+            tzinfo=datetime.timezone.utc
+        )
+        end_time = datetime.datetime.combine(date, datetime.time.max).replace(
+            tzinfo=datetime.timezone.utc
+        )
+
+        assert downloader.serial is not None
+
+        # Create SMIP readings from the downloaded profile logs
+        readings_a, readings_b = create_smip_readings(
             serial=downloader.serial,
-            output_dir=output_dir,
-            readings=readings_b,
-            element_marker="B",
+            start_time=start_time,
+            end_time=end_time,
+            log1_records=log_1_records,
+            log2_records=log_2_records,
+            is_twin_element=downloader.is_twin_element,
         )
-        print(f"Wrote {len(readings_b)} readings to CSV in {output_dir}")
 
-    print(f"Profile download completed for {serial} on {date}")
+        print(f"Created {len(readings_a)} SMIP readings for element A")
+
+        # Write readings to CSV
+        if readings_a:
+            SMIPCSV.write_from_smip_readings(
+                serial=downloader.serial,
+                output_dir=output_dir,
+                readings=readings_a,
+                element_marker="A" if downloader.is_twin_element else None,
+            )
+            print(f"Wrote {len(readings_a)} readings to CSV in {output_dir}")
+
+        if readings_b:
+            SMIPCSV.write_from_smip_readings(
+                serial=downloader.serial,
+                output_dir=output_dir,
+                readings=readings_b,
+                element_marker="B",
+            )
+            print(f"Wrote {len(readings_b)} readings to CSV in {output_dir}")
+
+        print(f"Profile download completed for {serial} on {date}")
+
+    except MediatorClientException as e:
+        if e.code_str == "DEADLINE_EXCEEDED":
+            print(f"Meter timeout for serial=[{serial}], name=[{name}]")
+        else:
+            print(
+                f"MediatorClientException code=[{e.code_str}], message=[{e.message}] "
+                f"for serial=[{serial}], name=[{name}]"
+            )
 
 
 def process_group(config: DownloaderConfig, group_name: str) -> None:

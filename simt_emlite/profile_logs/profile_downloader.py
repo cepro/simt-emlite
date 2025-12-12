@@ -22,7 +22,6 @@ from supabase import Client as SupabaseClient
 from simt_emlite.mediator.client import EmliteMediatorClient
 
 # mypy: disable-error-code="import-untyped"
-from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_file_finder import SMIPFileFinder
 from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
@@ -194,24 +193,6 @@ class ProfileDownloader:
 
         logger.info(f"Connected to mediator at {mediator_address}")
 
-    def _handle_profile_log_mediator_client_exception(self, e: MediatorClientException):
-        if e.code_str == "DEADLINE_EXCEEDED":
-            logger.warning(
-                f"Meter timeout for [{self.serial}]",
-                serial=self.serial,
-                esco=self.esco_code,
-                name=self.name,
-            )
-        else:
-            logger.error(
-                f"MediatorClientException [{e.code_str}] for [{self.serial}]",
-                code=e.code_str,
-                message=e.message,
-                serial=self.serial,
-                esco=self.esco_code,
-                name=self.name,
-            )
-
     def find_download_file(self) -> SMIPFileFinderResult:
         assert self.serial is not None
 
@@ -256,34 +237,23 @@ class ProfileDownloader:
 
             logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
 
-            try:
-                # Download profile log for this chunk
-                assert self.client is not None
-                response = self.client.profile_log_1(current_time)
-                if response and response.records:
-                    logger.info(
-                        f"Received {len(response.records)} records for {current_time}"
-                    )
-                    # future time out of range - see unfuddle #382 - meters will return the next
-                    # available data even if that is months ahead
-                    if response.records[0].timestamp_datetime > end_datetime:
-                        logger.warning(
-                            "Future date returned - skipping remainder for this period"
-                        )
-                        return profile_records
-
-                    for record in response.records:
-                        profile_records[record.timestamp_datetime] = record
-
-            except MediatorClientException as e:
-                self._handle_profile_log_mediator_client_exception(e)
-                break
-
-            except Exception as e:
-                logger.error(
-                    f"Error downloading chunk {current_time}: {e}", exc_info=True
+            # Download profile log for this chunk
+            assert self.client is not None
+            response = self.client.profile_log_1(current_time)
+            if response and response.records:
+                logger.info(
+                    f"Received {len(response.records)} records for {current_time}"
                 )
-                break
+                # future time out of range - see unfuddle #382 - meters will return the next
+                # available data even if that is months ahead
+                if response.records[0].timestamp_datetime > end_datetime:
+                    logger.warning(
+                        "Future date returned - skipping remainder for this period"
+                    )
+                    return profile_records
+
+                for record in response.records:
+                    profile_records[record.timestamp_datetime] = record
 
             # Move to next chunk
             current_time = chunk_end
@@ -338,33 +308,22 @@ class ProfileDownloader:
 
             logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
 
-            try:
-                assert self.client is not None
-                response = self.client.profile_log_2(current_time)
-                if response and response.records:
-                    logger.info(
-                        f"Received {len(response.records)} records for {current_time}"
-                    )
-                    # future time out of range - see unfuddle #382 - meters will return the next
-                    # available data even if that is months ahead
-                    if response.records[0].timestamp_datetime > end_datetime:
-                        logger.warning(
-                            "Future date returned - skipping remainder for this period"
-                        )
-                        return profile_records
-
-                    for record in response.records:
-                        profile_records[record.timestamp_datetime] = record
-
-            except MediatorClientException as e:
-                self._handle_profile_log_mediator_client_exception(e)
-                break
-
-            except Exception as e:
-                logger.error(
-                    f"Error downloading chunk {current_time}: {e}", exc_info=True
+            assert self.client is not None
+            response = self.client.profile_log_2(current_time)
+            if response and response.records:
+                logger.info(
+                    f"Received {len(response.records)} records for {current_time}"
                 )
-                break
+                # future time out of range - see unfuddle #382 - meters will return the next
+                # available data even if that is months ahead
+                if response.records[0].timestamp_datetime > end_datetime:
+                    logger.warning(
+                        "Future date returned - skipping remainder for this period"
+                    )
+                    return profile_records
+
+                for record in response.records:
+                    profile_records[record.timestamp_datetime] = record
 
             # Move to next chunk
             current_time = chunk_end
