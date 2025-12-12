@@ -155,6 +155,7 @@ class EmliteMediatorClient(object):
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
         self.log.debug("EmliteMediatorClient init")
+        self._hardware_cache: str | None = None
 
     def serial_read(self) -> str:
         data = self._read_element(ObjectIdEnum.serial)
@@ -163,6 +164,9 @@ class EmliteMediatorClient(object):
         return serial
 
     def hardware(self) -> str:
+        if self._hardware_cache is not None:
+            return self._hardware_cache
+
         data = self._read_element(ObjectIdEnum.hardware_version)
 
         # if blank then it's a three phase meter
@@ -183,7 +187,10 @@ class EmliteMediatorClient(object):
                 hardware = "SINGLE_PHASE_UNKNOWN"
             else:
                 hardware = hardware_optional
+
         self.log.info("hardware", hardware=hardware)
+        self._hardware_cache = hardware
+
         return hardware
 
     def firmware_version(self) -> str:
