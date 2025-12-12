@@ -66,7 +66,7 @@ class SMIPCSV:
 
         # Write CSV file
         with open(full_csv_path, "w", newline="") as csvfile:
-            writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL, lineterminator="\r\n")
 
             # Build column name with optional element marker (e.g., "EML123456789-A")
             column_name = f"{serial}-{element_marker}" if element_marker else serial
@@ -97,7 +97,7 @@ class SMIPCSV:
                 )
 
                 # Write the raw line directly to avoid quoting data rows
-                csvfile.write(f"{timestamp_str},{import_str},{export_str}\n")
+                csvfile.write(f"{timestamp_str},{import_str},{export_str}\r\n")
 
     @staticmethod
     def write_from_profile_records(
