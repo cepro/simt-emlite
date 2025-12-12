@@ -1,0 +1,3 @@
+#/bin/sh
+REPLICA_FOLDER=$1
+find $REPLICA_FOLDER -type f -name "*-2025*.csv" -exec sh -c 'wc -l "$0" | awk "{if (\$1 != 49) print \$0}"' {} \;

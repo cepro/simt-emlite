@@ -19,8 +19,10 @@ from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 from supabase import Client as SupabaseClient
 
-# mypy: disable-error-code="import-untyped"
 from simt_emlite.mediator.client import EmliteMediatorClient
+
+# mypy: disable-error-code="import-untyped"
+from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_file_finder import SMIPFileFinder
 from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
@@ -130,7 +132,7 @@ class ProfileDownloader:
 
         if len(result.data) == 0:
             raise Exception(
-                f"Meter not found in registry for [serial={self.serial}, name={self.name}]"
+                f"Meter not found in registry for serial=[{self.serial}]. name=[{self.name}]."
             )
 
         meter_data = result.data[0]
@@ -191,6 +193,24 @@ class ProfileDownloader:
         )
 
         logger.info(f"Connected to mediator at {mediator_address}")
+
+    def _handle_profile_log_mediator_client_exception(self, e: MediatorClientException):
+        if e.code_str == "DEADLINE_EXCEEDED":
+            logger.warning(
+                f"Meter timeout for [{self.serial}]",
+                serial=self.serial,
+                esco=self.esco_code,
+                name=self.name,
+            )
+        else:
+            logger.error(
+                f"MediatorClientException [{e.code_str}] for [{self.serial}]",
+                code=e.code_str,
+                message=e.message,
+                serial=self.serial,
+                esco=self.esco_code,
+                name=self.name,
+            )
 
     def find_download_file(self) -> SMIPFileFinderResult:
         assert self.serial is not None
@@ -254,6 +274,10 @@ class ProfileDownloader:
 
                     for record in response.records:
                         profile_records[record.timestamp_datetime] = record
+
+            except MediatorClientException as e:
+                self._handle_profile_log_mediator_client_exception(e)
+                break
 
             except Exception as e:
                 logger.error(
@@ -331,6 +355,10 @@ class ProfileDownloader:
 
                     for record in response.records:
                         profile_records[record.timestamp_datetime] = record
+
+            except MediatorClientException as e:
+                self._handle_profile_log_mediator_client_exception(e)
+                break
 
             except Exception as e:
                 logger.error(

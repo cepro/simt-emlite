@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+echo "\n======    Lint   ======\n"
+poetry run lint
+
+echo "\n======    Test   ======\n"
+poetry run test
+
+echo "\n======    MyPy   ======\n"
+poetry run mypy simt_emlite/
