@@ -7,3 +7,4 @@ wheelhouse
 dist
 *.swp
 *.egg-info
+output/

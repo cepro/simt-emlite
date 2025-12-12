@@ -71,7 +71,7 @@ def main() -> None:
 
         downloader = ProfileDownloader(args.serial, args.date, args.output)
         log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = downloader.download_profile_log_1_day()
-        log_2_records: Dict[datetime.datetime, EmopProfileLog2Record]= downloader.download_profile_log_2_day()
+        log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = downloader.download_profile_log_2_day()
 
         # Create start and end datetime for the day (timezone-aware)
         start_time = datetime.datetime.combine(
@@ -88,7 +88,7 @@ def main() -> None:
             end_time=end_time,
             log1_records=log_1_records,
             log2_records=log_2_records,
-            is_twin_element=False,  # TODO: Get this from meter info
+            is_twin_element=downloader.is_twin_element,
         )
 
         print(f"Created {len(readings_a)} SMIP readings for element A")

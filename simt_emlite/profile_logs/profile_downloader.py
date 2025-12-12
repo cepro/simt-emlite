@@ -12,11 +12,8 @@ Usage:
 
 import datetime
 import logging
-from typing import Callable, Dict, cast
+from typing import Dict, cast
 from supabase import Client as SupabaseClient
-
-from emop_frame_protocol.emop_profile_log_1_response import EmopProfileLog1Response
-from emop_frame_protocol.emop_profile_log_2_response import EmopProfileLog2Response
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
@@ -26,6 +23,7 @@ from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.meters import is_twin_element
 from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
@@ -106,7 +104,7 @@ class ProfileDownloader:
     def _fetch_meter_info(self):
         result = (
             self.supabase.table("meter_registry")
-            .select("id,esco,single_meter_app")
+            .select("id,esco,single_meter_app,hardware")
             .eq("serial", self.serial)
             .execute()
         )
@@ -118,9 +116,13 @@ class ProfileDownloader:
         self.meter_id = meter_data["id"]
         self.esco_id = meter_data["esco"]
         self.is_single_meter_app = meter_data["single_meter_app"]
+        self.hardware: str = meter_data.get("hardware", "")
+        self.is_twin_element: bool = is_twin_element(self.hardware)
 
         logger.info(
-            f"Found meter [{self.serial}]. id: [{self.meter_id}], is_single_meter_app=[{self.is_single_meter_app}]"
+            f"Found meter [{self.serial}]. id: [{self.meter_id}], "
+            f"is_single_meter_app=[{self.is_single_meter_app}], "
+            f"hardware=[{self.hardware}], is_twin_element=[{self.is_twin_element}]"
         )
 
     def _fetch_esco_code(self):
@@ -159,17 +161,11 @@ class ProfileDownloader:
 
         logger.info(f"Connected to mediator at {mediator_address}")
 
-    def _download_profile_log_day(
-        self,
-        log_fn: str
-    ) -> Dict[datetime.datetime, EmopProfileLog1Record | EmopProfileLog2Record]:
-        """Generic function to download profile log data for a single day in chunks
-
-        Args:
-            log_fn: Name of the log function on the Emlite client. Used to fetch records but also for logging.
+    def download_profile_log_1_day(self) -> Dict[datetime.datetime, EmopProfileLog1Record]:
+        """Download profile log 1 data for a single day in chunks
 
         Returns:
-            Dict of timestamp to profile record
+            Dict of timestamp to profile log 1 record
         """
         if not self.client:
             self._init_emlite_client()
@@ -182,14 +178,12 @@ class ProfileDownloader:
             tzinfo=datetime.timezone.utc
         )
 
-        logger.info(f"Downloading {log_fn} data for {self.date}")
-
-        fetch_func: Callable[[datetime.datetime], EmopProfileLog1Response | EmopProfileLog2Response] = getattr(self.client, log_fn)
+        logger.info(f"Downloading profile_log_1 data for {self.date}")
 
         # Download in 2-hour chunks (4 x 30-minute intervals per chunk)
         current_time = start_datetime
         chunk_size = datetime.timedelta(hours=2)
-        profile_records: Dict[datetime.datetime, EmopProfileLog1Record | EmopProfileLog2Record] = {}
+        profile_records: Dict[datetime.datetime, EmopProfileLog1Record] = {}
 
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
@@ -198,7 +192,8 @@ class ProfileDownloader:
 
             try:
                 # Download profile log for this chunk
-                response = fetch_func(current_time)
+                assert self.client is not None
+                response = self.client.profile_log_1(current_time)
                 if response and response.records:
                     logger.info(
                         f"Received {len(response.records)} records for {current_time}"
@@ -221,14 +216,81 @@ class ProfileDownloader:
             # Move to next chunk
             current_time = chunk_end
 
-        logger.info(f"{log_fn} download completed")
+        logger.info("profile_log_1 download completed")
 
         return profile_records
 
-    def download_profile_log_1_day(self) -> Dict[datetime.datetime, EmopProfileLog1Record]:
-        """Download profile log 1 data for a single day in chunks"""
-        return cast(Dict[datetime.datetime, EmopProfileLog1Record], self._download_profile_log_day("profile_log_1"))
-
     def download_profile_log_2_day(self) -> Dict[datetime.datetime, EmopProfileLog2Record]:
-        """Download profile log 2 data for a single day in chunks"""
-        return cast(Dict[datetime.datetime, EmopProfileLog2Record], self._download_profile_log_day("profile_log_2"))
+        """Download profile log 2 data for a single day in chunks.
+
+        Profile log 2 returns different numbers of records depending on meter type:
+        - Twin element meters (hardware C1.w): 2 records per call (2 x 30 min = 1 hour)
+        - Single element meters: 3 records per call (3 x 30 min = 1.5 hours)
+
+        Returns:
+            Dict of timestamp to profile log 2 record
+        """
+        if not self.client:
+            self._init_emlite_client()
+
+        # Convert date to datetime for the day (ensure timezone-aware)
+        start_datetime = datetime.datetime.combine(
+            self.date, datetime.time.min
+        ).replace(tzinfo=datetime.timezone.utc)
+        end_datetime = datetime.datetime.combine(self.date, datetime.time.max).replace(
+            tzinfo=datetime.timezone.utc
+        )
+
+        # Chunk size depends on meter type:
+        # - Twin element: 2 records per call = 1 hour (2 x 30 min intervals)
+        # - Single element: 3 records per call = 1.5 hours (3 x 30 min intervals)
+        if self.is_twin_element:
+            chunk_size = datetime.timedelta(hours=1)
+            records_per_chunk = 2
+        else:
+            chunk_size = datetime.timedelta(hours=1, minutes=30)
+            records_per_chunk = 3
+
+        logger.info(
+            f"Downloading profile_log_2 data for {self.date} "
+            f"(is_twin_element={self.is_twin_element}, records_per_chunk={records_per_chunk})"
+        )
+
+        current_time = start_datetime
+        profile_records: Dict[datetime.datetime, EmopProfileLog2Record] = {}
+
+        while current_time < end_datetime:
+            chunk_end = min(current_time + chunk_size, end_datetime)
+
+            logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
+
+            try:
+                assert self.client is not None
+                response = self.client.profile_log_2(current_time)
+                if response and response.records:
+                    logger.info(
+                        f"Received {len(response.records)} records for {current_time}"
+                    )
+                    # future time out of range - see unfuddle #382 - meters will return the next
+                    # available data even if that is months ahead
+                    if response.records[0].timestamp_datetime > end_datetime:
+                        logger.warning(
+                            "Future date returned - skipping remainder for this period"
+                        )
+                        return profile_records
+
+                    for record in response.records:
+                        profile_records[record.timestamp_datetime] = record
+
+            except Exception as e:
+                logger.error(
+                    f"Error downloading chunk {current_time}: {e}", exc_info=True
+                )
+                break
+
+            # Move to next chunk
+            current_time = chunk_end
+
+        logger.info("profile_log_2 download completed")
+
+        return profile_records

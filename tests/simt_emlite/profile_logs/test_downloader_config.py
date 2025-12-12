@@ -1,6 +1,5 @@
 import unittest
-from datetime import date, timedelta, datetime
-from pathlib import Path
+from datetime import timedelta, datetime
 
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig, ConfigException
 

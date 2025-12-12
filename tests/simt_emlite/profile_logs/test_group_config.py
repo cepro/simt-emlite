@@ -1,5 +1,5 @@
 import unittest
-from datetime import date, timedelta, datetime
+from datetime import timedelta, datetime
 
 from simt_emlite.profile_logs.group_config import GroupConfig
 
