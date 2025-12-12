@@ -12,6 +12,7 @@ Usage:
 
 import datetime
 import logging
+from pathlib import Path
 from typing import Dict, cast
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
@@ -21,6 +22,9 @@ from supabase import Client as SupabaseClient
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
+from simt_emlite.smip.smip_file_finder import SMIPFileFinder
+from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
+from simt_emlite.smip.smip_filename import ElementMarker
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.meters import (
@@ -187,6 +191,19 @@ class ProfileDownloader:
         )
 
         logger.info(f"Connected to mediator at {mediator_address}")
+
+    def find_download_file(self) -> SMIPFileFinderResult:
+        assert self.serial is not None
+
+        output_path = Path(self.output_dir)
+        if self.is_twin_element:
+            find_result = SMIPFileFinder.find_with_element(
+                output_path, self.serial, self.date, ElementMarker.A
+            )
+        else:
+            find_result = SMIPFileFinder.find(output_path, self.serial, self.date)
+
+        return find_result
 
     def download_profile_log_1_day(
         self,

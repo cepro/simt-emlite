@@ -9,8 +9,9 @@ from datetime import date
 from pathlib import Path
 from typing import List, Optional
 
-from .smip_filename import SMIPFilename, ElementMarker
 from .smip_file_finder_result import SMIPFileFinderResult
+from .smip_filename import ElementMarker, SMIPFilename
+
 
 class SMIPFileFinder:
     """
@@ -21,7 +22,9 @@ class SMIPFileFinder:
     """
 
     @staticmethod
-    def find(directory: Path, filename_prefix: str, filename_day: date) -> SMIPFileFinderResult:
+    def find(
+        directory: Path, filename_prefix: str, filename_day: date
+    ) -> SMIPFileFinderResult:
         """
         Look in a given directory for an SMIP file with a given prefix and day.
 
@@ -33,14 +36,16 @@ class SMIPFileFinder:
         Returns:
             Results of the find including the File if found.
         """
-        return SMIPFileFinder._find_internal(directory, filename_prefix, filename_day, None)
+        return SMIPFileFinder._find_internal(
+            directory, filename_prefix, filename_day, None
+        )
 
     @staticmethod
     def find_with_element(
         directory: Path,
         filename_prefix: str,
         filename_day: date,
-        element_marker: ElementMarker
+        element_marker: ElementMarker,
     ) -> SMIPFileFinderResult:
         """
         Look in a given directory for an SMIP file with a given prefix, day and element.
@@ -54,14 +59,16 @@ class SMIPFileFinder:
         Returns:
             Results of the find including the File if found.
         """
-        return SMIPFileFinder._find_internal(directory, filename_prefix, filename_day, element_marker)
+        return SMIPFileFinder._find_internal(
+            directory, filename_prefix, filename_day, element_marker
+        )
 
     @staticmethod
     def _find_internal(
         directory: Path,
         filename_prefix: str,
         filename_day: date,
-        element_marker: Optional[ElementMarker]
+        element_marker: Optional[ElementMarker],
     ) -> SMIPFileFinderResult:
         """
         Internal implementation of find logic.
@@ -77,9 +84,13 @@ class SMIPFileFinder:
         """
         # Create prefix with day (and element if provided)
         if element_marker is None:
-            prefix_with_day = SMIPFilename(filename_prefix, filename_day).serial_element_day_prefix()
+            prefix_with_day = SMIPFilename(
+                filename_prefix, filename_day
+            ).serial_element_day_prefix()
         else:
-            prefix_with_day = SMIPFilename(filename_prefix, filename_day, element_marker).serial_element_day_prefix()
+            prefix_with_day = SMIPFilename(
+                filename_prefix, filename_day, element_marker
+            ).serial_element_day_prefix()
 
         # Find files that start with the prefix
         matching_files = []
@@ -97,7 +108,7 @@ class SMIPFileFinder:
         return SMIPFileFinderResult(
             dl_filename.is_ingested_simtricity(),
             dl_filename.is_ingested_timescale(),
-            dl_file
+            dl_file,
         )
 
     @staticmethod
@@ -115,7 +126,10 @@ class SMIPFileFinder:
         """
         downloaded_files = []
         for file_path in directory.iterdir():
-            if file_path.is_file() and SMIPFilename.DOWNLOADED_FILENAME_PATTERN.fullmatch(file_path.name):
+            if (
+                file_path.is_file()
+                and SMIPFilename.DOWNLOADED_FILENAME_PATTERN.fullmatch(file_path.name)
+            ):
                 downloaded_files.append(file_path)
 
         # Sort files by filename

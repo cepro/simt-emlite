@@ -15,6 +15,7 @@ Usage:
 """
 
 import argparse
+import concurrent.futures
 import datetime
 import os
 import sys
@@ -28,6 +29,7 @@ from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
 from simt_emlite.smip.smip_csv import SMIPCSV
+from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
 from simt_emlite.smip.smip_reading_factory import create_smip_readings
 
 USAGE_EXAMPLES = """
@@ -72,6 +74,16 @@ def download_single_day(
         serial=serial,
         name=name,
     )
+
+    # TODO: consider restoring the override logic which would cause download
+    #       to go ahead even if file exists here:
+    find_result: SMIPFileFinderResult = downloader.find_download_file()
+    if find_result.found:
+        print(
+            f"skipping ... file already exists for serial [{downloader.serial}] [{find_result.smip_file}]"
+        )
+        return
+
     log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
         downloader.download_profile_log_1_day()
     )
@@ -123,8 +135,64 @@ def download_single_day(
     print(f"Profile download completed for {serial} on {date}")
 
 
+def process_group(config: DownloaderConfig, group_name: str) -> None:
+    """Process a single group from the configuration.
+
+    Args:
+        config: The downloader configuration instance
+        group_name: Name of the group to process
+    """
+    groups = config.get_groups()
+    group = groups[group_name]
+
+    start_date = group.startdate
+    end_date = group.enddate
+    adjust_year = group.yearadjust is not None and group.yearadjust > 0
+    adjust_years = group.yearadjust
+
+    # When in testmode only run the groups that have the testmode property set
+    if config.get_test_mode() and not group.test:
+        print(f"Skipping {group_name}: test mode is enabled and group.test is not set")
+        return
+
+    print(f"Processing {group_name}: [ Retrieving from {start_date} to {end_date} ]")
+
+    # Build the output path by joining rootfolder with the group's folder
+    root_folder = config.get_root_folder()
+    if group.folder:
+        output_dir = os.path.join(str(root_folder), str(group.folder))
+    else:
+        output_dir = str(root_folder)
+
+    # Apply year adjustment if configured
+    if adjust_year and adjust_years:
+        start_date = start_date.replace(year=start_date.year + adjust_years)
+        end_date = end_date.replace(year=end_date.year + adjust_years)
+
+    # Loop through each day in the date range
+    current_date = start_date
+    while current_date <= end_date:
+        try:
+            download_single_day(
+                name=f"{config.get_esco().upper()}.{group.folder}",
+                date=current_date,
+                output_dir=output_dir,
+                serial=None,
+            )
+        except Exception as e:
+            print(f"Error processing {group_name} for date {current_date}: {e}")
+            traceback.print_exc()
+            # Continue with next date instead of stopping entirely
+
+        current_date += datetime.timedelta(days=1)
+
+    print(f"Completed processing group: {group_name}")
+
+
 def run_config_mode(config_file: str) -> None:
     """Run the downloader in config mode, processing all groups from the config file.
+
+    Groups are processed in parallel using a thread pool executor.
 
     Args:
         config_file: Path to the configuration file (e.g., config.downloader.properties)
@@ -141,53 +209,25 @@ def run_config_mode(config_file: str) -> None:
     group_names = list(groups.keys())
     print(f"Groups: {group_names}")
 
-    for group_name in group_names:
-        group = groups[group_name]
+    # Process groups in parallel
+    max_parallel_groups = 36
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=max_parallel_groups
+    ) as executor:
+        futures = [
+            executor.submit(process_group, config, group_name)
+            for group_name in group_names
+        ]
 
-        start_date = group.startdate
-        end_date = group.enddate
-        adjust_year = group.yearadjust is not None and group.yearadjust > 0
-        adjust_years = group.yearadjust
+        concurrent.futures.wait(futures)
 
-        # When in testmode only run the groups that have the testmode property set
-        if config.get_test_mode() and not group.test:
-            print(
-                f"Skipping {group_name}: test mode is enabled and group.test is not set"
-            )
-            continue
-
-        print(
-            f"Processing {group_name}: [ Retrieving from {start_date} to {end_date} ]"
-        )
-
-        # Build the output path by joining rootfolder with the group's folder
-        root_folder = config.get_root_folder()
-        if group.folder:
-            output_dir = os.path.join(str(root_folder), str(group.folder))
-        else:
-            output_dir = str(root_folder)
-
-        # Apply year adjustment if configured
-        if adjust_year and adjust_years:
-            start_date = start_date.replace(year=start_date.year + adjust_years)
-            end_date = end_date.replace(year=end_date.year + adjust_years)
-
-        # Loop through each day in the date range
-        current_date = start_date
-        while current_date <= end_date:
+        # Check for any exceptions that occurred in the futures
+        for future in futures:
             try:
-                download_single_day(
-                    name=f"{config.get_esco().upper()}.{group.folder}",
-                    date=current_date,
-                    output_dir=output_dir,
-                    serial=None,
-                )
+                future.result()  # This will raise any exception that occurred
             except Exception as e:
-                print(f"Error processing {group_name} for date {current_date}: {e}")
+                print(f"Error in group processing: {e}")
                 traceback.print_exc()
-                # Continue with next date instead of stopping entirely
-
-            current_date += datetime.timedelta(days=1)
 
 
 def main() -> None:
