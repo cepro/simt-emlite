@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-Simple Profile Download Script
+Profile Download Script
 
-This script provides a basic implementation of profile log 1 downloading for a single day.
-It takes CLI arguments for serial and date, uses Supabase to get meter info,
-and downloads profile log 1 data in chunks for one day.
+This script provides profile log downloading functionality with two modes:
+1. Single day mode: Download for a specific serial and date
+2. Config mode: Process multiple groups from a configuration file
 
 Usage:
-    python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21
+    Single day mode:
+        python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21
+
+    Config mode:
+        python -m simt_emlite.cli.profile_download --config config.downloader.properties
 """
 
 import argparse
@@ -21,10 +25,20 @@ from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 
 # mypy: disable-error-code="import-untyped"
+from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.smip.smip_reading_factory import create_smip_readings
 
+
+USAGE_EXAMPLES = """
+Examples:
+  Single Day mode:
+    python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21
+
+  Config file mode:
+    python -m simt_emlite.cli.profile_download --config config.downloader.properties
+"""
 
 
 def valid_date(date_str: str) -> datetime.date:
@@ -35,24 +49,150 @@ def valid_date(date_str: str) -> datetime.date:
         raise argparse.ArgumentTypeError(f"Invalid date format: {date_str}. Use YYYY-MM-DD")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Profile Download Script - Downloads profile log 1 data for a single day"
+def download_single_day(serial: str, date: datetime.date, output_dir: str) -> None:
+    """Download profile logs for a single day and write to CSV.
+
+    Args:
+        serial: Meter serial number
+        date: Date to download data for
+        output_dir: Output directory for CSV files
+    """
+    print(f"Starting profile download for serial {serial} on date {date}")
+
+    downloader = ProfileDownloader(serial, date, output_dir)
+    log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = downloader.download_profile_log_1_day()
+    log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = downloader.download_profile_log_2_day()
+
+    # Create start and end datetime for the day (timezone-aware)
+    start_time = datetime.datetime.combine(
+        date, datetime.time.min
+    ).replace(tzinfo=datetime.timezone.utc)
+    end_time = datetime.datetime.combine(
+        date, datetime.time.max
+    ).replace(tzinfo=datetime.timezone.utc)
+
+    # Create SMIP readings from the downloaded profile logs
+    readings_a, readings_b = create_smip_readings(
+        serial=serial,
+        start_time=start_time,
+        end_time=end_time,
+        log1_records=log_1_records,
+        log2_records=log_2_records,
+        is_twin_element=downloader.is_twin_element,
     )
 
+    print(f"Created {len(readings_a)} SMIP readings for element A")
+
+    # Write readings to CSV
+    if readings_a:
+        SMIPCSV.write_from_smip_readings(
+            serial=serial,
+            output_dir=output_dir,
+            readings=readings_a,
+            element_marker="A",
+        )
+        print(f"Wrote {len(readings_a)} readings to CSV in {output_dir}")
+
+    if readings_b:
+        SMIPCSV.write_from_smip_readings(
+            serial=serial,
+            output_dir=output_dir,
+            readings=readings_b,
+            element_marker="B",
+        )
+        print(f"Wrote {len(readings_b)} readings to CSV in {output_dir}")
+
+    print(f"Profile download completed for {serial} on {date}")
+
+
+def run_config_mode(config_file: str) -> None:
+    """Run the downloader in config mode, processing all groups from the config file.
+
+    Args:
+        config_file: Path to the configuration file (e.g., config.downloader.properties)
+    """
+    config = DownloaderConfig.get_instance(config_file)
+
+    print(f"rootfolder={config.get_root_folder()}")
+    print(f"sleepseconds={config.get_sleep_seconds()}")
+    print(f"testmode={config.get_test_mode()}")
+
+    # Get groups
+    groups = config.get_groups()
+    group_names = list(groups.keys())
+    print(f"Groups: {group_names}")
+
+    for group_name in group_names:
+        group = groups[group_name]
+
+        start_date = group.startdate
+        end_date = group.enddate
+        adjust_year = group.yearadjust is not None and group.yearadjust > 0
+        adjust_years = group.yearadjust
+
+        # When in testmode only run the groups that have the testmode property set
+        if config.get_test_mode() and not group.test:
+            print(f"Skipping {group_name}: test mode is enabled and group.test is not set")
+            continue
+
+        print(
+            f"Processing {group_name}: [ Retrieving from {start_date} to {end_date} ]"
+        )
+
+        # Get serial from group config (using prefix as the serial identifier)
+        serial = group.prefix
+        if not serial:
+            print(f"Warning: No serial/prefix configured for group {group_name}, skipping")
+            continue
+
+        # Use the group's folder or root folder for output
+        output_dir = str(group.folder) if group.folder else str(config.get_root_folder())
+
+        # Apply year adjustment if configured
+        if adjust_year and adjust_years:
+            start_date = start_date.replace(year=start_date.year + adjust_years)
+            end_date = end_date.replace(year=end_date.year + adjust_years)
+
+        # Loop through each day in the date range
+        current_date = start_date
+        while current_date <= end_date:
+            try:
+                download_single_day(serial, current_date, output_dir)
+            except Exception as e:
+                print(f"Error processing {group_name} for date {current_date}: {e}")
+                traceback.print_exc()
+                # Continue with next date instead of stopping entirely
+
+            current_date += datetime.timedelta(days=1)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Profile Download Script - Downloads profile log data",
+        epilog=USAGE_EXAMPLES,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # Config mode
+    parser.add_argument(
+        "--config",
+        "-c",
+        help="Configuration file for batch processing (e.g., config.downloader.properties)",
+        type=str
+    )
+
+    # Single day mode arguments
     parser.add_argument(
         "--serial",
         "-s",
-        help="Meter serial number",
-        required=True,
+        help="Meter serial number (required for single day mode)",
         type=str
     )
 
     parser.add_argument(
         "--date",
         "-d",
-        help="Date to download data for (YYYY-MM-DD format)",
-        required=True,
+        help="Date to download data for (YYYY-MM-DD format, required for single day mode)",
         type=valid_date
     )
 
@@ -67,50 +207,15 @@ def main() -> None:
     args = parser.parse_args()
 
     try:
-        print(f"Starting profile download for serial {args.serial} on date {args.date}")
-
-        downloader = ProfileDownloader(args.serial, args.date, args.output)
-        log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = downloader.download_profile_log_1_day()
-        log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = downloader.download_profile_log_2_day()
-
-        # Create start and end datetime for the day (timezone-aware)
-        start_time = datetime.datetime.combine(
-            args.date, datetime.time.min
-        ).replace(tzinfo=datetime.timezone.utc)
-        end_time = datetime.datetime.combine(
-            args.date, datetime.time.max
-        ).replace(tzinfo=datetime.timezone.utc)
-
-        # Create SMIP readings from the downloaded profile logs
-        readings_a, readings_b = create_smip_readings(
-            serial=args.serial,
-            start_time=start_time,
-            end_time=end_time,
-            log1_records=log_1_records,
-            log2_records=log_2_records,
-            is_twin_element=downloader.is_twin_element,
-        )
-
-        print(f"Created {len(readings_a)} SMIP readings for element A")
-
-        # Write readings to CSV
-        if readings_a:
-            SMIPCSV.write_from_smip_readings(
-                serial=args.serial,
-                output_dir=args.output,
-                readings=readings_a,
-                element_marker="A",
-            )
-            print(f"Wrote {len(readings_a)} readings to CSV in {args.output}")
-
-        if readings_b:
-            SMIPCSV.write_from_smip_readings(
-                serial=args.serial,
-                output_dir=args.output,
-                readings=readings_b,
-                element_marker="B",
-            )
-            print(f"Wrote {len(readings_b)} readings to CSV in {args.output}")
+        if args.config:
+            # Config mode - process all groups from config file
+            run_config_mode(args.config)
+        elif args.serial and args.date:
+            # Single day mode
+            download_single_day(args.serial, args.date, args.output)
+        else:
+            print(USAGE_EXAMPLES)
+            parser.error("Either --config or both --serial and --date are required")
 
         print("Profile download completed successfully")
 

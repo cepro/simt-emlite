@@ -1,12 +1,16 @@
 # downloader_config.py
 
 from collections import OrderedDict
-from configparser import ConfigParser
 from pathlib import Path
+
+import javaproperties
+
 from simt_emlite.profile_logs.group_config import GroupConfig
+
 
 class ConfigException(Exception):
     pass
+
 
 class DownloaderConfig:
     CONFIG_PROPERTIES_FILENAME_SUFFIX = "downloader"
@@ -14,7 +18,7 @@ class DownloaderConfig:
     PROPERTY_SLEEPSECONDS = "sleepseconds"
     PROPERTY_TESTMODE = "testmode"
 
-    def __init__(self, properties):
+    def __init__(self, properties: dict[str, str]):
         root_folder_str = properties.get(self.PROPERTY_ROOT_FOLDER)
         if not root_folder_str:
             raise ConfigException("no rootfolder property set - specify a rootfolder to download the files to")
@@ -35,10 +39,10 @@ class DownloaderConfig:
         self.groups = self.groups_from_properties(properties, default_props)
 
     @staticmethod
-    def get_instance(suffix="downloader"):
-        config = ConfigParser()
-        config.read(f"config.{suffix}.properties")
-        return DownloaderConfig(config)
+    def get_instance(filename: str) -> "DownloaderConfig":
+        with open(filename, 'r', encoding='utf-8') as f:
+            properties = javaproperties.load(f)
+        return DownloaderConfig(properties)
 
     def get_groups(self):
         return self.groups

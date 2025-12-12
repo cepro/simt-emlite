@@ -12,9 +12,11 @@
 
 ## Python
 
-Poetry is used to manage dependencies and run scripts.
+USE poetry for dependency management and running scripts.
 
-Activate the .venv before running python.
+DO NOT use uv. It's great but NOT configured in this project. I'm looking at you antigravity. Take note.
+
+ALWAYS activate the .venv in the project root before running python commands.
 
 Write unit tests with `unittest`. See existing tests under `tests` and follow a similar layout and style.
 

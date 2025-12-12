@@ -1018,6 +1018,18 @@ files = [
 all = ["flake8 (>=7.1.1)", "mypy (>=1.11.2)", "pytest (>=8.3.2)", "ruff (>=0.6.2)"]
 
 [[package]]
+name = "javaproperties"
+version = "0.8.2"
+description = "Read & write Java .properties files"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "javaproperties-0.8.2-py3-none-any.whl", hash = "sha256:30141f83c45b574e204ee8170071535815994f468726813ec90f2d7f9fa6e7c1"},
+    {file = "javaproperties-0.8.2.tar.gz", hash = "sha256:f780d17ca12d57da58519dcf9d821cbcdb6f98a8b5af661013e31a5050c59a0f"},
+]
+
+[[package]]
 name = "markdown-it-py"
 version = "3.0.0"
 description = "Python port of markdown-it. Markdown parsing, done right!"
@@ -2328,4 +2340,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "2730b1dce5d0ec4f89c9020977959ff035d46903f2a8051b6a5efc8945553ed0"
+content-hash = "cc725a2a6ac2c59d26993e53231437d1839fb918e6fcd2ccd8146477e5b3a7a8"

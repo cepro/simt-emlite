@@ -22,6 +22,7 @@ dependencies = [
     "types-requests==2.32.4.20250611",
     "emop-frame-protocol==0.4.13",
     "simt-fly-machines==0.2.4",
+    "javaproperties (>=0.8.2,<0.9.0)",
 ]
 
 [project.scripts]

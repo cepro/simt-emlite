@@ -16,11 +16,12 @@ This repository contains:
 
 ## Install and Configure
 
-see https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8
+see <https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8>
 
 ## Use
 
 ### emop
+
 ```sh
 emop env_show
 emop env_set prod
@@ -37,6 +38,7 @@ emop -s EML2244826972 tariffs_future_write --from-ts "2024-08-21T05:20:00" --uni
 ```
 
 ### mediators
+
 ```sh
 mediators list
 mediators list --esco wlce      # show only mediators from the Waterlilies esco
@@ -54,7 +56,7 @@ mediators start EML2137580826
 see also emlite.env below
 
 ```
-> python3 -m venv .venv
+> python3.13 -m venv .venv
 > source .venv/bin/activate
 
 (.venv)> pip install -U pip setuptools
@@ -90,6 +92,7 @@ poetry run test
 # Publish
 
 Tag and push the tag. The github workflow build-wheels will build and publish it.
+
 ```
 
 # Fly Deployment
@@ -119,6 +122,7 @@ NOTE: mark `flows.meter_registry.single_meter_app` to True for these meters.
 An alternative setup that we are trialing to expose access to a single
 meter from outside of the fly cepro vpn involves deploying a single
 app for a single mediator. For that setup see the section below about creating certificates and then run the following:
+
 ```sh
 # lowercase letters required therefore 'eml'
 SERIAL=eml123456789
@@ -141,10 +145,10 @@ fly secrets --config fly/fly-$SERIAL.toml set MEDIATOR_CA_CERT="$(cat mediators-
 ```
 
 ### Create Mediator Container for either type of app
+
 ```sh
 > mediators create <meter serial>
 ```
-
 
 ## Publish Docker Image to Fly
 
@@ -203,6 +207,7 @@ openssl x509 -req -in mediators-server.csr \
 ```
 
 mediators-server-openssl.cnf:
+
 ```ini
 [req]
 default_bits = 2048
