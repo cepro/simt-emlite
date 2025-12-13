@@ -86,16 +86,12 @@ def download_single_day(
             )
             return
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            future_1 = executor.submit(downloader.download_profile_log_1_day)
-            future_2 = executor.submit(downloader.download_profile_log_2_day)
-
-            log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
-                future_1.result()
-            )
-            log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = (
-                future_2.result()
-            )
+        log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
+            downloader.download_profile_log_1_day()
+        )
+        log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = (
+            downloader.download_profile_log_2_day()
+        )
 
         # Create start and end datetime for the day (timezone-aware)
         start_time = datetime.datetime.combine(date, datetime.time.min).replace(
