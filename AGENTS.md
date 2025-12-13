@@ -3,7 +3,7 @@
 ## Commands
 
 - Install: `poetry install`
-- Run all tests: `poetry run test` or `bin/test`
+- Run all `unittest` tests: `poetry run test` or `bin/test`
 - Run single test: `python -m unittest tests/simt_emlite/sync/test_syncer_base.py`
 - Lint: `poetry run lint` or `bin/lint`
 - Build: `poetry build`
@@ -18,7 +18,13 @@ DO NOT use uv. It's great but NOT configured in this project. I'm looking at you
 
 ALWAYS activate the .venv in the project root before running python commands.
 
-Write unit tests with `unittest`. See existing tests under `tests` and follow a similar layout and style.
+# Tests
+
+Use `unittest` (NOT pytest).
+
+Run tests with `poetry run test`.
+
+See existing tests under `tests` and follow a similar layout and style.
 
 ## Shell Scripting
 

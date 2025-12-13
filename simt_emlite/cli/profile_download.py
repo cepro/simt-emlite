@@ -138,11 +138,13 @@ def download_single_day(
 
     except MediatorClientException as e:
         if e.code_str == "DEADLINE_EXCEEDED":
-            print(f"Meter timeout for serial=[{serial}], name=[{name}]")
+            print(
+                f"Meter timeout for serial=[{downloader.serial}], name=[{downloader.name}]"
+            )
         else:
             print(
                 f"MediatorClientException code=[{e.code_str}], message=[{e.message}] "
-                f"for serial=[{serial}], name=[{name}]"
+                f"for serial=[{downloader.serial}], name=[{downloader.name}]"
             )
 
 

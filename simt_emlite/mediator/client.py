@@ -473,17 +473,25 @@ class EmliteMediatorClient(object):
         self.log.info(f"profile_log_1 response [{str(log_decoded)}]")
         return log_decoded
 
-    def profile_log_2(self, timestamp: datetime.datetime) -> EmopProfileLog2Response:
+    def profile_log_2(
+        self, timestamp: datetime.datetime, is_twin_element: bool
+    ) -> EmopProfileLog2Response:
+        """Fetch profile log 2 data for the given timestamp.
+
+        Args:
+            timestamp: The timestamp to fetch data for
+            is_twin_element: Whether the meter is a twin element meter. This determines
+                how the response bytes are parsed (2 x 34-byte records for twin element,
+                3 x 22-byte records for single element).
+        """
         log_rsp = self._profile_log(timestamp, EmopData.RecordFormat.profile_log_2)
 
-        hardware = self.hardware()
-        is_twin = is_twin_element(hardware)
         log_decoded: EmopProfileLog2Response = emop_decode_profile_log_2_response(
-            is_twin, log_rsp
+            is_twin_element, log_rsp
         )
         self.log.info(
             f"profile_log_2 response [{str(log_decoded)}]",
-            is_twin_element=is_twin,
+            is_twin_element=is_twin_element,
         )
 
         return log_decoded

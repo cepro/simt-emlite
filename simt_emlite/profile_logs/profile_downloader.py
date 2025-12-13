@@ -309,7 +309,7 @@ class ProfileDownloader:
             logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
 
             assert self.client is not None
-            response = self.client.profile_log_2(current_time)
+            response = self.client.profile_log_2(current_time, self.is_twin_element)
             if response and response.records:
                 logger.info(
                     f"Received {len(response.records)} records for {current_time}"

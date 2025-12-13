@@ -12,6 +12,7 @@ from simt_emlite.mediator.mediator_client_exception import (
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
+from simt_emlite.util.meters import is_twin_element
 from simt_emlite.util.supabase import supa_client
 
 logger = get_logger(__name__, __file__)
@@ -46,7 +47,7 @@ class ProfileLogFetchJob:
         # Look up meter details by serial
         result = (
             self.supabase.table("meter_registry")
-            .select("id,esco,single_meter_app")
+            .select("id,esco,single_meter_app,hardware")
             .eq("serial", serial)
             .execute()
         )
@@ -57,6 +58,8 @@ class ProfileLogFetchJob:
         meter_id = meter["id"]
         esco_id = meter["esco"]
         is_single_meter_app = meter["single_meter_app"]
+        hardware: str = meter.get("hardware", "")
+        self.is_twin_element = is_twin_element(hardware)
 
         esco_code = None
         if esco_id is not None:
@@ -99,7 +102,7 @@ class ProfileLogFetchJob:
             )
 
             self.log.info("Fetching profile_log_2", timestamp=timestamp)
-            response = self.emlite_client.profile_log_2(timestamp)
+            response = self.emlite_client.profile_log_2(timestamp, self.is_twin_element)
 
             # Print the response to stdout
             print(str(response))
