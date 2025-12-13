@@ -248,7 +248,9 @@ class ProfileDownloader:
                 # available data even if that is months ahead
                 if response.records[0].timestamp_datetime > end_datetime:
                     logger.warning(
-                        "Future date returned - skipping remainder for this period"
+                        "Future date returned - skipping remainder for this period",
+                        name=self.name,
+                        date=response.records[0].timestamp_datetime,
                     )
                     return profile_records
 
@@ -318,7 +320,9 @@ class ProfileDownloader:
                 # available data even if that is months ahead
                 if response.records[0].timestamp_datetime > end_datetime:
                     logger.warning(
-                        "Future date returned - skipping remainder for this period"
+                        "Future date returned - skipping remainder for this period",
+                        name=self.name,
+                        date=response.records[0].timestamp_datetime,
                     )
                     return profile_records
 
