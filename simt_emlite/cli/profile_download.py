@@ -223,7 +223,7 @@ def run_config_mode(config_file: str) -> None:
     print(f"Groups: {group_names}")
 
     # Process groups in parallel
-    max_parallel_groups = 36
+    max_parallel_groups = 60
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=max_parallel_groups
     ) as executor:
