@@ -144,10 +144,12 @@ class ProfileDownloader:
         self.is_twin_element: bool = is_twin_element(self.hardware)
 
         if is_three_phase(self.hardware):
-            raise NotImplementedError(
+            error_msg = (
                 f"Three-phase meters are not currently supported. "
                 f"Meter {self.serial} has hardware type '{self.hardware}'."
             )
+            logger.warning(error_msg)
+            raise NotImplementedError(error_msg)
 
         logger.info(
             f"Found meter [{self.serial}]. id: [{self.meter_id}], "

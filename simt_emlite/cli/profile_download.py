@@ -136,6 +136,10 @@ def download_single_day(
 
         print(f"Profile download completed for {serial} on {date}")
 
+    except NotImplementedError:
+        # Three phase not supported - error already logged
+        print("Caught NotImplementedError - three phase not supported")
+
     except MediatorClientException as e:
         if e.code_str == "DEADLINE_EXCEEDED":
             print(
