@@ -227,7 +227,11 @@ class ProfileDownloader:
             tzinfo=datetime.timezone.utc
         )
 
-        logger.info(f"Downloading profile_log_1 data for {self.date}")
+        logger.info(
+            f"Downloading profile_log_1 data for {self.date}",
+            name=self.name,
+            serial=self.serial,
+        )
 
         # Download in 2-hour chunks (4 x 30-minute intervals per chunk)
         current_time = start_datetime
@@ -237,14 +241,20 @@ class ProfileDownloader:
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
 
-            logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
+            logger.info(
+                f"Downloading chunk: {current_time} to {chunk_end}",
+                name=self.name,
+                serial=self.serial,
+            )
 
             # Download profile log for this chunk
             assert self.client is not None
             response = self.client.profile_log_1(current_time)
             if response and response.records:
                 logger.info(
-                    f"Received {len(response.records)} records for {current_time}"
+                    f"Received {len(response.records)} records for {current_time}",
+                    name=self.name,
+                    serial=self.serial,
                 )
                 # future time out of range - see unfuddle #382 - meters will return the next
                 # available data even if that is months ahead

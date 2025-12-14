@@ -20,7 +20,8 @@ import datetime
 import os
 import sys
 import traceback
-from typing import Dict
+from pathlib import Path
+from typing import Dict, List
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
@@ -29,6 +30,7 @@ from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
+from simt_emlite.profile_logs.replica_utils import check_missing_files_for_folder
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
 from simt_emlite.smip.smip_reading_factory import create_smip_readings
@@ -116,8 +118,6 @@ def download_single_day(
             is_twin_element=downloader.is_twin_element,
         )
 
-        print(f"Created {len(readings_a)} SMIP readings for element A")
-
         # Write readings to CSV
         if readings_a:
             SMIPCSV.write_from_smip_readings(
@@ -193,9 +193,23 @@ def process_group(config: DownloaderConfig, group_name: str) -> None:
         start_date = start_date.replace(year=start_date.year + adjust_years)
         end_date = end_date.replace(year=end_date.year + adjust_years)
 
-    # Loop through each day in the date range
-    current_date = start_date
-    while current_date <= end_date:
+    # Find only the dates that are missing files
+    missing_dates: List[datetime.date] = check_missing_files_for_folder(
+        folder_path=Path(output_dir),
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+    if not missing_dates:
+        print(
+            f"No missing files for {group_name} in date range {start_date} to {end_date}"
+        )
+        return
+
+    print(f"Found {len(missing_dates)} missing dates for {group_name}")
+
+    # Loop through only the missing dates (already sorted in ascending order)
+    for current_date in missing_dates:
         try:
             success = download_single_day(
                 name=f"{config.get_esco().upper()}.{group.folder}",
@@ -210,8 +224,6 @@ def process_group(config: DownloaderConfig, group_name: str) -> None:
 
         if not success:
             break
-
-        current_date += datetime.timedelta(days=1)
 
     print(f"Completed processing group: {group_name}")
 

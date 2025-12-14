@@ -6,6 +6,7 @@ temp_build
 wheelhouse
 dist
 *.swp
+*.log
 *.egg-info
 output/
 replicas-wlce/
