@@ -58,7 +58,7 @@ def download_single_day(
     output_dir: str,
     serial: str | None = None,
     name: str | None = None,
-) -> None:
+) -> bool:
     """Download profile logs for a single day and write to CSV.
 
     Args:
@@ -66,6 +66,9 @@ def download_single_day(
         output_dir: Output directory for CSV files
         serial: Meter serial number (optional - one of serial or name)
         name: Meter name [meter_registry.name] (optional - one of serial or name)
+
+    Return:
+        success: download was successful
     """
     print(f"Starting profile download for serial {serial} on date {date}")
 
@@ -84,7 +87,7 @@ def download_single_day(
             print(
                 f"skipping ... file already exists for serial [{downloader.serial}] [{find_result.smip_file}]"
             )
-            return
+            return True
 
         log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
             downloader.download_profile_log_1_day()
@@ -136,6 +139,8 @@ def download_single_day(
 
         print(f"Profile download completed for {serial} on {date}")
 
+        return True
+
     except NotImplementedError:
         # Three phase not supported - error already logged
         print("Caught NotImplementedError - three phase not supported")
@@ -150,6 +155,8 @@ def download_single_day(
                 f"MediatorClientException code=[{e.code_str}], message=[{e.message}] "
                 f"for serial=[{downloader.serial}], name=[{downloader.name}]"
             )
+
+    return False
 
 
 def process_group(config: DownloaderConfig, group_name: str) -> None:
@@ -190,7 +197,7 @@ def process_group(config: DownloaderConfig, group_name: str) -> None:
     current_date = start_date
     while current_date <= end_date:
         try:
-            download_single_day(
+            success = download_single_day(
                 name=f"{config.get_esco().upper()}.{group.folder}",
                 date=current_date,
                 output_dir=output_dir,
@@ -200,6 +207,9 @@ def process_group(config: DownloaderConfig, group_name: str) -> None:
             print(f"Error processing {group_name} for date {current_date}: {e}")
             traceback.print_exc()
             # Continue with next date instead of stopping entirely
+
+        if not success:
+            break
 
         current_date += datetime.timedelta(days=1)
 
