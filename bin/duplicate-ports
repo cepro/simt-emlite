@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# We should never see duplicates again since we now check a port before allocating.
+# However we create this script to check that remains true.
+#
+ESCO=$1
+fly machines list --json -a mediators-mgf-$ESCO | jq -r '[.[].config.services[0].ports[0].port] | group_by(.) | map(select(length > 1) | .[0]) | if length > 0 then "Duplicates: \(.)" else "No duplicates" end'

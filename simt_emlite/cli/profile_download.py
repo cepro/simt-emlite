@@ -210,6 +210,7 @@ def process_group(config: DownloaderConfig, group_name: str) -> None:
 
     # Loop through only the missing dates (already sorted in ascending order)
     for current_date in missing_dates:
+        success = False
         try:
             success = download_single_day(
                 name=f"{config.get_esco().upper()}.{group.folder}",

@@ -184,7 +184,9 @@ class ProfileDownloader:
 
         mediator_address = containers.mediator_address(self.meter_id, self.serial)
         if not mediator_address:
-            raise Exception("Unable to get mediator address")
+            raise Exception(
+                "Unable to get mediator address for serial=[{self.serial}], meter_id=[{self.meter_id}]."
+            )
 
         self.client = EmliteMediatorClient(
             mediator_address=mediator_address,
