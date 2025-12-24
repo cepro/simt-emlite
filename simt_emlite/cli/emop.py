@@ -1,4 +1,3 @@
-# mypy: disable-error-code="import-untyped"
 import argparse
 import datetime
 import importlib
@@ -11,13 +10,19 @@ from decimal import Decimal
 from typing import Any, Dict, List, cast
 
 import argcomplete
-from emop_frame_protocol.emop_message import EmopMessage
+from emop_frame_protocol.emop_message import EmopMessage  # type: ignore[import-untyped]
+from rich.console import Console
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.supabase import supa_client
+
+# Configure logging early to avoid being overridden by imports
+logging.basicConfig(level=logging.WARNING)
+
+console = Console(stderr=True)
 
 config = load_config()
 
@@ -29,6 +34,55 @@ FLY_API_TOKEN = config["fly_api_token"]
 FLY_REGION: str | None = cast(str | None, config["fly_region"])
 
 ENV: str | None = cast(str | None, config["env"])
+
+SIMPLE_READ_COMMANDS = [
+    ("csq", "Signal quality"),
+    ("hardware", "Hardware code"),
+    ("firmware_version", "Firmware version code"),
+    ("serial_read", "Meter serial"),
+    ("clock_time_read", "Current clock time on the meter"),
+    ("instantaneous_voltage", "Current voltage"),
+    ("instantaneous_active_power", "Current active power (single or combined)"),
+    ("instantaneous_active_power_element_a", "Current active power (element a)"),
+    ("instantaneous_active_power_element_b", "Current active power (element b)"),
+    ("read_element_a", "Current read on element A"),
+    ("read_element_b", "Current read on element B"),
+    ("read", "Current read - will read all available for meter type"),
+    ("backlight", "Backlight setting"),
+    ("load_switch", "Load switch setting"),
+    ("prepay_enabled", "Is prepay mode enabled?"),
+    (
+        "daylight_savings_correction_enabled",
+        "Is daylight savings correction enabled?",
+    ),
+    (
+        "prepay_no_debt_recovery_when_emergency_credit_enabled",
+        "Is no debt recovery in ecredit mode enabled?",
+    ),
+    (
+        "prepay_no_standing_charge_when_power_fail_enabled",
+        "Is no standing charge when power fail enabled?",
+    ),
+    ("prepay_balance", "Current prepay balance (if in prepay mode)"),
+    (
+        "prepay_transaction_count",
+        "Count of prepay transactions (0 indexed so is num tx - 1)",
+    ),
+    ("three_phase_serial", "Three phase meter serial"),
+    (
+        "three_phase_instantaneous_voltage",
+        "Current three phase voltage (if three phase meter)",
+    ),
+    ("three_phase_read", "Three phase reading"),
+    ("three_phase_hardware_configuration", "Three phase hardware configuration"),
+    ("tariffs_active_read", "Current tariff settings"),
+    ("tariffs_future_read", "Future tariff settings"),
+    (
+        "tariffs_time_switches_element_a_or_single_read",
+        "Time switches for element A",
+    ),
+    ("tariffs_time_switches_element_b_read", "Time switches for element B"),
+]
 
 """
     This is a CLI wrapper around the mediator client.
@@ -49,7 +103,7 @@ class EMOPCLI(EmliteMediatorClient):
             #       they will be in the registry but with a NULL serial
             if emnify_id is not None:
                 err_msg = "emnify_id lookup is not yet supported."
-                print(err_msg)
+                console.print(err_msg)
                 raise Exception(err_msg)
 
             if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_ACCESS_TOKEN:
@@ -70,7 +124,7 @@ class EMOPCLI(EmliteMediatorClient):
                 )
                 if len(result.data) == 0:
                     err_msg = f"meter {serial} not found"
-                    print(err_msg)
+                    console.print(err_msg)
                     raise Exception(err_msg)
 
                 meter = result.data[0]
@@ -107,7 +161,9 @@ class EMOPCLI(EmliteMediatorClient):
                     logging_level=logging_level,
                 )
         except Exception as e:
-            print(f"Failure: [{e}], exception [{traceback.format_exception(e)}]")
+            console.print(
+                f"Failure: [{e}], exception [{traceback.format_exception(e)}]"
+            )
             raise e
 
     # =================================
@@ -123,7 +179,7 @@ class EMOPCLI(EmliteMediatorClient):
         )
         if len(result.data) == 0:
             msg = f"meter {serial} not found"
-            print(msg)
+            console.print(msg)
             raise Exception(msg)
 
         print(result.data[0]["name"])
@@ -137,7 +193,7 @@ class EMOPCLI(EmliteMediatorClient):
         )
         if len(result.data) == 0:
             msg = f"meter {self.serial} not found"
-            print(msg)
+            console.print(msg)
             raise Exception(msg)
         registry_rec = result.data[0]
 
@@ -157,15 +213,15 @@ class EMOPCLI(EmliteMediatorClient):
 
     def version(self) -> None:
         version = importlib.metadata.version("simt-emlite")
-        logging.info(version)
+        print(version)
 
     def env_show(self) -> None:
-        logging.info(config["env"])
+        print(config["env"])
 
     def env_set(self, env: str) -> None:
         try:
             set_config(env)
-            logging.info(f"env set to {env}")
+            print(f"env set to {env}")
         except Exception as e:
             logging.error(f"ERROR: {e}")
             sys.exit(1)
@@ -328,8 +384,8 @@ def args_parser() -> argparse.ArgumentParser:
 
     parser.add_argument(
         "--log-level",
-        help="Set logging level [debug, info (default), warning, warn, error, critical]",
-        default=logging.INFO,
+        help="Set logging level [debug, info, warning (default), warn, error, critical]",
+        default=logging.WARNING,
         required=False,
         type=valid_log_level,
     )
@@ -365,55 +421,7 @@ def args_parser() -> argparse.ArgumentParser:
 
     # ===========    Simple Reads (no args)    ==========
 
-    simple_read_commands = [
-        ("csq", "Signal quality"),
-        ("hardware", "Hardware code"),
-        ("firmware_version", "Firmware version code"),
-        ("serial_read", "Meter serial"),
-        ("clock_time_read", "Current clock time on the meter"),
-        ("instantaneous_voltage", "Current voltage"),
-        ("instantaneous_active_power", "Current active power (single or combined)"),
-        ("instantaneous_active_power_element_a", "Current active power (element a)"),
-        ("instantaneous_active_power_element_b", "Current active power (element b)"),
-        ("read_element_a", "Current read on element A"),
-        ("read_element_b", "Current read on element B"),
-        ("read", "Current read - will read all available for meter type"),
-        ("backlight", "Backlight setting"),
-        ("load_switch", "Load switch setting"),
-        ("prepay_enabled", "Is prepay mode enabled?"),
-        (
-            "daylight_savings_correction_enabled",
-            "Is daylight savings correction enabled?",
-        ),
-        (
-            "prepay_no_debt_recovery_when_emergency_credit_enabled",
-            "Is no debt recovery in ecredit mode enabled?",
-        ),
-        (
-            "prepay_no_standing_charge_when_power_fail_enabled",
-            "Is no standing charge when power fail enabled?",
-        ),
-        ("prepay_balance", "Current prepay balance (if in prepay mode)"),
-        (
-            "prepay_transaction_count",
-            "Count of prepay transactions (0 indexed so is num tx - 1)",
-        ),
-        ("three_phase_serial", "Three phase meter serial"),
-        (
-            "three_phase_instantaneous_voltage",
-            "Current three phase voltage (if three phase meter)",
-        ),
-        ("three_phase_read", "Three phase reading"),
-        ("three_phase_hardware_configuration", "Three phase hardware configuration"),
-        ("tariffs_active_read", "Current tariff settings"),
-        ("tariffs_future_read", "Future tariff settings"),
-        (
-            "tariffs_time_switches_element_a_or_single_read",
-            "Time switches for element A",
-        ),
-        ("tariffs_time_switches_element_b_read", "Time switches for element B"),
-    ]
-    for cmd_tuple in simple_read_commands:
+    for cmd_tuple in SIMPLE_READ_COMMANDS:
         cmd_parser = subparsers.add_parser(cmd_tuple[0], help=cmd_tuple[1])
         add_arg_serial(cmd_parser)
 
@@ -693,31 +701,40 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
         log_level = logging.DEBUG
 
     try:
-        cli = EMOPCLI(serial=serial, logging_level=log_level)
-    except Exception:
-        # just return - we assume the error was logged by the constructor
-        return
+        with console.status(f"[bold green]Running {command}...", spinner="dots"):
+            cli = EMOPCLI(serial=serial, logging_level=log_level)
+            method = getattr(cli, command)
+            result = method(**kwargs)
 
-    method = getattr(cli, command)
-    try:
-        method(**kwargs)
+        if result is not None:
+            if isinstance(result, (dict, list)):
+                print(json.dumps(result, indent=2, default=str))
+            elif isinstance(result, (int, float, str, Decimal)):
+                if command in [c[0] for c in SIMPLE_READ_COMMANDS]:
+                    print(f"{command}={result}")
+                else:
+                    print(result)
+            else:
+                print(result)
     except MediatorClientException as e:
         if e.code_str == "EMLITE_CONNECTION_FAILURE":
             logging.error("Failed to connect to meter")
         else:
             logging.error(f"Failure [{e}]")
+    except Exception:
+        # assume constructor or method already handled logging but just in case
+        pass
 
 
 def run_command_for_serials(
     serial_list: List[str], command: str, kwargs: Dict[str, Any]
 ) -> None:
     for serial in serial_list:
-        logging.info(f"\nrunning '{command}' for meter {serial} ...\n")
+        console.print(f"\nrunning '{command}' for meter {serial} ...\n")
         run_command(serial, command, kwargs.copy())
 
 
 def main() -> None:
-    logging.basicConfig(level=logging.INFO)
     # supress supabase py request logging:
     logging.getLogger("httpx").setLevel(logging.WARNING)
 

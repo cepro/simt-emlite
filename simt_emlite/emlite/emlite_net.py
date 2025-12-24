@@ -62,7 +62,7 @@ class EmliteNET:
             logger.error(f"socket.error {e}")
             sock.close()
             raise e
-        logger.info("received response", response_payload=rsp_bytes.hex())
+        logger.debug("received response", response_payload=rsp_bytes.hex())
         return rsp_bytes
 
     def _open_socket(self, attempt: int | None = None) -> socket.socket:

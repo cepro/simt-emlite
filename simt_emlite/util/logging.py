@@ -10,8 +10,9 @@ import structlog
 logging.basicConfig(
     format="%(message)s",
     stream=sys.stdout,
-    level=logging.INFO,  # This will now actually work
+    level=logging.INFO,
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 shared_processors: List[Any] = [
     structlog.contextvars.merge_contextvars,

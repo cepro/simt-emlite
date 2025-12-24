@@ -111,11 +111,11 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         self, request: SendRawMessageRequest, context: grpc.ServicerContext
     ) -> SendRawMessageReply:
         self._refresh_last_request_time()
-        self.log.info("sendRawMessage", message=request.dataField.hex())
+        self.log.debug("sendRawMessage", message=request.dataField.hex())
         self._space_out_requests()
         try:
             rsp_payload = self.api.send_message(request.dataField)
-            self.log.info("sendRawMessage response", payload=rsp_payload.hex())
+            self.log.debug("sendRawMessage response", payload=rsp_payload.hex())
             return SendRawMessageReply(response=rsp_payload)
         except Exception as e:
             self._handle_failure(e, "sendRawMessage", context)
@@ -126,11 +126,11 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     ) -> ReadElementReply:
         self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
-        self.log.info("readElement request", object_id=object_id_bytes.hex())
+        self.log.debug("readElement request", object_id=object_id_bytes.hex())
         self._space_out_requests()
         try:
             rsp_payload = self.api.read_element(object_id_bytes)
-            self.log.info(
+            self.log.debug(
                 "readElement response",
                 object_id=object_id_bytes.hex(),
                 payload=rsp_payload.hex(),
@@ -145,7 +145,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     ) -> WriteElementReply:
         self._refresh_last_request_time()
         object_id_bytes = emop_encode_u3be(request.objectId)
-        self.log.info(
+        self.log.debug(
             "writeElement request",
             object_id=object_id_bytes.hex(),
             payload=request.payload.hex(),
@@ -153,7 +153,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         self._space_out_requests()
         try:
             self.api.write_element(object_id_bytes, request.payload)
-            self.log.info(
+            self.log.debug(
                 "writeElement returned",
                 object_id=object_id_bytes.hex(),
             )
@@ -200,7 +200,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
         )
 
         if datetime.now() < next_request_allowed_datetime:
-            self.log.info(
+            self.log.debug(
                 f"sleeping {minimum_time_between_emlite_requests_seconds} seconds between requests"
             )
             time.sleep(minimum_time_between_emlite_requests_seconds)
@@ -211,7 +211,7 @@ class EmliteMediatorServicer(EmliteMediatorServiceServicer):
 
 
 def shutdown_handler(signal: int | None, frame: object | None) -> None:
-    logger.info("Server shutting down...")
+    logger.debug("Server shutting down...")
     sys.exit(0)
 
 
@@ -221,7 +221,7 @@ def inactivity_checking() -> None:
     """
     seconds_inactive = epoch_seconds() - last_request_time
     if seconds_inactive >= inactivity_seconds:
-        logger.info(f"Server inactive for {seconds_inactive} seconds")
+        logger.debug(f"Server inactive for {seconds_inactive} seconds")
         global inactivity_event
         inactivity_event.set()
         sys.exit(0)
@@ -248,7 +248,7 @@ def serve() -> None:
         log.error("EMLITE_HOST environment variable not set")
         return
 
-    log.info("starting server")
+    log.debug("starting server")
 
     global server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
@@ -269,15 +269,15 @@ def serve() -> None:
             require_client_auth=True,
         )
 
-        log.info(f"add_secure_port [{listen_address}]")
+        log.debug(f"add_secure_port [{listen_address}]")
         server.add_secure_port(listen_address, server_credentials)
 
         # add a private as well for internal services like meter sync jobs
         private_listen_address = "[::]:44444"
-        log.info(f"add_insecure_port [{private_listen_address}]")
+        log.debug(f"add_insecure_port [{private_listen_address}]")
         server.add_insecure_port(private_listen_address)
     else:
-        log.info(f"add_insecure_port [{listen_address}]")
+        log.debug(f"add_insecure_port [{listen_address}]")
         server.add_insecure_port(listen_address)
 
     server.start()
