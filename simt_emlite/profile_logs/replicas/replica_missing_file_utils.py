@@ -26,7 +26,7 @@ def extract_date_from_filename(filename: str) -> Optional[datetime.date]:
     return None
 
 
-def generate_date_range(
+def _generate_date_range(
     start_date: datetime.date, end_date: datetime.date
 ) -> List[datetime.date]:
     """Generate a list of dates from start to end (inclusive)."""
@@ -50,7 +50,7 @@ def check_missing_files(
         Dict mapping directory path (relative to root) to list of missing dates.
     """
     missing_files_map: Dict[str, List[datetime.date]] = {}
-    expected_dates = set(generate_date_range(start_date, end_date))
+    expected_dates = set(_generate_date_range(start_date, end_date))
 
     if not root_path.exists():
         return missing_files_map
@@ -110,7 +110,7 @@ def check_missing_files_for_folder(
     Returns:
         Sorted list of missing dates within the specified range.
     """
-    expected_dates = set(generate_date_range(start_date, end_date))
+    expected_dates = set(_generate_date_range(start_date, end_date))
 
     if not folder_path.exists():
         # If folder doesn't exist, all dates are missing

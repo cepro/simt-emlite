@@ -33,16 +33,37 @@ from rich.console import Console
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
-from simt_emlite.profile_logs.replica_utils import check_missing_files_for_folder
+from simt_emlite.profile_logs.replicas.replica_utils import (
+    check_missing_files_for_folder,
+)
 from simt_emlite.smip.smip_csv import SMIPCSV
 from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
 from simt_emlite.smip.smip_reading_factory import create_smip_readings
-from simt_emlite.util.logging import suppress_noisy_loggers
+from simt_emlite.util.logging import get_logger, suppress_noisy_loggers
+
+logger = get_logger(__name__, __file__)
 
 # Configure logging early
 logging.basicConfig(level=logging.WARNING)
 
 console = Console(stderr=True)
+
+
+def log_progress(msg: str, meter: Optional[str] = None, level: str = "info", **kwargs):
+    """Log progress in a way that respects TTY (rich) vs non-TTY (structured logger)."""
+    if sys.stdout.isatty():
+        console.print(msg)
+    else:
+        # Strip rich tags from msg for the logger
+        from rich.text import Text
+
+        plain_msg = Text.from_markup(msg).plain
+        # Strip trailing "..." or formatting often used in CLI
+        clean_msg = plain_msg.strip(".")
+
+        log_func = getattr(logger, level, logger.info)
+        log_func(clean_msg, meter=meter, **kwargs)
+
 
 USAGE_EXAMPLES = """
 Examples:
@@ -141,8 +162,10 @@ def download_single_day(
             #       to go ahead even if file exists here:
             find_result: SMIPFileFinderResult = downloader.find_download_file()
             if find_result.found:
-                console.print(
-                    f"skipping ... file already exists for serial [{downloader.serial}] [{find_result.smip_file}]"
+                log_progress(
+                    f"skipping ... file already exists for serial [[bold]{downloader.serial}[/bold]] [[blue]{find_result.smip_file}[/blue]]",
+                    meter=downloader.serial,
+                    smip_file=find_result.smip_file,
                 )
                 return True, None
 
@@ -181,8 +204,12 @@ def download_single_day(
                     readings=readings_a,
                     element_marker="A" if downloader.is_twin_element else None,
                 )
-                console.print(
-                    f"Wrote {len(readings_a)} A readings to CSV in {output_dir} for date {downloader.date}"
+                log_progress(
+                    f"Wrote {len(readings_a)} A readings to CSV in {output_dir} for date {downloader.date}",
+                    count=len(readings_a),
+                    output_dir=output_dir,
+                    date=str(downloader.date),
+                    meter=downloader.serial,
                 )
 
             if readings_b:
@@ -192,8 +219,12 @@ def download_single_day(
                     readings=readings_b,
                     element_marker="B",
                 )
-                console.print(
-                    f"Wrote {len(readings_b)} B readings to CSV in {output_dir} for date {downloader.date}"
+                log_progress(
+                    f"Wrote {len(readings_b)} B readings to CSV in {output_dir} for date {downloader.date}",
+                    count=len(readings_b),
+                    output_dir=output_dir,
+                    date=str(downloader.date),
+                    meter=downloader.serial,
                 )
 
             identifier = (
@@ -201,7 +232,11 @@ def download_single_day(
                 if downloader and downloader.name is not None
                 else serial
             )
-            console.print(f"Profile download completed for {identifier} on {date}")
+            log_progress(
+                f"Profile download completed for [bold green]{identifier}[/bold green] on [cyan]{date}[/cyan]",
+                meter=identifier,
+                date=str(date),
+            )
 
             return True, downloader.future_date_detected
 
@@ -210,14 +245,35 @@ def download_single_day(
             console.print("Caught NotImplementedError - three phase not supported")
 
         except MediatorClientException as e:
+            # Use local variables if downloader not yet initialized
+            d_serial = (
+                downloader.serial if "downloader" in locals() and downloader else serial
+            )
+            d_name = (
+                downloader.name if "downloader" in locals() and downloader else name
+            )
+            d_date = (
+                downloader.date if "downloader" in locals() and downloader else date
+            )
+
             if e.code_str == "DEADLINE_EXCEEDED":
-                console.print(
-                    f"Meter timeout for serial=[{downloader.serial}], name=[{downloader.name}], date=[{downloader.date}]"
+                log_progress(
+                    f"[red]Meter timeout[/red] for serial=[{d_serial}], name=[{d_name}], date=[{d_date}]",
+                    level="warning",
+                    serial=d_serial,
+                    meter=d_name,
+                    date=str(d_date),
                 )
             else:
-                console.print(
-                    f"MediatorClientException code=[{e.code_str}], message=[{e.message}] "
-                    f"for serial=[{downloader.serial}], name=[{downloader.name}], date=[{downloader.date}]"
+                log_progress(
+                    f"[red]MediatorClientException[/red] code=[{e.code_str}], message=[{e.message}] "
+                    f"for serial=[{d_serial}], name=[{d_name}], date=[{d_date}]",
+                    level="error",
+                    code=e.code_str,
+                    message=e.message,
+                    serial=d_serial,
+                    meter=d_name,
+                    date=str(d_date),
                 )
 
         return False, None
@@ -272,8 +328,10 @@ def print_missing_dates_json(missing_dates_by_group: Dict[str, List[datetime.dat
     """Print missing dates summary in JSON format."""
     # Convert dates to strings for JSON serialization
     json_output = {
-        group: [d.isoformat() for d in dates]
-        for group, dates in missing_dates_by_group.items()
+        "missing_dates": {
+            group: [d.isoformat() for d in dates]
+            for group, dates in missing_dates_by_group.items()
+        }
     }
     print(json.dumps(json_output, indent=2))
 
@@ -324,8 +382,10 @@ def process_group(
     if not dates_to_process:
         return
 
-    console.print(
-        f"Processing {group_name}: [ Downloading {len(dates_to_process)} days ]"
+    log_progress(
+        f"Processing [bold cyan]{group_name}[/bold cyan]: [ Downloading {len(dates_to_process)} days ]",
+        meter=group_name,
+        download_count=len(dates_to_process),
     )
 
     # Build the output path by joining rootfolder with the group's folder
@@ -354,19 +414,31 @@ def process_group(
             )
             if success and future_date:
                 skip_until_date = future_date
-                console.print(
-                    f"Future date detected: {future_date}. Skipping dates until then for group {group_name}"
+                log_progress(
+                    f"Future date detected: [bold yellow]{future_date}[/bold yellow]. Skipping dates until then for group [cyan]{group_name}[/cyan]",
+                    meter=group_name,
+                    future_date=str(future_date),
                 )
 
         except Exception as e:
-            console.print(f"Error processing {group_name} for date {current_date}: {e}")
-            traceback.print_exc()
+            log_progress(
+                f"[red]Error processing[/red] {group_name} for date {current_date}: {e}",
+                level="error",
+                meter=group_name,
+                date=str(current_date),
+                error=str(e),
+                exc_info=True,
+            )
             # Continue with next date instead of stopping entirely
 
         if not success:
             break
 
-    console.print(f"Completed processing group (success={success}): {group_name}")
+    log_progress(
+        f"Completed processing group (success={success}): [bold green]{group_name}[/bold green]",
+        meter=group_name,
+        success=success,
+    )
 
 
 def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> None:
@@ -392,7 +464,7 @@ def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> N
     console.print(f"Groups: {group_names}")
 
     # Step 1: Gather missing dates in parallel
-    console.print("[bold yellow]Checking for missing files...[/bold yellow]")
+    log_progress("[bold yellow]Checking for missing files...[/bold yellow]")
     missing_dates_by_group: Dict[str, List[datetime.date]] = {}
 
     max_parallel_checks = 60
@@ -410,10 +482,13 @@ def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> N
                 if missing:
                     missing_dates_by_group[g_name] = missing
             except Exception as e:
-                console.print(
-                    f"[red]Error checking missing files for group {futures[check_missing_future]}: {e}[/red]"
+                log_progress(
+                    f"[red]Error checking missing files[/red] for group {futures[check_missing_future]}: {e}",
+                    level="error",
+                    group=futures[check_missing_future],
+                    error=str(e),
+                    exc_info=True,
                 )
-                traceback.print_exc()
 
     # Step 2: Write/Print summary
     if sys.stdout.isatty():
@@ -426,7 +501,7 @@ def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> N
         return
 
     # Step 3: Process groups in parallel
-    console.print("[bold yellow]Starting downloads...[/bold yellow]")
+    log_progress("[bold yellow]Starting downloads...[/bold yellow]")
     max_parallel_downloads = 60
     with concurrent.futures.ThreadPoolExecutor(
         max_workers=max_parallel_downloads
@@ -438,13 +513,17 @@ def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> N
 
         concurrent.futures.wait(futures_download)
 
-        # Check for any exceptions that occurred in the futures
-        for download_future in futures_download:
-            try:
-                download_future.result()  # This will raise any exception that occurred
-            except Exception as e:
-                console.print(f"Error in group processing: {e}")
-                traceback.print_exc()
+    # Check for any exceptions that occurred in the futures
+    for download_future in futures_download:
+        try:
+            download_future.result()  # This will raise any exception that occurred
+        except Exception as e:
+            log_progress(
+                f"[red]Error in group processing[/red]: {e}",
+                level="error",
+                error=str(e),
+                exc_info=True,
+            )
 
 
 def main() -> None:

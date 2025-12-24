@@ -19,7 +19,9 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
-from simt_emlite.profile_logs.replica_utils import check_missing_files
+from simt_emlite.profile_logs.replicas.replica_missing_file_utils import (
+    check_missing_files,
+)
 
 
 def valid_date(date_str: str) -> datetime.date:
