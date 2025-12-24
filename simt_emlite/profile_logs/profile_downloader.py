@@ -13,7 +13,7 @@ Usage:
 import datetime
 import logging
 from pathlib import Path
-from typing import Dict, cast
+from typing import Callable, Dict, Optional, cast
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
@@ -44,10 +44,12 @@ class ProfileDownloader:
         output_dir: str = "output",
         serial: str | None = None,
         name: str | None = None,
+        logging_level: int = logging.INFO,
     ) -> None:
         self.serial = serial
         self.name = name
         self.date = date
+        self.logging_level = logging_level
 
         self.output_dir = output_dir
         self._validate_output_directory()
@@ -192,7 +194,7 @@ class ProfileDownloader:
             mediator_address=mediator_address,
             meter_id=self.meter_id,
             use_cert_auth=self.is_single_meter_app,
-            logging_level=logging.INFO,
+            logging_level=self.logging_level,
         )
 
         logger.info(f"Connected to mediator at {mediator_address}")
@@ -212,6 +214,7 @@ class ProfileDownloader:
 
     def download_profile_log_1_day(
         self,
+        progress_callback: Optional[Callable[[str], None]] = None,
     ) -> Dict[datetime.datetime, EmopProfileLog1Record]:
         """Download profile log 1 data for a single day in chunks
 
@@ -243,11 +246,14 @@ class ProfileDownloader:
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
 
+            msg = f"Reading profile_log_1 chunk: {current_time.strftime('%H:%M')} to {chunk_end.strftime('%H:%M')}"
             logger.info(
-                f"Downloading chunk: {current_time} to {chunk_end}",
+                msg,
                 name=self.name,
                 serial=self.serial,
             )
+            if progress_callback:
+                progress_callback(msg)
 
             # Download profile log for this chunk
             assert self.client is not None
@@ -280,6 +286,7 @@ class ProfileDownloader:
 
     def download_profile_log_2_day(
         self,
+        progress_callback: Optional[Callable[[str], None]] = None,
     ) -> Dict[datetime.datetime, EmopProfileLog2Record]:
         """Download profile log 2 data for a single day in chunks.
 
@@ -322,7 +329,10 @@ class ProfileDownloader:
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
 
-            logger.info(f"Downloading chunk: {current_time} to {chunk_end}")
+            msg = f"Reading profile_log_2 chunk: {current_time.strftime('%H:%M')} to {chunk_end.strftime('%H:%M')}"
+            logger.info(msg)
+            if progress_callback:
+                progress_callback(msg)
 
             assert self.client is not None
             response = self.client.profile_log_2(current_time, self.is_twin_element)

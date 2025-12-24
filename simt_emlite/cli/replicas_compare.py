@@ -452,5 +452,9 @@ def main() -> Tuple[int, ComparisonReport | None]:
 
 
 if __name__ == "__main__":
-    exit_code, _report = main()
-    sys.exit(exit_code)
+    try:
+        exit_code, _report = main()
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt: Operation cancelled by user.")
+        sys.exit(1)

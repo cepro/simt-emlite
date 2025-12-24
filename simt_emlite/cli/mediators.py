@@ -195,7 +195,7 @@ class MediatorsCLI:
             esco=meter["esco"],
             serial=serial,
             region=FLY_REGION,
-            env=cast(str | None, ENV)
+            env=cast(str | None, ENV),
         )
         containers_api.create(
             "simt_emlite.mediator.grpc.server",
@@ -559,9 +559,13 @@ def main() -> None:
 
     # logging.info(kwargs)
 
-    cli = MediatorsCLI()
-    method = getattr(cli, command)
-    method(**kwargs)
+    try:
+        cli = MediatorsCLI()
+        method = getattr(cli, command)
+        method(**kwargs)
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt: Operation cancelled by user.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

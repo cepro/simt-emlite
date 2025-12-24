@@ -6,13 +6,23 @@ from typing import Any, List
 
 import structlog
 
+
+def suppress_noisy_loggers() -> None:
+    """Suppress verbose debug logs from noisy third-party libraries."""
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+    logging.getLogger("h2").setLevel(logging.WARNING)
+    logging.getLogger("hpack").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+
 # Configure standard library logging FIRST
 logging.basicConfig(
     format="%(message)s",
     stream=sys.stdout,
     level=logging.INFO,
 )
-logging.getLogger("httpx").setLevel(logging.WARNING)
+suppress_noisy_loggers()
 
 shared_processors: List[Any] = [
     structlog.contextvars.merge_contextvars,

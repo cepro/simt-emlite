@@ -17,6 +17,7 @@ from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
+from simt_emlite.util.logging import suppress_noisy_loggers
 from simt_emlite.util.supabase import supa_client
 
 # Configure logging early to avoid being overridden by imports
@@ -735,8 +736,8 @@ def run_command_for_serials(
 
 
 def main() -> None:
-    # supress supabase py request logging:
-    logging.getLogger("httpx").setLevel(logging.WARNING)
+    # supress supabase py request logging and underlying noisy libs:
+    suppress_noisy_loggers()
 
     parser = args_parser()
 
@@ -767,23 +768,29 @@ def main() -> None:
     arg_serials_file = kwargs.pop("serials_file", None)
 
     serial = arg_s or arg_serial
-    if serial or command in ["env_set", "env_show", "version", "info"]:
-        run_command(serial, command, kwargs)
-    elif arg_serials:
-        serial_list = arg_serials.split(",")
-        run_command_for_serials(serial_list, command, kwargs)
-    elif arg_serials_file:
-        if not os.path.exists(arg_serials_file):
-            logging.error(f"ERROR: serials file {arg_serials_file} does not exist")
-            sys.exit(2)
+    try:
+        if serial or command in ["env_set", "env_show", "version", "info"]:
+            run_command(serial, command, kwargs)
+        elif arg_serials:
+            serial_list = arg_serials.split(",")
+            run_command_for_serials(serial_list, command, kwargs)
+        elif arg_serials_file:
+            if not os.path.exists(arg_serials_file):
+                logging.error(f"ERROR: serials file {arg_serials_file} does not exist")
+                sys.exit(2)
 
-        with open(arg_serials_file, "r") as f:
-            serial_list = [line.strip() for line in f]
+            with open(arg_serials_file, "r") as f:
+                serial_list = [line.strip() for line in f]
 
-        run_command_for_serials(serial_list, command, kwargs)
-    else:
-        parser.print_help()
-        exit(-1)
+            run_command_for_serials(serial_list, command, kwargs)
+        else:
+            parser.print_help()
+            exit(-1)
+    except KeyboardInterrupt:
+        console.print(
+            "\n[yellow]KeyboardInterrupt: Operation cancelled by user.[/yellow]"
+        )
+        sys.exit(1)
 
 
 if __name__ == "__main__":
