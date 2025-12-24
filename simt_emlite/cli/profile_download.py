@@ -17,12 +17,13 @@ Usage:
 import argparse
 import concurrent.futures
 import datetime
+import json
 import logging
 import os
 import sys
 import traceback
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
@@ -83,7 +84,7 @@ def download_single_day(
     status: Any = None,
     logging_level: int = logging.WARNING,
     use_spinner: bool = True,
-) -> bool:
+) -> Tuple[bool, Optional[datetime.date]]:
     """Download profile logs for a single day and write to CSV.
 
     Args:
@@ -115,6 +116,8 @@ def download_single_day(
     else:
         status_context = nullcontext()
 
+    downloader: ProfileDownloader
+
     with status_context as s:
         # If we created a new status context, 's' is the status object
         active_status = s if s else status
@@ -141,7 +144,7 @@ def download_single_day(
                 console.print(
                     f"skipping ... file already exists for serial [{downloader.serial}] [{find_result.smip_file}]"
                 )
-                return True
+                return True, None
 
             log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
                 downloader.download_profile_log_1_day(progress_callback=update_progress)
@@ -179,7 +182,7 @@ def download_single_day(
                     element_marker="A" if downloader.is_twin_element else None,
                 )
                 console.print(
-                    f"Wrote {len(readings_a)} readings to CSV in {output_dir}"
+                    f"Wrote {len(readings_a)} A readings to CSV in {output_dir} for date {downloader.date}"
                 )
 
             if readings_b:
@@ -190,12 +193,17 @@ def download_single_day(
                     element_marker="B",
                 )
                 console.print(
-                    f"Wrote {len(readings_b)} readings to CSV in {output_dir}"
+                    f"Wrote {len(readings_b)} B readings to CSV in {output_dir} for date {downloader.date}"
                 )
 
-            console.print(f"Profile download completed for {serial} on {date}")
+            identifier = (
+                downloader.name
+                if downloader and downloader.name is not None
+                else serial
+            )
+            console.print(f"Profile download completed for {identifier} on {date}")
 
-            return True
+            return True, downloader.future_date_detected
 
         except NotImplementedError:
             # Three phase not supported - error already logged
@@ -204,25 +212,28 @@ def download_single_day(
         except MediatorClientException as e:
             if e.code_str == "DEADLINE_EXCEEDED":
                 console.print(
-                    f"Meter timeout for serial=[{downloader.serial}], name=[{downloader.name}]"
+                    f"Meter timeout for serial=[{downloader.serial}], name=[{downloader.name}], date=[{downloader.date}]"
                 )
             else:
                 console.print(
                     f"MediatorClientException code=[{e.code_str}], message=[{e.message}] "
-                    f"for serial=[{downloader.serial}], name=[{downloader.name}]"
+                    f"for serial=[{downloader.serial}], name=[{downloader.name}], date=[{downloader.date}]"
                 )
 
-        return False
+        return False, None
 
 
-def process_group(
-    config: DownloaderConfig, group_name: str, logging_level: int = logging.WARNING
-) -> None:
-    """Process a single group from the configuration.
+def gather_missing_dates_for_group(
+    config: DownloaderConfig, group_name: str
+) -> Tuple[str, List[datetime.date]]:
+    """Check for missing files for a single group.
 
     Args:
         config: The downloader configuration instance
         group_name: Name of the group to process
+
+    Returns:
+        Tuple of (group_name, list of missing dates)
     """
     groups = config.get_groups()
     group = groups[group_name]
@@ -234,14 +245,7 @@ def process_group(
 
     # When in testmode only run the groups that have the testmode property set
     if config.get_test_mode() and not group.test:
-        console.print(
-            f"Skipping {group_name}: test mode is enabled and group.test is not set"
-        )
-        return
-
-    console.print(
-        f"Processing {group_name}: [ Retrieving from {start_date} to {end_date} ]"
-    )
+        return group_name, []
 
     # Build the output path by joining rootfolder with the group's folder
     root_folder = config.get_root_folder()
@@ -261,20 +265,86 @@ def process_group(
         start_date=start_date,
         end_date=end_date,
     )
+    return group_name, missing_dates
 
-    if not missing_dates:
-        console.print(
-            f"No missing files for {group_name} in date range {start_date} to {end_date}"
-        )
+
+def print_missing_dates_json(missing_dates_by_group: Dict[str, List[datetime.date]]):
+    """Print missing dates summary in JSON format."""
+    # Convert dates to strings for JSON serialization
+    json_output = {
+        group: [d.isoformat() for d in dates]
+        for group, dates in missing_dates_by_group.items()
+    }
+    print(json.dumps(json_output, indent=2))
+
+
+def print_missing_dates_summary(missing_dates_by_group: Dict[str, List[datetime.date]]):
+    """Print human-readable missing dates summary."""
+    from rich.table import Table
+
+    table = Table(title="Missing Dates Summary")
+    table.add_column("Group", style="cyan")
+    table.add_column("Missing Count", style="magenta")
+    table.add_column("Date Range / Dates", style="green")
+
+    total_missing = 0
+    for group, dates in sorted(missing_dates_by_group.items()):
+        count = len(dates)
+        total_missing += count
+        if count > 0:
+            if count > 5:
+                dates_str = f"{dates[0]} ... {dates[-1]}"
+            else:
+                dates_str = ", ".join(str(d) for d in dates)
+            table.add_row(group, str(count), dates_str)
+
+    console.print(table)
+    console.print(
+        f"[bold]Total missing files across all groups: {total_missing}[/bold]"
+    )
+
+
+def process_group(
+    config: DownloaderConfig,
+    group_name: str,
+    dates_to_process: List[datetime.date],
+    logging_level: int = logging.WARNING,
+) -> None:
+    """Process a single group for specific dates.
+
+    Args:
+        config: The downloader configuration instance
+        group_name: Name of the group to process
+        dates_to_process: List of dates to download
+        logging_level: Logging level
+    """
+    groups = config.get_groups()
+    group = groups[group_name]
+
+    if not dates_to_process:
         return
 
-    console.print(f"Found {len(missing_dates)} missing dates for {group_name}")
+    console.print(
+        f"Processing {group_name}: [ Downloading {len(dates_to_process)} days ]"
+    )
+
+    # Build the output path by joining rootfolder with the group's folder
+    root_folder = config.get_root_folder()
+    if group.folder:
+        output_dir = os.path.join(str(root_folder), str(group.folder))
+    else:
+        output_dir = str(root_folder)
 
     # Loop through only the missing dates (already sorted in ascending order)
-    for current_date in missing_dates:
+    skip_until_date: Optional[datetime.date] = None
+    for current_date in dates_to_process:
+        if skip_until_date and current_date < skip_until_date:
+            continue
+
         success = False
+        future_date: Optional[datetime.date] = None
         try:
-            success = download_single_day(
+            success, future_date = download_single_day(
                 name=f"{config.get_esco().upper()}.{group.folder}",
                 date=current_date,
                 output_dir=output_dir,
@@ -282,6 +352,12 @@ def process_group(
                 logging_level=logging_level,
                 use_spinner=False,
             )
+            if success and future_date:
+                skip_until_date = future_date
+                console.print(
+                    f"Future date detected: {future_date}. Skipping dates until then for group {group_name}"
+                )
+
         except Exception as e:
             console.print(f"Error processing {group_name} for date {current_date}: {e}")
             traceback.print_exc()
@@ -290,13 +366,15 @@ def process_group(
         if not success:
             break
 
-    console.print(f"Completed processing group: {group_name}")
+    console.print(f"Completed processing group (success={success}): {group_name}")
 
 
 def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> None:
     """Run the downloader in config mode, processing all groups from the config file.
 
-    Groups are processed in parallel using a thread pool executor.
+    1. Gather missing dates for all groups in parallel.
+    2. Report missing dates.
+    3. Process missing dates in parallel.
 
     Args:
         config_file: Path to the configuration file (e.g., config.downloader.properties)
@@ -313,22 +391,57 @@ def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> N
     group_names = list(groups.keys())
     console.print(f"Groups: {group_names}")
 
-    # Process groups in parallel
-    max_parallel_groups = 60
+    # Step 1: Gather missing dates in parallel
+    console.print("[bold yellow]Checking for missing files...[/bold yellow]")
+    missing_dates_by_group: Dict[str, List[datetime.date]] = {}
+
+    max_parallel_checks = 60
     with concurrent.futures.ThreadPoolExecutor(
-        max_workers=max_parallel_groups
+        max_workers=max_parallel_checks
     ) as executor:
-        futures = [
-            executor.submit(process_group, config, group_name, logging_level)
-            for group_name in group_names
+        futures = {
+            executor.submit(gather_missing_dates_for_group, config, name): name
+            for name in group_names
+        }
+
+        for check_missing_future in concurrent.futures.as_completed(futures):
+            try:
+                g_name, missing = check_missing_future.result()
+                if missing:
+                    missing_dates_by_group[g_name] = missing
+            except Exception as e:
+                console.print(
+                    f"[red]Error checking missing files for group {futures[check_missing_future]}: {e}[/red]"
+                )
+                traceback.print_exc()
+
+    # Step 2: Write/Print summary
+    if sys.stdout.isatty():
+        print_missing_dates_summary(missing_dates_by_group)
+    else:
+        print_missing_dates_json(missing_dates_by_group)
+
+    if not missing_dates_by_group:
+        console.print("[green]No missing files found. All up to date.[/green]")
+        return
+
+    # Step 3: Process groups in parallel
+    console.print("[bold yellow]Starting downloads...[/bold yellow]")
+    max_parallel_downloads = 60
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=max_parallel_downloads
+    ) as executor:
+        futures_download = [
+            executor.submit(process_group, config, group_name, dates, logging_level)
+            for group_name, dates in missing_dates_by_group.items()
         ]
 
-        concurrent.futures.wait(futures)
+        concurrent.futures.wait(futures_download)
 
         # Check for any exceptions that occurred in the futures
-        for future in futures:
+        for download_future in futures_download:
             try:
-                future.result()  # This will raise any exception that occurred
+                download_future.result()  # This will raise any exception that occurred
             except Exception as e:
                 console.print(f"Error in group processing: {e}")
                 traceback.print_exc()

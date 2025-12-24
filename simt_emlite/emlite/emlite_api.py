@@ -48,14 +48,18 @@ class EmliteAPI:
 
     def send_message_with_data_instance(self, req_data_field: EmopData) -> bytes:
         req_bytes: bytes = self._build_frame_bytes(req_data_field)
-        logger.info("send_message_with_data_instance request", req_bytes=req_bytes.hex())
+        logger.debug(
+            "send_message_with_data_instance request", req_bytes=req_bytes.hex()
+        )
 
         rsp_bytes: bytes = self.net.send_message(req_bytes)
-        logger.info("send_message_with_data_instance response", rsp_bytes=rsp_bytes.hex())
+        logger.debug(
+            "send_message_with_data_instance response", rsp_bytes=rsp_bytes.hex()
+        )
 
         frame = EmopFrame(KaitaiStream(BytesIO(rsp_bytes)))
         frame._read()
-        logger.info("response frame parsed", frame=str(frame))
+        logger.debug("response frame parsed", frame=str(frame))
 
         self.last_request_datetime = datetime.now()
 

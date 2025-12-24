@@ -61,6 +61,8 @@ class ProfileDownloader:
         self.fly_region = config["fly_region"]
         self.env = config["env"]
 
+        self.future_date_detected: Optional[datetime.date] = None
+
         self._check_config_and_args()
 
         self.client: EmliteMediatorClient | None = None
@@ -266,12 +268,14 @@ class ProfileDownloader:
                 )
                 # future time out of range - see unfuddle #382 - meters will return the next
                 # available data even if that is months ahead
-                if response.records[0].timestamp_datetime > end_datetime:
+                response_datetime = response.records[0].timestamp_datetime
+                if response_datetime > end_datetime:
                     logger.warning(
                         "Future date returned - skipping remainder for this period",
                         name=self.name,
-                        date=response.records[0].timestamp_datetime,
+                        date=response_datetime,
                     )
+                    self.future_date_detected = response_datetime.date()
                     return profile_records
 
                 for record in response.records:
@@ -342,12 +346,14 @@ class ProfileDownloader:
                 )
                 # future time out of range - see unfuddle #382 - meters will return the next
                 # available data even if that is months ahead
-                if response.records[0].timestamp_datetime > end_datetime:
+                response_datetime = response.records[0].timestamp_datetime
+                if response_datetime > end_datetime:
                     logger.warning(
                         "Future date returned - skipping remainder for this period",
                         name=self.name,
-                        date=response.records[0].timestamp_datetime,
+                        date=response_datetime,
                     )
+                    self.future_date_detected = response_datetime.date()
                     return profile_records
 
                 for record in response.records:
