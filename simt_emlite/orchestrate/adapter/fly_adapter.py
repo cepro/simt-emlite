@@ -4,6 +4,7 @@ from typing import List
 
 import dns.resolver
 from simt_fly_machines.api import API, FLY_REGION_DEFAULT
+from tenacity import retry, retry_if_result, stop_after_attempt, wait_exponential
 
 from simt_emlite.orchestrate.adapter.base_adapter import BaseAdapter
 from simt_emlite.orchestrate.adapter.container import (
@@ -46,6 +47,10 @@ def metadata_filter_fn(key, value):
     return machine_filter
 
 
+def is_error_response(response) -> bool:
+    return isinstance(response, dict) and "error" in response
+
+
 class FlyAdapter(BaseAdapter):
     def __init__(
         self,
@@ -56,7 +61,7 @@ class FlyAdapter(BaseAdapter):
         app_name: str | None = None,
         serial: str | None = None,
         use_private_address: bool | None = None,
-        region: str | None = None
+        region: str | None = None,
     ):
         super().__init__()
         self.api = API(api_token)
@@ -74,6 +79,17 @@ class FlyAdapter(BaseAdapter):
         self.use_private_address = use_private_address
         if self.use_private_address is None:
             self.use_private_address = not self.is_single_meter_app
+
+    @retry(
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_result(is_error_response),
+    )
+    def _call_api_with_retry(self, func, *args, **kwargs):
+        res = func(*args, **kwargs)
+        if is_error_response(res):
+            logger.warning(f"API call returned error, retrying: {res.get('error')}")
+        return res
 
     def list(
         self,
@@ -149,7 +165,8 @@ Create machine with these details (y/n): """)
                 print("\naborting ...\n")
                 sys.exit(1)
 
-        create_response = self.api.create(
+        create_response = self._call_api_with_retry(
+            self.api.create,
             self.fly_app,
             self.image,
             [cmd],
@@ -173,14 +190,14 @@ Create machine with these details (y/n): """)
         return create_response["id"]
 
     def start(self, id: str) -> None:
-        self.api.start(self.fly_app, id)
+        self._call_api_with_retry(self.api.start, self.fly_app, id)
 
     def stop(self, id: str) -> None:
-        self.api.stop(self.fly_app, id)
+        self._call_api_with_retry(self.api.stop, self.fly_app, id)
 
     def destroy(self, id: str, force: bool = False) -> None:
         if not force:
-            stop_rsp = self.api.stop(self.fly_app, id)
+            stop_rsp = self._call_api_with_retry(self.api.stop, self.fly_app, id)
             print(f"stop_rsp [{id}]: {stop_rsp}")
 
             machine = self.api.get(self.fly_app, id)
@@ -192,8 +209,8 @@ Create machine with these details (y/n): """)
             )
             print(f"wait_rsp [{id}]: {wait_rsp}")
 
-        destroy_rsp = self.api.destroy(
-            self.fly_app, id, force=force, region=self.region
+        destroy_rsp = self._call_api_with_retry(
+            self.api.destroy, self.fly_app, id, force=force, region=self.region
         )
         print(f"destroy_rsp [{id}]: {destroy_rsp}")
 

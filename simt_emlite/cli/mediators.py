@@ -252,18 +252,35 @@ Go ahead and create ALL of these? (y/n): """)
 
         mediators = self._list(esco=esco, exists=True)
 
-        answer = input(f"""Found {len(mediators)} mediators to destroy in ESCO {esco}.
+        mediators_found_msg = (
+            f"Found {len(mediators)} mediators to destroy in ESCO {esco}."
+        )
+        if len(mediators) == 0:
+            print(f"{mediators_found_msg}\n")
+            return
+
+        answer = input(f"""{mediators_found_msg}
 
 Go ahead and destroy ALL of these? (y/n): """)
         if answer != "y":
             print("\naborting ...\n")
             sys.exit(1)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [
-                executor.submit(self.destroy_one, m["serial"]) for m in mediators
-            ]
-        concurrent.futures.wait(futures)
+        # Fly.io Machines API rate limit is ~1 req/s with burst of 3.
+        # We use 2 workers to stay safe, plus retries in the adapter.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_to_serial = {
+                executor.submit(self.destroy_one, m["serial"]): m["serial"]
+                for m in mediators
+            }
+            for future in concurrent.futures.as_completed(future_to_serial):
+                serial = future_to_serial[future]
+                try:
+                    future.result()
+                except SystemExit:
+                    print(f"Mediator {serial} destroy exited via sys.exit()")
+                except Exception as exc:
+                    print(f"Mediator {serial} generated an exception: {exc}")
 
     def stop_one(self, serial: str) -> None:
         containers_api, container = self._container_by_serial(serial)
