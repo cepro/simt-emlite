@@ -33,7 +33,7 @@ from rich.console import Console
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
-from simt_emlite.profile_logs.replicas.replica_utils import (
+from simt_emlite.profile_logs.replicas.replica_missing_file_utils import (
     check_missing_files_for_folder,
 )
 from simt_emlite.smip.smip_csv import SMIPCSV
@@ -72,10 +72,11 @@ Examples:
 
   Config file mode:
     python -m simt_emlite.cli.profile_download --config config.downloader.properties
+    python -m simt_emlite.cli.profile_download --config config.daily-hmce.properties
 
   With debug logging:
     python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21 --log-level debug
-"""
+ """
 
 
 def valid_log_level(level_str: str | None) -> Any:
