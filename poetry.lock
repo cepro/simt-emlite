@@ -588,22 +588,22 @@ websockets = ["websocket-client (>=1.3.0)"]
 
 [[package]]
 name = "emop-frame-protocol"
-version = "0.4.13"
+version = "0.4.14"
 description = "EMOP Frame Protocol messages defined with kaitai"
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "emop_frame_protocol-0.4.13-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:efeca998f3d57f675ded49044ea9e7c5e87533a7ab548138832a672d2934801e"},
-    {file = "emop_frame_protocol-0.4.13-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:71cf4f12daa2c7f8e1637b59c724747f5f9c20b808b5b657b2e670a534e4eba9"},
-    {file = "emop_frame_protocol-0.4.13-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:7e86ad35931d5e22ac28b3bab943bd907d7876bf766f65d21e30a6dd3552e585"},
-    {file = "emop_frame_protocol-0.4.13-cp312-cp312-win32.whl", hash = "sha256:6894a462cfe480e52a729b28340844500caa9f37872b24c87748814ff9f82c98"},
-    {file = "emop_frame_protocol-0.4.13-cp312-cp312-win_amd64.whl", hash = "sha256:f140d6b873c9af899c2390cd723ced0b2cc20e948e6f544cb24a13dddb8f98c5"},
-    {file = "emop_frame_protocol-0.4.13-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:32cf57518387ff25233320b85787cddd497809c1cd23b5641220c20cfcdf2ee8"},
-    {file = "emop_frame_protocol-0.4.13-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bbe33dd94b81e0b6b58ff6cea8c12d7fc18c4bf6ef61b80f35b1b9cad297b426"},
-    {file = "emop_frame_protocol-0.4.13-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:5b599580d064fb477500cf9a7b95b68d090d47d1b4da69bfac014de1f4f78b03"},
-    {file = "emop_frame_protocol-0.4.13-cp313-cp313-win32.whl", hash = "sha256:ad8a2a2912e642b25c7d665eaec476f51dfaa2dce0f99f5765ab7b03a084f047"},
-    {file = "emop_frame_protocol-0.4.13-cp313-cp313-win_amd64.whl", hash = "sha256:48f550e08fd28bb0edb1cd48f08f5f56f9726ed18120428e6fe81b2c0fd8ee19"},
+    {file = "emop_frame_protocol-0.4.14-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:9d4a670fe86f0c72f0c9574184d49b3500709420fc28b2a0e402c5097610d472"},
+    {file = "emop_frame_protocol-0.4.14-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:693db1bbb29f8f63a0afcb2fa66a58f7c3845510c681c49e83ccb776540cc228"},
+    {file = "emop_frame_protocol-0.4.14-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:53e4de88b2299e21f2430df5e6d47642f2f1a815cc1ce4842bbdb05f54f23af4"},
+    {file = "emop_frame_protocol-0.4.14-cp312-cp312-win32.whl", hash = "sha256:8238c41a46f10aac654bb42ba6ef4910b884cddc11d599ff6bfa4975b269027e"},
+    {file = "emop_frame_protocol-0.4.14-cp312-cp312-win_amd64.whl", hash = "sha256:93758612f713e3fb00428e4d4a115595d533227c77f9805260852b891fbdbaaf"},
+    {file = "emop_frame_protocol-0.4.14-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:a0292a6cae5f0d70ff1ac0770177b3cc5684b92fec6d34c2a20a3e552ebfd189"},
+    {file = "emop_frame_protocol-0.4.14-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bb05dd6ea5e62f9ef5189b621da0b1b4eabd44b6d74061588f9c308006a6f1d8"},
+    {file = "emop_frame_protocol-0.4.14-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:bcbdb8bf8b72090cff875f1bf4f325544c197812ff448baf613458e5156fb74a"},
+    {file = "emop_frame_protocol-0.4.14-cp313-cp313-win32.whl", hash = "sha256:0070e23a6f78cff3a3dd70e2f5b34eb33894eed764c07dfa39478718c5d0d60c"},
+    {file = "emop_frame_protocol-0.4.14-cp313-cp313-win_amd64.whl", hash = "sha256:205749acc44a333dc0d46e79fcde6ad53bbff3013c744fe0e18821240694ee69"},
 ]
 
 [package.dependencies]
@@ -2340,4 +2340,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13,<4.0"
-content-hash = "cc725a2a6ac2c59d26993e53231437d1839fb918e6fcd2ccd8146477e5b3a7a8"
+content-hash = "deb75effa105f2936acf0f3a70adeaa8c7dc5fec244b51a718e485a372354979"
