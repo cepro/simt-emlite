@@ -452,14 +452,14 @@ def args_parser() -> argparse.ArgumentParser:
 
 Example usage:
 
-  emop -s EML1411222333 {cmd_str} --timestamp 2024-08-21
+  emop -s EML1411222333 {cmd_str} --timestamp 2024-08-21T14:00
 """,
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         add_arg_serial(profile_parser)
         profile_parser.add_argument(
             "--timestamp",
-            help="Date in iso8601 format (eg. 2024-08-21) of date to read profile logs for.",
+            help="Timestamp in iso8601 format (eg. 2024-08-21 or 2024-08-21T14:00) of time to read profile logs for.",
             required=True,
             type=valid_iso_datetime,
         )
