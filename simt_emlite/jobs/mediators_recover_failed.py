@@ -59,7 +59,6 @@ class MediatorsRecoverFailedJob:
         self.log.info(f"app is {app_name}")
 
         machines = self.containers.api.list(app=app_name)
-        self.log.info(f"machines {machines}")
 
         machines = list(
             filter(
