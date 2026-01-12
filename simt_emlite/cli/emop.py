@@ -158,7 +158,7 @@ class EMOPCLI(EmliteMediatorClient):
                 # Show latest clock drift
                 res = (
                     self.supabase.table("meter_shadows")
-                    .select("clock_time_diff_seconds,updated_at")
+                    .select("clock_time_diff_seconds,clock_time_diff_synced_at")
                     .eq("id", meter_id)
                     .execute()
                 )
@@ -166,7 +166,7 @@ class EMOPCLI(EmliteMediatorClient):
                     drift_raw = res.data[0].get("clock_time_diff_seconds")
                     drift = f"{drift_raw}" if drift_raw is not None else "unknown"
 
-                    last_read_raw = res.data[0].get("updated_at")
+                    last_read_raw = res.data[0].get("clock_time_diff_synced_at")
                     last_read = f"{last_read_raw}" if last_read_raw is not None else "unknown"
 
                     if last_read_raw:
@@ -174,7 +174,7 @@ class EMOPCLI(EmliteMediatorClient):
                             dt = datetime.datetime.fromisoformat(
                                 last_read_raw.replace("Z", "+00:00")
                             )
-                            last_read = dt.replace(microsecond=0).isoformat()
+                            last_read = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
                         except Exception as e:
                             logging.warning(
                                 f"Failed to parse capture timestamp '{last_read_raw}': {e}"
