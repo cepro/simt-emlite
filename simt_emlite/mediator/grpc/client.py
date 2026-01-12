@@ -1,5 +1,5 @@
 # mypy: disable-error-code="import-untyped"
-import base64
+
 import os
 from typing import Any
 
@@ -13,6 +13,7 @@ from simt_emlite.mediator.grpc.exception.EmliteConnectionFailure import (
 )
 from simt_emlite.mediator.grpc.exception.EmliteEOFError import EmliteEOFError
 from simt_emlite.util.logging import get_logger
+from .util import decode_b64_secret_to_bytes
 
 from .generated.mediator_pb2 import (
     ReadElementRequest,
@@ -211,9 +212,9 @@ class EmliteMediatorGrpcClient:
         if not self.have_certs:
             raise Exception("client credentials not provided")
 
-        client_cert = self._decode_b64_secret_to_bytes(self.client_cert_b64)
-        client_key = self._decode_b64_secret_to_bytes(self.client_key_b64)
-        ca_cert = self._decode_b64_secret_to_bytes(self.ca_cert_b64)
+        client_cert = decode_b64_secret_to_bytes(self.client_cert_b64)
+        client_key = decode_b64_secret_to_bytes(self.client_key_b64)
+        ca_cert = decode_b64_secret_to_bytes(self.ca_cert_b64)
 
         return grpc.ssl_channel_credentials(
             root_certificates=ca_cert,
@@ -221,15 +222,7 @@ class EmliteMediatorGrpcClient:
             certificate_chain=client_cert,
         )
 
-    def _decode_b64_secret_to_bytes(self, b64_secret: str | None) -> bytes:
-        if b64_secret is None:
-            return bytes()
-        return (
-            base64.b64decode(b64_secret)
-            .decode("utf-8")
-            .replace("\\n", "\n")
-            .encode("utf-8")
-        )
+
 
     def _object_id_int(self, obj_id: ObjectIdEnum | int) -> int:
         return obj_id.value if isinstance(obj_id, ObjectIdEnum) else obj_id

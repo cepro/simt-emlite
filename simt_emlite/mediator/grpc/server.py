@@ -1,5 +1,5 @@
 # mypy: disable-error-code="import-untyped"
-import base64
+
 import os
 import signal
 import sys
@@ -14,6 +14,7 @@ from emop_frame_protocol.util import emop_encode_u3be
 import grpc
 from simt_emlite.emlite.emlite_api import EmliteAPI
 from simt_emlite.util.logging import get_logger
+from .util import decode_b64_secret_to_bytes
 
 from .generated.mediator_pb2 import (
     ReadElementReply,
@@ -229,15 +230,7 @@ def inactivity_checking() -> None:
         threading.Timer(inactivity_check_interval_seconds, inactivity_checking).start()
 
 
-def decode_b64_secret_to_bytes(b64_secret: str | None) -> bytes:
-    if b64_secret is None:
-        return bytes()
-    return (
-        base64.b64decode(b64_secret)
-        .decode("utf-8")
-        .replace("\\n", "\n")
-        .encode("utf-8")
-    )
+
 
 
 def serve() -> None:
