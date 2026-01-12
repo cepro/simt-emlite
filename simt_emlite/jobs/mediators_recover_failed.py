@@ -52,12 +52,11 @@ class MediatorsRecoverFailedJob:
     def run(self):
         self.log.info("starting ...")
 
-        # can probably just use FLY_APP_NAME here:
-        app_name = f"mediators-{env_code}-{self.esco}"
-        self.log.info(f"app is {app_name}")
-
         if not isinstance(self.containers, FlyAdapter):
             raise Exception("This job only works with FlyAdapter")
+
+        app_name = self.containers.fly_app
+        self.log.info(f"app is {app_name}")
 
         machines = self.containers.api.list(app=app_name)
         self.log.info(f"machines {machines}")
