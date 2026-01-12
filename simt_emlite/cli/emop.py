@@ -155,6 +155,37 @@ class EMOPCLI(EmliteMediatorClient):
                 if not mediator_address:
                     raise Exception("unable to get mediator address")
 
+                # Show latest clock drift
+                res = (
+                    self.supabase.table("meter_shadows")
+                    .select("clock_time_diff_seconds,updated_at")
+                    .eq("id", meter_id)
+                    .execute()
+                )
+                if res.data:
+                    drift_raw = res.data[0].get("clock_time_diff_seconds")
+                    drift = f"{drift_raw}" if drift_raw is not None else "unknown"
+
+                    last_read_raw = res.data[0].get("updated_at")
+                    last_read = f"{last_read_raw}" if last_read_raw is not None else "unknown"
+
+                    if last_read_raw:
+                        try:
+                            dt = datetime.datetime.fromisoformat(
+                                last_read_raw.replace("Z", "+00:00")
+                            )
+                            last_read = dt.replace(microsecond=0).isoformat()
+                        except Exception as e:
+                            logging.warning(
+                                f"Failed to parse capture timestamp '{last_read_raw}': {e}"
+                            )
+
+                    console.print(
+                        f"Latest Clock Drift: {drift} seconds | Captured At: {last_read}",
+                        style="cyan",
+                        highlight=False,
+                    )
+
                 super().__init__(
                     mediator_address=mediator_address,
                     meter_id=meter_id,
