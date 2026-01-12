@@ -7,7 +7,7 @@ from simt_emlite import sync
 from simt_emlite.jobs.util import handle_supabase_faliure
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -72,7 +72,7 @@ class MeterSyncJob:
             handle_supabase_faliure(self.log, e)
             return
 
-        for metric in query_result.data:
+        for metric in as_list(query_result):
             try:
                 syncer_class = find_syncer_class(metric["name"])
                 syncer = syncer_class(self.supabase, self.emlite_client, self.meter_id)

@@ -1010,7 +1010,7 @@ class EmliteMediatorClient(object):
         except EmliteEOFError as e:
             raise MediatorClientException("EMLITE_EOF_ERROR", e.message)
         except grpc.RpcError as e:
-            raise MediatorClientException(e.code().name, e.details())
+            raise MediatorClientException(e.code().name, str(e.details() or ""))
         return data
 
     def _write_element(self, object_id: ObjectIdEnum | int, payload: bytes) -> None:
@@ -1021,13 +1021,13 @@ class EmliteMediatorClient(object):
         except EmliteEOFError as e:
             raise MediatorClientException("EMLITE_EOF_ERROR", e.message)
         except grpc.RpcError as e:
-            raise MediatorClientException(e.code().name, e.details())
+            raise MediatorClientException(e.code().name, str(e.details() or ""))
 
     def _send_message(self, message: bytes) -> bytes:
         try:
             data = self.grpc_client.send_message(message)
         except grpc.RpcError as e:
-            raise MediatorClientException(e.code().name, e.details())
+            raise MediatorClientException(e.code().name, str(e.details() or ""))
         return data
 
     def _log_thresholds(

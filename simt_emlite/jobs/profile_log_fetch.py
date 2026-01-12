@@ -13,7 +13,7 @@ from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.meters import is_twin_element
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -51,10 +51,11 @@ class ProfileLogFetchJob:
             .eq("serial", serial)
             .execute()
         )
-        if len(result.data) == 0:
+        result_data = as_list(result)
+        if len(result_data) == 0:
             raise Exception(f"meter {serial} not found")
 
-        meter = result.data[0]
+        meter = result_data[0]
         meter_id = meter["id"]
         esco_id = meter["esco"]
         is_single_meter_app = meter["single_meter_app"]
@@ -70,7 +71,7 @@ class ProfileLogFetchJob:
                 .eq("id", esco_id)
                 .execute()
             )
-            esco_code = result.data[0]["code"]
+            esco_code = as_first_item(result)["code"]
 
         containers = get_instance(
             is_single_meter_app=is_single_meter_app,

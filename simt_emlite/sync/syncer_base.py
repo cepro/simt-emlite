@@ -16,7 +16,7 @@ from simt_emlite.mediator.mediator_client_exception import (
 )
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import Client as SupabaseClient
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -128,7 +128,7 @@ class SyncerBase(ABC):
                 .eq("id", self.meter_id)
                 .execute()
             )
-            current_record = query_result.data[0]
+            current_record = as_first_item(query_result)
 
             modified_or_new = {}
             for key in current_record:

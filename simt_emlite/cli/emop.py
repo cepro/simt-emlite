@@ -18,7 +18,7 @@ from simt_emlite.mediator.mediator_client_exception import MediatorClientExcepti
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.logging import suppress_noisy_loggers
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 # Configure logging early to avoid being overridden by imports
 logging.basicConfig(level=logging.WARNING)
@@ -123,12 +123,12 @@ class EMOPCLI(EmliteMediatorClient):
                     .eq("serial", serial)
                     .execute()
                 )
-                if len(result.data) == 0:
+                if len(as_list(result)) == 0:
                     err_msg = f"meter {serial} not found"
                     console.print(err_msg)
                     raise Exception(err_msg)
 
-                meter = result.data[0]
+                meter = as_first_item(result)
                 meter_id = meter["id"]
                 esco_id = meter["esco"]
                 is_single_meter_app = meter["single_meter_app"]
@@ -142,7 +142,7 @@ class EMOPCLI(EmliteMediatorClient):
                         .eq("id", esco_id)
                         .execute()
                     )
-                    esco_code = result.data[0]["code"]
+                    esco_code = as_first_item(result)["code"]
 
                 containers = get_instance(
                     is_single_meter_app=is_single_meter_app,
@@ -162,11 +162,11 @@ class EMOPCLI(EmliteMediatorClient):
                     .eq("id", meter_id)
                     .execute()
                 )
-                if res.data:
-                    drift_raw = res.data[0].get("clock_time_diff_seconds")
+                if as_list(res):
+                    drift_raw = as_first_item(res).get("clock_time_diff_seconds")
                     drift = f"{drift_raw}" if drift_raw is not None else "unknown"
 
-                    last_read_raw = res.data[0].get("clock_time_diff_synced_at")
+                    last_read_raw = as_first_item(res).get("clock_time_diff_synced_at")
                     last_read = f"{last_read_raw}" if last_read_raw is not None else "unknown"
 
                     if last_read_raw:
@@ -209,12 +209,12 @@ class EMOPCLI(EmliteMediatorClient):
             .eq("serial", serial)
             .execute()
         )
-        if len(result.data) == 0:
+        if len(as_list(result)) == 0:
             msg = f"meter {serial} not found"
             console.print(msg)
             raise Exception(msg)
 
-        print(result.data[0]["name"])
+        print(as_first_item(result)["name"])
 
     def info(self) -> None:
         result = (
@@ -223,11 +223,11 @@ class EMOPCLI(EmliteMediatorClient):
             .eq("serial", self.serial)
             .execute()
         )
-        if len(result.data) == 0:
+        if len(as_list(result)) == 0:
             msg = f"meter {self.serial} not found"
             console.print(msg)
             raise Exception(msg)
-        registry_rec = result.data[0]
+        registry_rec = as_first_item(result)
 
         result = (
             self.supabase.table("meter_shadows")
@@ -235,7 +235,7 @@ class EMOPCLI(EmliteMediatorClient):
             .eq("id", registry_rec["id"])
             .execute()
         )
-        shadow_rec = result.data[0]
+        shadow_rec = as_first_item(result)
 
         print(json.dumps({"registry": registry_rec, "shadow": shadow_rec}, indent=2))
 
