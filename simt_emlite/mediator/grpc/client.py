@@ -52,7 +52,7 @@ class EmliteMediatorGrpcClient:
         if use_cert_auth and not self.have_certs:
             raise Exception("use_cert_auth set but certs not set in env file")
 
-        self.mediator_address = mediator_address
+        self.mediator_address = mediator_address or "0.0.0.0:50051"
         self.meter_id = meter_id if meter_id is not None else "unknown"
         self.use_cert_auth = use_cert_auth
 
@@ -78,7 +78,8 @@ class EmliteMediatorGrpcClient:
                         "rpc timeout (deadline_exceeded)", object_id=obis_name
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
-                    if "EOFError" in e.details():
+                    details = str(e.details() or "")
+                    if "EOFError" in details:
                         self.log.warn(
                             "EOFError from meter",
                             object_id=obis_name,
@@ -86,7 +87,7 @@ class EmliteMediatorGrpcClient:
                         raise EmliteEOFError(
                             f"object_id={obis_name}, meter={self.meter_id}"
                         )
-                    elif "failed to connect after retries" in e.details():
+                    elif "failed to connect after retries" in details:
                         self.log.warn(e.details())
                         raise EmliteConnectionFailure(
                             f"object_id={obis_name}, meter={self.meter_id}"
@@ -148,7 +149,8 @@ class EmliteMediatorGrpcClient:
                         "rpc timeout (deadline_exceeded)", object_id=obis_name
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
-                    if "EOFError" in e.details():
+                    details = str(e.details() or "")
+                    if "EOFError" in details:
                         self.log.warn(
                             "EOFError from meter",
                             object_id=obis_name,
@@ -156,7 +158,7 @@ class EmliteMediatorGrpcClient:
                         raise EmliteEOFError(
                             "object_id=" + obis_name + ", meter=" + self.meter_id
                         )
-                    elif "failed to connect after retries" in e.details():
+                    elif "failed to connect after retries" in details:
                         self.log.warn(e.details())
                         raise EmliteConnectionFailure(
                             "object_id=" + obis_name + ", meter=" + self.meter_id
@@ -192,6 +194,9 @@ class EmliteMediatorGrpcClient:
         return payload_bytes
 
     def _get_channel(self) -> grpc.Channel:
+        if self.mediator_address is None:
+            raise ValueError("mediator_address cannot be none")
+
         if self.use_cert_auth:
             credentials = self._channel_credentials()
             return grpc.secure_channel(

@@ -12,7 +12,7 @@ from simt_emlite.mediator.mediator_client_exception import (
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import Client as SupabaseClient
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -132,11 +132,11 @@ class PrepayEnabledFlipAllJob:
         escos = (
             self.flows_supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
-        if len(escos.data) == 0:
+        if len(as_list(escos)) == 0:
             self.log.error("no esco found for " + self.esco)
             sys.exit(10)
 
-        esco_id = list(escos.data)[0]["id"]
+        esco_id = as_first_item(escos)["id"]
 
         meters_result = (
             self.flows_supabase.table("meter_registry")
@@ -148,11 +148,11 @@ class PrepayEnabledFlipAllJob:
             .execute()
         )
 
-        if len(meters_result.data) == 0:
+        if len(as_list(meters_result)) == 0:
             self.log.error("No meter found to disable")
             sys.exit(10)
 
-        meters_to_disable = meters_result.data
+        meters_to_disable = as_list(meters_result)
         self.log.info(f"Processing {len(meters_to_disable)} meters")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:

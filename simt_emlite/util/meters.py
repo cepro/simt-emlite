@@ -1,5 +1,7 @@
 from supabase import Client
 
+from simt_emlite.util.supabase import as_first_item
+
 single_phase_hardware_str_to_registry_str = {
     "6C": "C1.w",
     "6Cw": "C1.w",
@@ -27,4 +29,4 @@ def get_hardware(supabase: Client, meter_id: str) -> str:
     result = (
         supabase.table("meter_registry").select("hardware").eq("id", meter_id).execute()
     )
-    return result.data[0]["hardware"]
+    return as_first_item(result)["hardware"]

@@ -9,7 +9,7 @@ from simt_emlite.jobs.util import handle_supabase_faliure
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -64,7 +64,7 @@ class AutoTopupJob:
 
             meters_needing_topup = []
 
-            for meter in query_result.data:
+            for meter in as_list(query_result):
                 wallet = meter.get("wallets")
                 if wallet is None:
                     self.log.warning(
@@ -90,14 +90,14 @@ class AutoTopupJob:
                                 .eq("serial", meter["serial"])
                                 .execute()
                             )
-                            if len(result.data) == 0:
+                            if len(as_list(result)) == 0:
                                 self.log.warning(
                                     "Meter not found in meter_registry",
                                     serial=meter["serial"],
                                 )
                                 continue
 
-                            meter_registry = result.data[0]
+                            meter_registry = as_first_item(result)
                             meter_id = meter_registry["id"]
                             esco_id = meter_registry["esco"]
                             is_single_meter_app = meter_registry["single_meter_app"]
@@ -110,8 +110,8 @@ class AutoTopupJob:
                                     .eq("id", esco_id)
                                     .execute()
                                 )
-                                if len(result.data) > 0:
-                                    esco_code = result.data[0]["code"]
+                                if len(as_list(result)) > 0:
+                                    esco_code = as_first_item(result)["code"]
 
                             # Get mediator address
                             containers = get_instance(

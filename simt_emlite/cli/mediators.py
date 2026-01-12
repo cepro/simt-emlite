@@ -19,7 +19,7 @@ from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.meters import is_three_phase
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 config = load_config()
 
@@ -382,11 +382,11 @@ Go ahead and destroy ALL of these? (y/n): """)
             .eq("serial", serial)
             .execute()
         )
-        if len(meter_result.data) == 0:
+        if len(as_list(meter_result)) == 0:
             print(f"meter {serial} not found")
             sys.exit(10)
 
-        meter = meter_result.data[0]
+        meter = as_first_item(meter_result)
 
         if meter["esco"] is not None:
             esco_result = (
@@ -395,7 +395,7 @@ Go ahead and destroy ALL of these? (y/n): """)
                 .eq("id", meter["esco"])
                 .execute()
             )
-            meter["esco"] = esco_result.data[0]["code"]
+            meter["esco"] = as_first_item(esco_result)["code"]
 
         return meter
 
@@ -403,7 +403,7 @@ Go ahead and destroy ALL of these? (y/n): """)
         meters_result = self.supabase.rpc(
             "get_meters_for_cli", {"esco_filter": esco, "feeder_filter": feeder}
         ).execute()
-        return meters_result.data
+        return as_list(meters_result)
 
     def _container_by_serial(self, serial: str):
         meter = self._meter_by_serial(serial)

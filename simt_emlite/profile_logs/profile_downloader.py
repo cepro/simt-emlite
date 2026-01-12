@@ -32,7 +32,7 @@ from simt_emlite.util.meters import (
     is_three_phase,
     is_twin_element,
 )
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -133,12 +133,12 @@ class ProfileDownloader:
             query.eq("name", self.name)
         result = query.execute()
 
-        if len(result.data) == 0:
+        if len(as_list(result)) == 0:
             raise Exception(
                 f"Meter not found in registry for serial=[{self.serial}]. name=[{self.name}]."
             )
 
-        meter_data = result.data[0]
+        meter_data = as_first_item(result)
         self.meter_id = meter_data["id"]
         self.esco_id = meter_data["esco"]
         self.name = meter_data["name"]
@@ -171,7 +171,7 @@ class ProfileDownloader:
                 .eq("id", self.esco_id)
                 .execute()
             )
-            self.esco_code = result.data[0]["code"] if result.data else None
+            self.esco_code = as_first_item(result)["code"] if as_list(result) else None
             logger.info(f"Found esco_code [{self.esco_code}] for esco [{self.esco_id}]")
 
     def _init_emlite_client(self):

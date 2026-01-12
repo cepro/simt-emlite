@@ -10,7 +10,7 @@ import requests
 from simt_emlite.jobs.future_tariffs_update import FutureTariffsUpdateJob
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -76,13 +76,13 @@ class FutureTariffsUpdateAllJob:
             .execute()
         )
 
-        if len(meter_query.data) == 0:
+        if len(as_list(meter_query)) == 0:
             self.log.error(
                 f"No active meter found in meter_registry with serial {serial}"
             )
             return False
 
-        meter_id = meter_query.data[0]["id"]
+        meter_id = as_first_item(meter_query)["id"]
 
         mediator_address = self.containers.mediator_address(meter_id, serial)
         if mediator_address is None:

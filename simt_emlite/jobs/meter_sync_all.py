@@ -8,7 +8,7 @@ from typing import Any, Callable
 from simt_emlite.jobs.meter_sync import MeterSyncJob
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -109,11 +109,12 @@ class MeterSyncAllJob:
         escos = (
             self.supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
-        if len(escos.data) == 0:
+        escos_data = as_list(escos)
+        if len(escos_data) == 0:
             self.log.error("no esco found for " + self.esco)
             sys.exit(10)
 
-        esco_id = list(escos.data)[0]["id"]
+        esco_id = escos_data[0]["id"]
 
         registry_result = (
             self.supabase.table("meter_registry")
@@ -128,12 +129,13 @@ class MeterSyncAllJob:
             .order(column="serial")
             .execute()
         )
-        self.log.info(f"{len(registry_result.data)} meters found")
-        if len(registry_result.data) == 0:
+        registry_data = as_list(registry_result)
+        self.log.info(f"{len(registry_data)} meters found")
+        if len(registry_data) == 0:
             self.log.error("no meters record found")
             sys.exit(11)
 
-        meters = list(filter(filter_connected, registry_result.data))
+        meters = list(filter(filter_connected, registry_data))
         if self.filter_fn:
             meters = list(filter(self.filter_fn, meters))
 
