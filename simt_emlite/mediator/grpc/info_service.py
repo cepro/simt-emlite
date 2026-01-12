@@ -1,6 +1,6 @@
 
 import json
-import logging
+
 import traceback
 import grpc
 from simt_emlite.util.config import load_config
@@ -8,7 +8,9 @@ from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 from .generated.mediator_pb2 import GetInfoReply, GetMetersReply
 from .generated.mediator_pb2_grpc import InfoServiceServicer
 
-logger = logging.getLogger(__name__)
+from simt_emlite.util.logging import get_logger
+
+logger = get_logger(__name__, __file__)
 
 class EmliteInfoServiceServicer(InfoServiceServicer):
     def __init__(self):

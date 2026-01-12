@@ -86,5 +86,18 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == "__main__":
+    import argparse
+    import logging
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose logging"
+    )
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Verbose logging enabled")
+
     signal.signal(signal.SIGINT, shutdown_handler)
     serve()

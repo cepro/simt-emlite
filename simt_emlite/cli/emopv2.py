@@ -156,9 +156,10 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
                     region=FLY_REGION,
                     env=cast(str | None, ENV),
                 )
-                mediator_address = containers.mediator_address(meter_id, serial)
-                if not mediator_address:
+                resolved_address = containers.mediator_address(meter_id, serial)
+                if not resolved_address:
                     raise Exception("unable to get mediator address")
+                mediator_address = resolved_address
 
                 # Show latest clock drift
                 res = (
@@ -245,7 +246,7 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
         try:
              data = json.loads(info_json)
              print(json.dumps(data, indent=2))
-        except:
+        except Exception:
              print(info_json)
 
 

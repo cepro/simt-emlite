@@ -1,21 +1,21 @@
 
 import threading
 import time
-import logging
 from typing import Dict, Optional
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 
 from simt_emlite.emlite.emlite_api import EmliteAPI
 from simt_emlite.util.config import load_config
+from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client, as_list
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__, __file__)
 
 # Constants
 MINIMUM_TIME_BETWEEN_REQUESTS_SECONDS = 2
 REGISTRY_REFRESH_INTERVAL_SECONDS = 300
-LOCK_TIMEOUT_SECONDS = 10.0
+LOCK_TIMEOUT_SECONDS = 60.0
 
 @contextmanager
 def acquire_timeout(lock, timeout):
@@ -111,6 +111,8 @@ class MeterRegistry:
             )
 
             rows = as_list(result)
+            added_count = 0
+            updated_count = 0
             with self._lock:
                 for row in rows:
                     serial = row.get("serial")
@@ -120,12 +122,17 @@ class MeterRegistry:
                          if serial not in self._meters:
                              logger.info(f"Adding meter {serial} at {ip}")
                              self._meters[serial] = MeterContext(serial, ip)
+                             added_count += 1
                          else:
                              # Update IP if changed
                              if self._meters[serial].host != ip:
                                  logger.info(f"Updating meter {serial} IP to {ip}")
                                  self._meters[serial].host = ip
                                  self._meters[serial].api = EmliteAPI(ip, self._meters[serial].port)
+                                 updated_count += 1
+
+                if added_count > 0 or updated_count > 0:
+                    logger.info(f"Registry refreshed: {added_count} added, {updated_count} updated. Total meters: {len(self._meters)}")
 
             self._last_refresh_time = time.time()
 

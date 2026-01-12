@@ -17,7 +17,7 @@ from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-socket_timeout_seconds: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
+socket_timeout_seconds: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 10.0)
 
 
 socks_host: str | None = os.environ.get("SOCKS_HOST")
@@ -87,6 +87,7 @@ class EmliteNET:
                 logger.debug("connected")
             else:
                 sock = socket.socket()
+                sock.settimeout(socket_timeout_seconds)
                 logger.debug("connect()")
                 sock.connect((self.host, self.port))
 

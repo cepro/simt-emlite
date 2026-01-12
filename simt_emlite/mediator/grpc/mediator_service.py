@@ -1,7 +1,7 @@
 
-import logging
+
 import grpc
-from emop_frame_protocol.util import emop_encode_u3be
+from emop_frame_protocol.util import emop_encode_u3be  # type: ignore[import-untyped]
 
 from .generated.mediator_pb2 import (
     ReadElementReply,
@@ -9,9 +9,11 @@ from .generated.mediator_pb2 import (
     WriteElementReply,
 )
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceServicer
-from .meter_registry import MeterRegistry, acquire_timeout
+from .meter_registry import MeterRegistry, acquire_timeout, LOCK_TIMEOUT_SECONDS
 
-logger = logging.getLogger(__name__)
+from simt_emlite.util.logging import get_logger
+
+logger = get_logger(__name__, __file__)
 
 class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
     def __init__(self, registry: MeterRegistry):
@@ -41,7 +43,7 @@ class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
 
         # Acquire per-meter lock
         try:
-            with acquire_timeout(meter.lock, timeout=10.0):
+            with acquire_timeout(meter.lock, timeout=LOCK_TIMEOUT_SECONDS):
                 meter.space_out_requests()
 
                 object_id_bytes = emop_encode_u3be(request.objectId)
@@ -68,7 +70,7 @@ class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
              return WriteElementReply()
 
         try:
-            with acquire_timeout(meter.lock, timeout=10.0):
+            with acquire_timeout(meter.lock, timeout=LOCK_TIMEOUT_SECONDS):
                 meter.space_out_requests()
 
                 object_id_bytes = emop_encode_u3be(request.objectId)
@@ -94,7 +96,7 @@ class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
              return SendRawMessageReply()
 
         try:
-            with acquire_timeout(meter.lock, timeout=10.0):
+            with acquire_timeout(meter.lock, timeout=LOCK_TIMEOUT_SECONDS):
                 meter.space_out_requests()
 
                 logger.debug(f"sendRawMessage for {meter.serial}")
