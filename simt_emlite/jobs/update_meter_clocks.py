@@ -7,6 +7,7 @@ import traceback
 from typing import Dict
 
 from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
@@ -17,9 +18,9 @@ supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
+drift_threshold_seconds: int = int(os.environ.get("DRIFT_THRESHOLD_SECONDS") or 20)
 env: str | None = os.environ.get("ENV")
 
-DRIFT_THRESHOLD_SECONDS = 150
 
 
 """
@@ -83,6 +84,21 @@ class UpdateMeterClocksJob:
             self.log.info("Clock update successful", serial=serial)
             return True
 
+        except MediatorClientException as e:
+            if e.code_str == "DEADLINE_EXCEEDED":
+                self.log.error(
+                    "Deadline exceeded updating clock",
+                    serial=serial,
+                    error=str(e),
+                )
+            else:
+                self.log.error(
+                    "Mediator client error updating clock",
+                    serial=serial,
+                    error=e,
+                    exception=traceback.format_exception(e),
+                )
+            return False
         except Exception as e:
             self.log.error(
                 "Failure occurred updating clock",
@@ -105,7 +121,7 @@ class UpdateMeterClocksJob:
             query = (
                 self.flows_supabase.table("meter_shadows")
                 .select(select_str)
-                .gt("clock_time_diff_seconds", DRIFT_THRESHOLD_SECONDS)
+                .gt("clock_time_diff_seconds", drift_threshold_seconds)
                 .eq("meter_registry.mode", "active")
             )
 
@@ -126,7 +142,7 @@ class UpdateMeterClocksJob:
             for record in response.data
         ]
         self.log.info(
-            f"Found {len(drifted_meters)} meters with clock drift > {DRIFT_THRESHOLD_SECONDS}s"
+            f"Found {len(drifted_meters)} meters with clock drift > {drift_threshold_seconds}s"
         )
 
         if len(drifted_meters) == 0:
