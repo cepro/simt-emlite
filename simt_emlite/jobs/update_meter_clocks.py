@@ -1,5 +1,6 @@
 import argparse
 import concurrent.futures
+import datetime
 import os
 import sys
 import traceback
@@ -45,25 +46,7 @@ class UpdateMeterClocksJob:
     def run_job(self, meter_drift_record: Dict):
         serial = meter_drift_record["serial"]
         drift_seconds = meter_drift_record["clock_time_diff_seconds"]
-
-        # 1. Look up meter in the flows meter_registry checking it's active
-        #    We primarily need the meter_id.
-        meter_query = (
-            self.flows_supabase.table("meter_registry")
-            .select("*")
-            .eq("serial", serial)
-            .eq("mode", "active")
-            .execute()
-        )
-
-        if len(meter_query.data) == 0:
-            self.log.warn(
-                f"No active meter found in meter_registry with serial {serial} (skipping clock update)"
-            )
-            return False
-
-        meter_data = meter_query.data[0]
-        meter_id = meter_data["id"]
+        meter_id = meter_drift_record["id"]
 
         mediator_address = self.containers.mediator_address(meter_id, serial)
         if mediator_address is None:
@@ -87,6 +70,16 @@ class UpdateMeterClocksJob:
             # Write the correct time
             client.clock_time_write()
 
+            # 2. Reset clock drift in meter_shadows now that it's synced
+            self.flows_supabase.table("meter_shadows").update(
+                {
+                    "clock_time_diff_seconds": 0,
+                    "clock_time_diff_synced_at": datetime.datetime.now(
+                        datetime.UTC
+                    ).isoformat(),
+                }
+            ).eq("id", meter_id).execute()
+
             self.log.info("Clock update successful", serial=serial)
             return True
 
@@ -103,17 +96,35 @@ class UpdateMeterClocksJob:
         self.log.info("Starting update meter clocks job...")
 
         try:
-            response = (
-                self.flows_supabase.table("meters_clock_drift")
-                .select("*")
+            # Query meter_shadows, joining meter_registry and escos to allow filtering by code
+            select_str = "clock_time_diff_seconds, id, meter_registry!inner(serial, mode"
+            if self.esco:
+                select_str += ", escos!inner(code)"
+            select_str += ")"
+
+            query = (
+                self.flows_supabase.table("meter_shadows")
+                .select(select_str)
                 .gt("clock_time_diff_seconds", DRIFT_THRESHOLD_SECONDS)
-                .execute()
+                .eq("meter_registry.mode", "active")
             )
+
+            if self.esco:
+                query = query.eq("meter_registry.escos.code", self.esco)
+
+            response = query.execute()
         except Exception as e:
-            self.log.error("Failed to query meters_clock_drift view", error=e)
+            self.log.error("Failed to query meter_shadows", error=e)
             sys.exit(1)
 
-        drifted_meters = response.data
+        drifted_meters = [
+            {
+                "id": record["id"],
+                "serial": record["meter_registry"]["serial"],
+                "clock_time_diff_seconds": record["clock_time_diff_seconds"],
+            }
+            for record in response.data
+        ]
         self.log.info(
             f"Found {len(drifted_meters)} meters with clock drift > {DRIFT_THRESHOLD_SECONDS}s"
         )
