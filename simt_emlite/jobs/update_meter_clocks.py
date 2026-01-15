@@ -129,9 +129,24 @@ class UpdateMeterClocksJob:
                 query = query.eq("meter_registry.escos.code", self.esco)
 
             response = query.execute()
+            self.log.info("Raw database response", data=response.data)
         except Exception as e:
             self.log.error("Failed to query meter_shadows", error=e)
             sys.exit(1)
+
+        # Python post-check filtering as esco filtering in Supabase might be failing
+        records = response.data
+        if self.esco:
+            records = [
+                r
+                for r in records
+                if r.get("meter_registry", {}).get("escos", {}).get("code") == self.esco
+            ]
+            self.log.info(
+                f"Post-filtered by esco {self.esco}",
+                original_count=len(response.data),
+                filtered_count=len(records),
+            )
 
         drifted_meters = [
             {
@@ -139,10 +154,11 @@ class UpdateMeterClocksJob:
                 "serial": record["meter_registry"]["serial"],
                 "clock_time_diff_seconds": record["clock_time_diff_seconds"],
             }
-            for record in response.data
+            for record in records
         ]
         self.log.info(
-            f"Found {len(drifted_meters)} meters with clock drift > {drift_threshold_seconds}s"
+            f"Found {len(drifted_meters)} meters with clock drift > {drift_threshold_seconds}s",
+            drifted_meters=drifted_meters,
         )
 
         if len(drifted_meters) == 0:
