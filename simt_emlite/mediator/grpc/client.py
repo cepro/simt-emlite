@@ -78,7 +78,8 @@ class EmliteMediatorGrpcClient:
                         "rpc timeout (deadline_exceeded)", object_id=obis_name
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
-                    if "EOFError" in e.details():
+                    details = e.details() or ""
+                    if "EOFError" in details:
                         self.log.warn(
                             "EOFError from meter",
                             object_id=obis_name,
@@ -86,8 +87,8 @@ class EmliteMediatorGrpcClient:
                         raise EmliteEOFError(
                             f"object_id={obis_name}, meter={self.meter_id}"
                         )
-                    elif "failed to connect after retries" in e.details():
-                        self.log.warn(e.details())
+                    elif "failed to connect after retries" in details:
+                        self.log.warn(details)
                         raise EmliteConnectionFailure(
                             f"object_id={obis_name}, meter={self.meter_id}"
                         )
@@ -148,7 +149,8 @@ class EmliteMediatorGrpcClient:
                         "rpc timeout (deadline_exceeded)", object_id=obis_name
                     )
                 elif e.code() == grpc.StatusCode.INTERNAL:
-                    if "EOFError" in e.details():
+                    details = e.details() or ""
+                    if "EOFError" in details:
                         self.log.warn(
                             "EOFError from meter",
                             object_id=obis_name,
@@ -156,8 +158,8 @@ class EmliteMediatorGrpcClient:
                         raise EmliteEOFError(
                             "object_id=" + obis_name + ", meter=" + self.meter_id
                         )
-                    elif "failed to connect after retries" in e.details():
-                        self.log.warn(e.details())
+                    elif "failed to connect after retries" in details:
+                        self.log.warn(details)
                         raise EmliteConnectionFailure(
                             "object_id=" + obis_name + ", meter=" + self.meter_id
                         )
@@ -192,6 +194,9 @@ class EmliteMediatorGrpcClient:
         return payload_bytes
 
     def _get_channel(self) -> grpc.Channel:
+        if self.mediator_address is None:
+            raise Exception("mediator_address is not set")
+
         if self.use_cert_auth:
             credentials = self._channel_credentials()
             return grpc.secure_channel(
