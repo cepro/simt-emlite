@@ -247,7 +247,7 @@ Create machine with these details (y/n): """)
     # '6PN' addresses.
     def get_private_address_for_single_meter_app(self, machine):
         mediator_host = self.get_private_flycast_ip()
-        mediator_port = 44444  # fixed port for single_meter_app private access
+        mediator_port = 44444  # fixed port for single_meter_app private access (insecure)
         # ipv6 so wrap host ip in []'s
         return f"[{mediator_host}]:{mediator_port}"
 

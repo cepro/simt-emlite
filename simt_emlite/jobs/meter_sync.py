@@ -38,6 +38,7 @@ class MeterSyncJob:
         supabase_key: str,
         flows_role_key: str,
         run_frequency: str,
+        use_cert_auth: bool = False,
     ):
         self.meter_id = meter_id
         self.mediator_address = mediator_address
@@ -49,6 +50,7 @@ class MeterSyncJob:
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
             meter_id=self.meter_id,
+            use_cert_auth=use_cert_auth,
         )
         self.supabase = supa_client(
             self.supabase_url, self.supabase_key, self.flows_role_key

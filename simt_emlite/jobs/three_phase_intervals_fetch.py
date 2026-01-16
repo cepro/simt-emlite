@@ -85,6 +85,7 @@ class ThreePhaseIntervalsFetchJob:
             is_single_meter_app=is_single_meter_app,
             esco=esco_code,
             serial=serial,
+            use_private_address=True,
             region=FLY_REGION,
         )
         mediator_address = containers.mediator_address(meter_id, serial)
@@ -94,7 +95,7 @@ class ThreePhaseIntervalsFetchJob:
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
             meter_id=meter_id,
-            use_cert_auth=is_single_meter_app,
+            use_cert_auth=False,
             logging_level=logging.INFO,
         )
 

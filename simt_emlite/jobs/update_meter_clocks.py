@@ -48,8 +48,19 @@ class UpdateMeterClocksJob:
         serial = meter_drift_record["serial"]
         drift_seconds = meter_drift_record["clock_time_diff_seconds"]
         meter_id = meter_drift_record["id"]
+        is_single_meter_app = meter_drift_record.get("single_meter_app", False)
 
-        mediator_address = self.containers.mediator_address(meter_id, serial)
+        if is_single_meter_app:
+            containers = get_instance(
+                is_single_meter_app=is_single_meter_app,
+                serial=serial,
+                use_private_address=True,
+                env=env
+            )
+        else:
+            containers = self.containers
+
+        mediator_address = containers.mediator_address(meter_id, serial)
         if mediator_address is None:
             self.log.error(f"No mediator container exists for meter {serial}")
             return False
@@ -66,6 +77,7 @@ class UpdateMeterClocksJob:
             client = EmliteMediatorClient(
                 mediator_address=mediator_address,
                 meter_id=meter_id,
+                use_cert_auth=False,
             )
 
             # Write the correct time
@@ -113,7 +125,7 @@ class UpdateMeterClocksJob:
 
         try:
             # Query meter_shadows, joining meter_registry and escos to allow filtering by code
-            select_str = "clock_time_diff_seconds, id, meter_registry!inner(serial, mode"
+            select_str = "clock_time_diff_seconds, id, meter_registry!inner(serial, mode, single_meter_app"
             if self.esco:
                 select_str += ", escos!inner(code)"
             select_str += ")"
@@ -153,6 +165,7 @@ class UpdateMeterClocksJob:
                 "id": record["id"],
                 "serial": record["meter_registry"]["serial"],
                 "clock_time_diff_seconds": record["clock_time_diff_seconds"],
+                "single_meter_app": record["meter_registry"]["single_meter_app"],
             }
             for record in records
         ]

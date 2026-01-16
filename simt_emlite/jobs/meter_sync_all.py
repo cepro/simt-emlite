@@ -69,7 +69,7 @@ class MeterSyncAllJob:
                     env=env
                 )
             else:
-                containers_api = get_instance(esco=esco, env=env)
+                containers_api = get_instance(esco=self.esco, env=env)
 
             mediator_address = containers_api.mediator_address(meter_id, serial)
             if mediator_address is None:
@@ -94,6 +94,7 @@ class MeterSyncAllJob:
                 supabase_key=supabase_key,
                 flows_role_key=flows_role_key,
                 run_frequency=self.run_frequency,
+                use_cert_auth=False,
             )
             job.sync()
         except Exception as e:
