@@ -12,7 +12,7 @@ logger = get_logger(__name__, __file__)
 class SyncerBacklight(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
-        setting = self.emlite_client.backlight()
+        setting = self.emlite_client.backlight(self.serial)
 
         if not isinstance(setting, EmopMessage.BacklightSettingType):
             logger.warn("skipping because the backlight value is unknown")

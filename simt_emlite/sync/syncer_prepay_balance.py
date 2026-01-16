@@ -22,5 +22,5 @@ class SyncerPrepayBalance(SyncerBase):
         if is_three_phase(as_first_item(result)["hardware"]):
             return UpdatesTuple(None, None)
 
-        balance = self.emlite_client.prepay_balance()
+        balance = self.emlite_client.prepay_balance(self.serial)
         return UpdatesTuple({"balance": str(balance)}, None)

@@ -19,7 +19,7 @@ class SyncerDaylightSavingsEnabled(SyncerBase):
         if is_three_phase(as_first_item(result)["hardware"]):
             return UpdatesTuple(None, None)
 
-        enabled = self.emlite_client.daylight_savings_correction_enabled()
+        enabled = self.emlite_client.daylight_savings_correction_enabled(self.serial)
         return UpdatesTuple(
             None,
             {"daylight_savings_correction_enabled": enabled},

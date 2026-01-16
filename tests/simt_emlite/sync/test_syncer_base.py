@@ -53,7 +53,9 @@ class TestSyncerBase(unittest.TestCase):
             )
             supabase.table = mock_table_execute
 
-            syncer = ASyncer(supabase, emlite_client=None, meter_id="123")
+            syncer = ASyncer(
+                supabase, emlite_client=None, meter_id="123", serial="TEST_SERIAL"
+            )
             syncer.mock_responses(shadow_rec={"csq": 20}, registry_rec=None)
             syncer.sync()
 
@@ -77,7 +79,9 @@ class TestSyncerBase(unittest.TestCase):
             )
             supabase.table = mock_table_execute
 
-            syncer = ASyncer(supabase, emlite_client=None, meter_id="123")
+            syncer = ASyncer(
+                supabase, emlite_client=None, meter_id="123", serial="TEST_SERIAL"
+            )
             syncer.mock_responses(shadow_rec=None, registry_rec={"serial": "EML12345"})
             syncer.sync()
 

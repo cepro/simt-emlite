@@ -119,12 +119,11 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
             )
 
             mediator_address = "0.0.0.0:50051"
-            is_single_meter_app = False
 
             if serial is not None:
                 result = (
                     self.supabase.table("meter_registry")
-                    .select("id,esco,single_meter_app")
+                    .select("id,esco")
                     .eq("serial", serial)
                     .execute()
                 )
@@ -136,7 +135,6 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
                 meter = as_first_item(result)
                 meter_id = meter["id"]
                 esco_id = meter["esco"]
-                is_single_meter_app = meter["single_meter_app"]
 
                 esco_code = None
                 if esco_id is not None:
@@ -150,7 +148,7 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
                     esco_code = as_first_item(result)["code"]
 
                 containers = get_instance(
-                    is_single_meter_app=is_single_meter_app,
+                    is_single_meter_app=False,
                     esco=esco_code,
                     serial=serial,
                     region=FLY_REGION,
@@ -196,7 +194,7 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
             # Initialize V2 client (without meter_id, but with resolved address)
             super().__init__(
                 mediator_address=mediator_address,
-                use_cert_auth=is_single_meter_app,
+                use_cert_auth=False,
                 logging_level=logging_level,
             )
         except Exception as e:

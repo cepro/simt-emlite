@@ -20,7 +20,7 @@ class SyncerHardware(SyncerBase):
             raise ValueError(f"Meter not found with id {self.meter_id}")
         meter_registry_entry = as_first_item(result)
 
-        hardware = self.emlite_client.hardware()
+        hardware = self.emlite_client.hardware(self.serial)
 
         registry_hardware = meter_registry_entry["hardware"]
         if registry_hardware == hardware:

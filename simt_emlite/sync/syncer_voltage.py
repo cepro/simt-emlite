@@ -12,10 +12,10 @@ class SyncerVoltage(SyncerBase):
     def fetch_metrics(self) -> UpdatesTuple:
         is_3p = is_three_phase_lookup(self.supabase, self.meter_id)
         if is_3p:
-            (v1, v2, v3) = self.emlite_client.three_phase_instantaneous_voltage()
+            (v1, v2, v3) = self.emlite_client.three_phase_instantaneous_voltage(self.serial)
             metrics = {"3p_voltage_l1": v1, "3p_voltage_l2": v2, "3p_voltage_l3": v3}
         else:
-            voltage = self.emlite_client.instantaneous_voltage()
+            voltage = self.emlite_client.instantaneous_voltage(self.serial)
             metrics = {"voltage": voltage}
 
         return UpdatesTuple(metrics, None)

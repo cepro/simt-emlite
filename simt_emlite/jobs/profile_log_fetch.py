@@ -47,7 +47,7 @@ class ProfileLogFetchJob:
         # Look up meter details by serial
         result = (
             self.supabase.table("meter_registry")
-            .select("id,esco,single_meter_app,hardware")
+            .select("id,esco,hardware")
             .eq("serial", serial)
             .execute()
         )
@@ -58,7 +58,6 @@ class ProfileLogFetchJob:
         meter = result_data[0]
         meter_id = meter["id"]
         esco_id = meter["esco"]
-        is_single_meter_app = meter["single_meter_app"]
         hardware: str = meter.get("hardware", "")
         self.is_twin_element = is_twin_element(hardware)
 
@@ -74,7 +73,7 @@ class ProfileLogFetchJob:
             esco_code = as_first_item(result)["code"]
 
         containers = get_instance(
-            is_single_meter_app=is_single_meter_app,
+            is_single_meter_app=False,
             esco=esco_code,
             serial=serial,
             region=FLY_REGION,
@@ -85,8 +84,7 @@ class ProfileLogFetchJob:
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=meter_id,
-            use_cert_auth=is_single_meter_app,
+            use_cert_auth=False,
             logging_level=logging.INFO,
         )
 
@@ -103,7 +101,7 @@ class ProfileLogFetchJob:
             )
 
             self.log.info("Fetching profile_log_2", timestamp=timestamp)
-            response = self.emlite_client.profile_log_2(timestamp, self.is_twin_element)
+            response = self.emlite_client.profile_log_2(self.serial, timestamp, self.is_twin_element)
 
             # Print the response to stdout
             print(str(response))

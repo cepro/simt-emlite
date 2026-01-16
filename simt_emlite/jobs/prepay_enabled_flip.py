@@ -36,7 +36,6 @@ class PrepayEnabledFlipJob:
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=meter["id"],
         )
 
         global logger
@@ -53,7 +52,7 @@ class PrepayEnabledFlipJob:
         """
 
         try:
-            self.emlite_client.prepay_enabled_write(False)
+            self.emlite_client.prepay_enabled_write(self.meter["serial"], False)
             self.log.info("prepay disabled")
             return True
         except MediatorClientException as e:

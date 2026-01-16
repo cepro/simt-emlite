@@ -38,10 +38,12 @@ class SyncerBase(ABC):
         supabase: SupabaseClient,
         emlite_client: EmliteMediatorClient,
         meter_id: str,
+        serial: str,
     ):
         self.supabase = supabase
         self.emlite_client = emlite_client
         self.meter_id = meter_id
+        self.serial = serial
 
         self.supabase_extra: SupabaseClient | None = None
         if sync_extra is True:

@@ -23,9 +23,9 @@ class SyncerSerial(SyncerBase):
 
         is_3p = is_three_phase(as_first_item(result)["hardware"])
         serial = (
-            self.emlite_client.three_phase_serial()
+            self.emlite_client.three_phase_serial(self.serial)
             if is_3p
-            else self.emlite_client.serial_read()
+            else self.emlite_client.serial_read(self.serial)
         )
 
         # no change

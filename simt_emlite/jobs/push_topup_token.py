@@ -22,19 +22,20 @@ class PushTopupTokenJob:
         *,
         topup_id: str,
         meter_id: str,
+        serial: str,
         token: str,
         mediator_address: str,
         supabase: SupabaseClient,
     ):
         self.topup_id = topup_id
         self.meter_id = meter_id
+        self.serial = serial
         self.token = token
         self.mediator_address = mediator_address
         self.supabase = supabase
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=meter_id,
         )
 
         global logger
@@ -105,7 +106,7 @@ class PushTopupTokenJob:
     def _check_balance(self) -> Optional[Decimal]:
         """Check and return the current prepay balance."""
         try:
-            return self.emlite_client.prepay_balance()
+            return self.emlite_client.prepay_balance(self.serial)
         except Exception as e:
             self.log.error(
                 "Failed to check balance",
@@ -116,7 +117,7 @@ class PushTopupTokenJob:
 
     def _send_token(self):
         """Send the token to the meter."""
-        self.emlite_client.prepay_send_token(self.token)
+        self.emlite_client.prepay_send_token(self.serial, self.token)
 
     def _update_status(self, status: str, notes: str, mark_used=False) -> bool:
         """

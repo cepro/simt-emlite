@@ -6,5 +6,5 @@ from simt_emlite.sync.syncer_base import SyncerBase, UpdatesTuple
 class SyncerCsq(SyncerBase):
     @override
     def fetch_metrics(self) -> UpdatesTuple:
-        csq = self.emlite_client.csq()
+        csq = self.emlite_client.csq(self.serial)
         return UpdatesTuple({"csq": csq}, None)

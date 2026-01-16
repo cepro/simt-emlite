@@ -125,7 +125,7 @@ class ProfileDownloader:
 
     def _fetch_meter_info(self):
         query = self.supabase.table("meter_registry").select(
-            "id,esco,single_meter_app,hardware,serial,name"
+            "id,esco,hardware,serial,name"
         )
         if self.serial:
             query.eq("serial", self.serial)
@@ -143,7 +143,6 @@ class ProfileDownloader:
         self.esco_id = meter_data["esco"]
         self.name = meter_data["name"]
         self.serial = meter_data["serial"]
-        self.is_single_meter_app = meter_data["single_meter_app"]
         self.hardware: str = meter_data.get("hardware", "")
         self.is_twin_element: bool = is_twin_element(self.hardware)
 
@@ -157,7 +156,6 @@ class ProfileDownloader:
 
         logger.info(
             f"Found meter [{self.serial}]. id: [{self.meter_id}], "
-            f"is_single_meter_app=[{self.is_single_meter_app}], "
             f"hardware=[{self.hardware}], is_twin_element=[{self.is_twin_element}]"
         )
 
@@ -177,7 +175,7 @@ class ProfileDownloader:
     def _init_emlite_client(self):
         """Initialize the Emlite mediator client"""
         containers = get_instance(
-            is_single_meter_app=self.is_single_meter_app,
+            is_single_meter_app=False,
             esco=self.esco_code,
             serial=self.serial,
             region=cast(str | None, self.fly_region),
@@ -194,8 +192,7 @@ class ProfileDownloader:
 
         self.client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=self.meter_id,
-            use_cert_auth=self.is_single_meter_app,
+            use_cert_auth=False,
             logging_level=self.logging_level,
         )
 
@@ -259,7 +256,8 @@ class ProfileDownloader:
 
             # Download profile log for this chunk
             assert self.client is not None
-            response = self.client.profile_log_1(current_time)
+            assert self.serial is not None
+            response = self.client.profile_log_1(self.serial, current_time)
             if response and response.records:
                 logger.info(
                     f"Received {len(response.records)} records for {current_time}",
@@ -339,7 +337,8 @@ class ProfileDownloader:
                 progress_callback(msg)
 
             assert self.client is not None
-            response = self.client.profile_log_2(current_time, self.is_twin_element)
+            assert self.serial is not None
+            response = self.client.profile_log_2(self.serial, current_time, self.is_twin_element)
             if response and response.records:
                 logger.info(
                     f"Received {len(response.records)} records for {current_time}"

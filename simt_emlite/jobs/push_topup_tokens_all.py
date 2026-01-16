@@ -99,6 +99,7 @@ class PushTopupTokensAllJob:
             job = PushTopupTokenJob(
                 topup_id=topup_id,
                 meter_id=meter_id,
+                serial=serial,
                 token=token,
                 mediator_address=mediator_address,
                 supabase=self.backend_supabase,

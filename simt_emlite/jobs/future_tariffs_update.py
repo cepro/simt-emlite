@@ -27,7 +27,6 @@ class FutureTariffsUpdateJob:
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=tariff["meter_id"],
         )
 
         global logger
@@ -45,6 +44,7 @@ class FutureTariffsUpdateJob:
 
         try:
             self.emlite_client.tariffs_future_write(
+                self.tariff["serial"],
                 datetime.strptime(
                     self.tariff["tariff_period_start"], "%Y-%m-%d"
                 ).replace(tzinfo=timezone.utc),

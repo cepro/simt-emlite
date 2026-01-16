@@ -86,7 +86,7 @@ class AutoTopupJob:
                             # Look up meter details from meter_registry
                             result = (
                                 self.flows_supabase.table("meter_registry")
-                                .select("id,esco,single_meter_app")
+                                .select("id,esco")
                                 .eq("serial", meter["serial"])
                                 .execute()
                             )
@@ -100,7 +100,6 @@ class AutoTopupJob:
                             meter_registry = as_first_item(result)
                             meter_id = meter_registry["id"]
                             esco_id = meter_registry["esco"]
-                            is_single_meter_app = meter_registry["single_meter_app"]
 
                             esco_code = None
                             if esco_id is not None:
@@ -115,7 +114,7 @@ class AutoTopupJob:
 
                             # Get mediator address
                             containers = get_instance(
-                                is_single_meter_app=is_single_meter_app,
+                                is_single_meter_app=False,
                                 esco=esco_code,
                                 serial=meter["serial"],
                                 region=self.FLY_REGION,
@@ -132,12 +131,11 @@ class AutoTopupJob:
                             # Initialize client with proper setup
                             emlite_client = EmliteMediatorClient(
                                 mediator_address=mediator_address,
-                                meter_id=meter_id,
-                                use_cert_auth=is_single_meter_app,
+                                use_cert_auth=False,
                                 logging_level=logging.INFO,
                             )
 
-                            latest_balance = emlite_client.prepay_balance()
+                            latest_balance = emlite_client.prepay_balance(meter["serial"])
                             self.log.info(
                                 "Fetched latest prepay balance from meter",
                                 meter_id=meter["id"],

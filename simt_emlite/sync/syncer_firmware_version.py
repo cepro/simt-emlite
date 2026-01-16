@@ -20,7 +20,7 @@ class SyncerFirmwareVersion(SyncerBase):
             raise ValueError(f"Meter not found with id {self.meter_id}")
         meter_registry_entry = as_first_item(result)
 
-        current_firmware_version = self.emlite_client.firmware_version()
+        current_firmware_version = self.emlite_client.firmware_version(self.serial)
 
         registry_firmware_version = meter_registry_entry["firmware_version"]
         if registry_firmware_version == current_firmware_version:

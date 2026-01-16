@@ -7,7 +7,7 @@ from simt_emlite import sync
 from simt_emlite.jobs.util import handle_supabase_faliure
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import as_list, supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -46,12 +46,24 @@ class MeterSyncJob:
         self.flows_role_key = flows_role_key
         self.run_frequency = run_frequency
 
-        self.emlite_client = EmliteMediatorClient(
-            mediator_address=mediator_address,
-            meter_id=self.meter_id,
-        )
         self.supabase = supa_client(
             self.supabase_url, self.supabase_key, self.flows_role_key
+        )
+
+        # Look up meter details by meter_id
+        result = (
+            self.supabase.table("meter_registry")
+            .select("serial")
+            .eq("id", self.meter_id)
+            .execute()
+        )
+        if len(as_list(result)) == 0:
+            raise Exception(f"meter {self.meter_id} not found")
+
+        self.serial = as_first_item(result)["serial"]
+
+        self.emlite_client = EmliteMediatorClient(
+            mediator_address=mediator_address,
         )
 
         global logger
@@ -75,7 +87,7 @@ class MeterSyncJob:
         for metric in as_list(query_result):
             try:
                 syncer_class = find_syncer_class(metric["name"])
-                syncer = syncer_class(self.supabase, self.emlite_client, self.meter_id)
+                syncer = syncer_class(self.supabase, self.emlite_client, self.meter_id, self.serial)
                 syncer.sync()
             except Exception as e:
                 self.log.error(
