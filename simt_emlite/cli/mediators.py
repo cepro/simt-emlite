@@ -1,5 +1,4 @@
 import argparse
-import concurrent.futures
 import importlib
 import logging
 import os
@@ -15,7 +14,6 @@ from rich.text import Text
 from supabase import Client as SupabaseClient
 
 from simt_emlite.jobs.meter_sync import MeterSyncJob
-from simt_emlite.orchestrate.adapter.container import ContainerState
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.meters import is_three_phase
@@ -27,17 +25,10 @@ SUPABASE_ACCESS_TOKEN: str | int | None = config["supabase_access_token"]
 SUPABASE_ANON_KEY: str | int | None = config["supabase_anon_key"]
 SUPABASE_URL: str | int | None = config["supabase_url"]
 
-FLY_API_TOKEN: str | int | None = config["fly_api_token"]
 FLY_REGION: str | None = cast(str | None, config["fly_region"])
-
-SOCKS_HOST: str | int | None = config["socks_host"]
-SOCKS_PORT: str | int | None = config["socks_port"]
-SOCKS_USERNAME: str | int | None = config["socks_username"]
-SOCKS_PASSWORD: str | int | None = config["socks_password"]
-
-SIMT_EMLITE_IMAGE: str | int | None = config["simt_emlite_image"]
-
 ENV: str | int | None = config["env"]
+
+
 
 """
     This is a CLI for managing Emlite mediator processes.
@@ -84,23 +75,13 @@ class MediatorsCLI:
         self,
         esco: str | None = None,
         feeder: str | None = None,
-        state: str | None = None,
-        exists: bool | None = None,
         three_phase_only: bool = False,
         json: bool = False,
-        show_all: bool = False,
     ) -> None:
-        container_state: ContainerState | None = (
-            ContainerState.__members__[state.upper()] if state is not None else None
-        )
-
         meters = self._list(
             esco=esco,
             feeder=feeder,
-            state=container_state,
-            exists=exists,
             three_phase_only=three_phase_only,
-            show_all=show_all,
         )
 
         if json is True:
@@ -115,9 +96,6 @@ class MediatorsCLI:
             "health",
             "hardware",
             "feeder",
-            # "container state",
-            "version",
-            "container id",
             box=box.SQUARE,
         )
 
@@ -131,12 +109,6 @@ class MediatorsCLI:
                 meter["hardware"],
                 meter["feeder"],
             ]
-            if meter["container"] is not None:
-                # row_values.append(meter["container"].status.name)
-                row_values.append(
-                    meter["container"].image.replace("registry.fly.io/simt-emlite:", "")
-                )
-                row_values.append(meter["container"].id)
             table.add_row(*row_values)
 
         console = Console()
@@ -146,155 +118,14 @@ class MediatorsCLI:
         self,
         esco: str | None = None,
         feeder: str | None = None,
-        state: ContainerState | None = None,
-        exists: bool | None = None,
         three_phase_only: bool = False,
-        show_all: bool = False,
     ) -> List:
         meters = self._get_meters(esco, feeder)
 
         if three_phase_only is True:
             meters = list(filter(lambda m: is_three_phase(m["hardware"]), meters))
 
-        # add container info
-        self._add_container_info_to_app_per_esco_meters(meters)
-        self._add_container_info_to_app_per_serial_meters(meters)
-
-        if exists is not None:
-            meters = list(
-                filter(
-                    lambda m: (exists is True and m["container"] is not None)
-                    or (exists is False and m["container"] is None),
-                    meters,
-                )
-            )
-
-        if state is not None:
-            meters = list(
-                filter(
-                    lambda m: m["container"] is not None
-                    and m["container"].status == state,
-                    meters,
-                )
-            )
-
         return meters
-
-    def create(self, serial: str, skip_confirm: bool = False) -> None:
-        meter = self._meter_by_serial(serial)
-
-        # single meter per app always listen on default
-        # None means a random port will be allocated
-        internal_port = 50051 if meter["single_meter_app"] else None
-
-        # we add an additional internal / private port for these apps
-        additional_internal_port = 44444 if meter["single_meter_app"] else None
-
-        containers_api = get_instance(
-            is_single_meter_app=meter["single_meter_app"],
-            esco=meter["esco"],
-            serial=serial,
-            region=FLY_REGION,
-            env=cast(str | None, ENV),
-        )
-        containers_api.create(
-            "simt_emlite.mediator.grpc.server",
-            meter["id"],
-            serial,
-            meter["ip_address"],
-            port=internal_port,
-            additional_internal_port=additional_internal_port,
-            skip_confirm=skip_confirm,
-            use_cert_auth=meter["single_meter_app"],
-        )
-
-    def create_all(self, esco: str) -> None:
-        if esco is None:
-            print("esco mandatory")
-            sys.exit(1)
-
-        mediators = self._list(esco=esco, exists=False)
-
-        answer = input(f"""Found {len(mediators)} mediators to create in ESCO {esco}.
-
-Go ahead and create ALL of these? (y/n): """)
-        if answer != "y":
-            print("\naborting ...\n")
-            sys.exit(1)
-
-        mediators_with_serials = list(
-            filter(lambda m: m["serial"] is not None, mediators)
-        )
-        if len(mediators_with_serials) != len(mediators):
-            print(
-                f"\nWARN: {len(mediators) - len(mediators_with_serials)} mediators found without serials. skipping ...\n"
-            )
-        for m in mediators_with_serials:
-            self.create(m["serial"], skip_confirm=True)
-
-    def start_one(self, serial: str) -> None:
-        containers_api, container = self._container_by_serial(serial)
-        containers_api.start(container.id)
-        print("container started")
-
-    def wait_one(self, serial: str, state: ContainerState) -> None:
-        containers_api, container = self._container_by_serial(serial)
-        containers_api.wait(container.id, state)
-
-    def destroy_one(self, serial: str) -> None:
-        containers_api, container = self._container_by_serial(serial)
-        containers_api.destroy(container.id)
-
-    def destroy_all(self, esco: str) -> None:
-        if esco is None:
-            print("esco mandatory")
-            sys.exit(1)
-
-        mediators = self._list(esco=esco, exists=True)
-
-        mediators_found_msg = (
-            f"Found {len(mediators)} mediators to destroy in ESCO {esco}."
-        )
-        if len(mediators) == 0:
-            print(f"{mediators_found_msg}\n")
-            return
-
-        answer = input(f"""{mediators_found_msg}
-
-Go ahead and destroy ALL of these? (y/n): """)
-        if answer != "y":
-            print("\naborting ...\n")
-            sys.exit(1)
-
-        # Fly.io Machines API rate limit is ~1 req/s with burst of 3.
-        # We use 2 workers to stay safe, plus retries in the adapter.
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            future_to_serial = {
-                executor.submit(self.destroy_one, m["serial"]): m["serial"]
-                for m in mediators
-            }
-            for future in concurrent.futures.as_completed(future_to_serial):
-                serial = future_to_serial[future]
-                try:
-                    future.result()
-                except SystemExit:
-                    print(f"Mediator {serial} destroy exited via sys.exit()")
-                except Exception as exc:
-                    print(f"Mediator {serial} generated an exception: {exc}")
-
-    def stop_one(self, serial: str) -> None:
-        containers_api, container = self._container_by_serial(serial)
-        containers_api.stop(container.id)
-        print("container stopped")
-
-    def start_many(self, meter_ids: List[str]) -> None:
-        pass
-
-    def start_all(self) -> None:
-        pass
-
-    def stop_all(self) -> None:
-        pass
 
     def sync(self, serial: str) -> None:
         """Run sync jobs for a specific meter by serial number."""
@@ -368,13 +199,6 @@ Go ahead and destroy ALL of these? (y/n): """)
             logging.error(f"ERROR: {e}")
             sys.exit(1)
 
-    def _machine_by_serial(self, serial: str) -> str:
-        meter = self._meter_by_serial(serial)
-        machines_match = list(filter(lambda m: m["id"] == meter["id"], self._list()))
-        if len(machines_match) == 0:
-            raise Exception(f"machine for meter {serial} not found")
-        return machines_match[0]["machine"]
-
     def _meter_by_serial(self, serial) -> Dict[str, Any]:
         meter_result = (
             self.supabase.table("meter_registry")
@@ -405,77 +229,6 @@ Go ahead and destroy ALL of these? (y/n): """)
         ).execute()
         return as_list(meters_result)
 
-    def _container_by_serial(self, serial: str):
-        meter = self._meter_by_serial(serial)
-
-        containers_api = get_instance(
-            is_single_meter_app=meter["single_meter_app"],
-            esco=meter["esco"],
-            serial=serial,
-            region=FLY_REGION,
-            env=cast(str | None, ENV),
-        )
-        container = containers_api.get(meter["id"])
-        if container is None:
-            print(f"No mediator found for serial {serial}")
-            sys.exit(1)
-
-        return containers_api, container
-
-    def _add_container_info_to_app_per_esco_meters(self, meters) -> None:
-        escos = set(
-            map(
-                lambda m: m["esco"].lower(),
-                list(filter(lambda m: m["esco"] is not None, meters)),
-            )
-        )
-
-        # we get info an 'app' at a time because fly machines api works per app
-        # not across apps. there for first add info to all per-esco apps then
-        # any per-serial apps (single meter per app)
-        for esco_code in escos:
-            containers_api = get_instance(
-                esco=esco_code,
-                region=FLY_REGION,
-                env=cast(str | None, ENV),
-            )
-            containers = containers_api.list()
-
-            esco_meters = list(filter(lambda m: m["esco"] == esco_code, meters))
-
-            for meter in esco_meters:
-                container_matches = list(
-                    filter(
-                        lambda c: c.metadata["meter_id"] == meter["id"],
-                        containers,
-                    )
-                )
-                meter["container"] = (
-                    container_matches[0] if len(container_matches) != 0 else None
-                )
-
-    def _add_container_info_to_app_per_serial_meters(self, meters) -> None:
-        single_app_meters = list(
-            filter(lambda m: m.get("single_meter_app", False) is True, meters)
-        )
-        for meter in single_app_meters:
-            containers_api = get_instance(
-                is_single_meter_app=True,
-                serial=meter["serial"],
-                region=FLY_REGION,
-                env=cast(str | None, ENV),
-            )
-            containers = containers_api.list()
-            container_matches = list(
-                filter(
-                    lambda c: c.metadata["meter_id"] == meter["id"],
-                    containers,
-                )
-            )
-            meter["container"] = (
-                container_matches[0] if len(container_matches) != 0 else None
-            )
-
 
 ESCO_FILTER_HELP = "Filter by ESCO code [eg. wlce, hmce, lab]"
 
@@ -498,14 +251,9 @@ def main() -> None:
 
     parser_list = subparsers.add_parser(
         "list",
-        help="List meters and mediators details",
+        help="List meters details",
     )
     parser_list.add_argument("-e", "--esco", help=ESCO_FILTER_HELP)
-    parser_list.add_argument(
-        "--exists",
-        action=argparse.BooleanOptionalAction,
-        help="Filter by existance of mediator for each meter.",
-    )
     parser_list.add_argument(
         "--three_phase_only",
         action=argparse.BooleanOptionalAction,
@@ -514,52 +262,6 @@ def main() -> None:
     parser_list.add_argument(
         "-f", "--feeder", help="Filter by name of feeder the meter is on"
     )
-
-    # Broken as Container does not yet serialise:
-    #
-    # parser_list.add_argument(
-    #     "--json",
-    #     action="store_true",
-    #     help="Output result in JSON ",
-    # )
-    parser_list.add_argument(
-        "-s",
-        "--state",
-        help="Filter by mediator state",
-        choices=[
-            ContainerState.STARTED.name.lower(),
-            ContainerState.STOPPED.name.lower(),
-            ContainerState.STOPPING.name.lower(),
-            ContainerState.FAILED.name.lower(),
-        ],
-    )
-
-    parser_create = subparsers.add_parser(
-        "create",
-        help="Create mediator for given meter serial",
-    )
-    parser_create.add_argument("serial")
-    parser_create.add_argument(
-        "--skip_confirm",
-        action=argparse.BooleanOptionalAction,
-        help="Skip interactive confirmation",
-    )
-
-    parser_create_all = subparsers.add_parser(
-        "create_all",
-        help="Create all mediators for a given ESCO",
-    )
-    parser_create_all.add_argument("esco", help=ESCO_FILTER_HELP)
-
-    subparsers.add_parser(
-        "destroy_one",
-        help="Destroy a mediator for given meter serial",
-    ).add_argument("serial")
-
-    subparsers.add_parser(
-        "destroy_all",
-        help="Destroy all mediators for a given ESCO",
-    ).add_argument("esco", help=ESCO_FILTER_HELP)
 
     parser_sync = subparsers.add_parser(
         "sync",
