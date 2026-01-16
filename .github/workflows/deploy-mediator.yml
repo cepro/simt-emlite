@@ -1,0 +1,56 @@
+name: Deploy Mediator MGF
+
+on:
+  push:
+    tags:
+      - "*-mediator-mgf-*"
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract ESCO from Tag
+        id: extract_esco
+        run: |
+          # Expected format: <version>-mediator-mgf-<esco>[-*]
+          # Examples: 0.1.0-mediator-mgf-wlce, 0.1.0-mediator-mgf-hmce
+          TAG=${GITHUB_REF_NAME}
+          echo "Processing tag: $TAG"
+
+          # Extract the part after -mediator-mgf-
+          # We look for the first alphanumeric sequence following -mediator-mgf-
+          if [[ "$TAG" =~ -mediator-mgf-([a-zA-Z0-9]+) ]]; then
+            ESCO="${BASH_REMATCH[1]}"
+            echo "Found ESCO: $ESCO"
+            echo "ESCO=$ESCO" >> $GITHUB_ENV
+          else
+            echo "Could not extract ESCO from tag $TAG (expected '...-mediator-mgf-<esco>...')"
+            exit 1
+          fi
+
+      - name: Generate Fly Config
+        run: |
+          # Replace placeholder in template
+          # Uses fly/fly-mediator-mgf.template.toml
+
+          if [ ! -f "fly/fly-mediator-mgf.template.toml" ]; then
+             echo "Template file fly/fly-mediator-mgf.template.toml not found!"
+             exit 1
+          fi
+
+          echo "Generating fly.toml for app mediator-mgf-${ESCO}..."
+          sed "s/PLACEHOLDER_ESCO/${{ env.ESCO }}/g" fly/fly-mediator-mgf.template.toml > fly.toml
+
+          echo "Generated fly.toml content:"
+          cat fly.toml
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only

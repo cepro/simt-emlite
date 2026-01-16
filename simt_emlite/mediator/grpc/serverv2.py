@@ -52,7 +52,7 @@ def serve():
         EmliteInfoServiceServicer(), server
     )
 
-    listen_address = f'[::]:{LISTEN_PORT}'
+    listen_address = f'0.0.0.0:{LISTEN_PORT}'
 
     if use_cert_auth:
         try:
@@ -70,7 +70,7 @@ def serve():
             server.add_secure_port(listen_address, server_credentials)
 
             # add a private as well for internal services like meter sync jobs
-            private_listen_address = "[::]:44444"
+            private_listen_address = "0.0.0.0:44444"
             logger.debug(f"add_insecure_port [{private_listen_address}]")
             server.add_insecure_port(private_listen_address)
         except Exception as e:

@@ -1,0 +1,36 @@
+# fly.toml app configuration file for mediator-mgf
+# Use this template to generate per-esco configurations.
+# Replace PLACEHOLDER_ESCO with the esco code (e.g. wlce, hmce)
+
+app = 'mediator-mgf-PLACEHOLDER_ESCO'
+primary_region = 'lhr'
+
+[env]
+  LISTEN_PORT = "50051"
+  MAX_WORKERS = "30"
+  # Secrets handled via Fly secrets:
+  # MEDIATOR_SERVER_CERT
+  # MEDIATOR_SERVER_KEY
+  # MEDIATOR_CA_CERT
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 50051
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 50051
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512
+
+
+[build]
+  dockerfile = "docker/Dockerfile"
+
+[processes]
+  app = "simt_emlite.mediator.grpc.serverv2"
