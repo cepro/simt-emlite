@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import traceback
+import inspect
 from decimal import Decimal
 from typing import Any, Dict, List, cast
 
@@ -216,15 +217,15 @@ class EMOPCLI(EmliteMediatorClient):
 
         print(as_first_item(result)["name"])
 
-    def info(self) -> None:
+    def info(self, serial: str) -> None:
         result = (
             self.supabase.table("meter_registry")
             .select("*")
-            .eq("serial", self.serial)
+            .eq("serial", serial)
             .execute()
         )
         if len(as_list(result)) == 0:
-            msg = f"meter {self.serial} not found"
+            msg = f"meter {serial} not found"
             console.print(msg)
             raise Exception(msg)
         registry_rec = as_first_item(result)
@@ -736,7 +737,16 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
         with console.status(f"[bold green]Running {command}...", spinner="dots"):
             cli = EMOPCLI(serial=serial, logging_level=log_level)
             method = getattr(cli, command)
-            result = method(**kwargs)
+
+            sig = inspect.signature(method)
+            params = list(sig.parameters.keys())
+
+            if params and params[0] == "serial":
+                if serial is None:
+                    raise ValueError(f"Command '{command}' requires a serial number")
+                result = method(serial, **kwargs)
+            else:
+                result = method(**kwargs)
 
         if result is not None:
             if isinstance(result, (dict, list)):

@@ -60,7 +60,7 @@ class EmliteMediatorGrpcClient:
         global logger
         self.log = logger.bind(mediator_address=mediator_address, meter_id=meter_id)
 
-    def read_element(self, object_id: ObjectIdEnum | int) -> Any:
+    def read_element(self, serial: str, object_id: ObjectIdEnum | int) -> Any:
         obis = self._object_id_int(object_id)
         obis_name = (
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
@@ -68,9 +68,9 @@ class EmliteMediatorGrpcClient:
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
-                self.log.debug(f"send request - reading element [{obis_name}]")
+                self.log.debug(f"send request - reading element [{obis_name}]", serial=serial)
                 rsp_obj = stub.readElement(
-                    ReadElementRequest(objectId=obis),
+                    ReadElementRequest(serial=serial, objectId=obis),
                     timeout=TIMEOUT_SECONDS,
                 )
             except grpc.RpcError as e:
@@ -131,7 +131,7 @@ class EmliteMediatorGrpcClient:
         emlite_rsp._read()
         return emlite_rsp.message
 
-    def write_element(self, object_id: ObjectIdEnum | int, payload: bytes) -> None:
+    def write_element(self, serial: str, object_id: ObjectIdEnum | int, payload: bytes) -> None:
         obis = self._object_id_int(object_id)
         obis_name = (
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
@@ -139,9 +139,9 @@ class EmliteMediatorGrpcClient:
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
-                self.log.debug(f"send request - write element [{obis_name}]")
+                self.log.debug(f"send request - write element [{obis_name}]", serial=serial)
                 stub.writeElement(
-                    WriteElementRequest(objectId=obis, payload=payload),
+                    WriteElementRequest(serial=serial, objectId=obis, payload=payload),
                     timeout=TIMEOUT_SECONDS,
                 )
             except grpc.RpcError as e:
@@ -175,13 +175,13 @@ class EmliteMediatorGrpcClient:
                     )
                 raise e
 
-    def send_message(self, message: bytes) -> bytes:
+    def send_message(self, serial: str, message: bytes) -> bytes:
         with self._get_channel() as channel:
             stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
             try:
-                self.log.debug("send request - message")
+                self.log.debug("send request - message", serial=serial)
                 rsp_obj = stub.sendRawMessage(
-                    SendRawMessageRequest(dataField=message),
+                    SendRawMessageRequest(serial=serial, dataField=message),
                     timeout=TIMEOUT_SECONDS,
                 )
             except grpc.RpcError as e:

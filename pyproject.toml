@@ -31,6 +31,7 @@ test = "simt_emlite:run_tests"
 lint = "simt_emlite:run_linter"
 build-cython = "scripts.build_cython:main"
 emop = "simt_emlite.cli.emop:main"
+emopv2 = "simt_emlite.cli.emopv2:main"
 mediators = "simt_emlite.cli.mediators:main"
 profile_download = "simt_emlite.cli.profile_download:main"
 

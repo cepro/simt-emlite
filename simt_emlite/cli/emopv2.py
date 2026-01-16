@@ -211,10 +211,9 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
     #   Supabase / Info Commands
     # =================================
 
-    def serial_to_name(self) -> None:
+    def serial_to_name(self, serial: str) -> None:
         # Kept local as it's a pure registry lookup, or could use GetInfo?
         # Leaving as strict Supabase lookup for valid registry check
-        serial = self.serial
         if not serial:
              raise ValueError("Serial required for serial_to_name")
 
@@ -234,14 +233,14 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
 
         print(as_first_item(result)["name"])
 
-    def info(self) -> None:
+    def info(self, serial: str) -> None:
         """Call the new InfoService GetInfo via the V2 client."""
-        if not self.serial:
+        if not serial:
             raise ValueError("Serial required for info command")
 
         # Use the V2 client method method inherited from EmliteMediatorClientV2
         # which calls the gRPC service
-        info_json = self.get_info(self.serial)
+        info_json = self.get_info(serial)
         # Parse it just to pretty print it
         try:
              data = json.loads(info_json)
