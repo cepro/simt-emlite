@@ -244,19 +244,28 @@ def serve() -> None:
     global logger
     log = logger.bind(emlite_host=emlite_host)
 
+    import socket
+    try:
+        # fly-local-6pn is a special hostname on Fly.io that resolves to the instance's private IPv6
+        socket.gethostbyname("fly-local-6pn")
+        listen_host = "fly-local-6pn"
+    except socket.gaierror:
+        # Fallback for local development
+        listen_host = "0.0.0.0"
+
     if emlite_host is None:
         log.error("EMLITE_HOST environment variable not set")
         return
 
-    log.debug("starting server")
+    listen_address = f"{listen_host}:{listen_port}"
+
+    log.info("starting server", listen_address=listen_address)
 
     global server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     add_EmliteMediatorServiceServicer_to_server(  # type: ignore[no-untyped-call]
         EmliteMediatorServicer(emlite_host, int(emlite_port)), server
     )
-
-    listen_address = f"0.0.0.0:{listen_port}"
 
     if use_cert_auth:
         server_cert = decode_b64_secret_to_bytes(server_cert_b64)
@@ -269,15 +278,15 @@ def serve() -> None:
             require_client_auth=True,
         )
 
-        log.debug(f"add_secure_port [{listen_address}]")
+        log.info(f"add_secure_port [{listen_address}]")
         server.add_secure_port(listen_address, server_credentials)
 
         # add a private as well for internal services like meter sync jobs
-        private_listen_address = "[::]:44444"
-        log.debug(f"add_insecure_port [{private_listen_address}]")
+        private_listen_address = f"{listen_host}:44444"
+        log.info(f"add_insecure_port [{private_listen_address}]")
         server.add_insecure_port(private_listen_address)
     else:
-        log.debug(f"add_insecure_port [{listen_address}]")
+        log.info(f"add_insecure_port [{listen_address}]")
         server.add_insecure_port(listen_address)
 
     server.start()
