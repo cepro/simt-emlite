@@ -247,9 +247,10 @@ def serve() -> None:
     import socket
     try:
         # fly-local-6pn is a special hostname on Fly.io that resolves to the instance's private IPv6
-        socket.gethostbyname("fly-local-6pn")
+        # getaddrinfo is used because gethostbyname often fails in IPv6-only environments.
+        socket.getaddrinfo("fly-local-6pn", None)
         listen_host = "fly-local-6pn"
-    except socket.gaierror:
+    except (socket.gaierror, socket.herror):
         # Fallback for local development
         listen_host = "0.0.0.0"
 
