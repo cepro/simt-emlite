@@ -252,6 +252,7 @@ def serve() -> None:
         listen_host = "fly-local-6pn"
     except (socket.gaierror, socket.herror):
         # Fallback for local development
+        log.info("fly-local-6pn not found, falling back to 0.0.0.0")
         listen_host = "0.0.0.0"
 
     if emlite_host is None:
