@@ -246,19 +246,17 @@ Create machine with these details (y/n): """)
     # private to our fly organisation. see fly docs on flycast and private
     # '6PN' addresses.
     def get_private_address_for_single_meter_app(self, machine):
-        mediator_host = self.get_private_flycast_ip()
+        mediator_host = f"{self.fly_app}.flycast"
         mediator_port = 44444  # fixed port for single_meter_app private access (insecure)
-        # ipv6 so wrap host ip in []'s
-        return f"[{mediator_host}]:{mediator_port}"
+        return f"{mediator_host}:{mediator_port}"
 
     # connect by private address. assumes wireguard running and connects via ip
     # private to our fly organisation. see fly docs on flycast and private
     # '6PN' addresses.
     def get_private_address(self, machine):
-        mediator_host = self.get_private_flycast_ip()
-        mediator_port = machine.port
-        # ipv6 so wrap host ip in []'s
-        return f"[{mediator_host}]:{mediator_port}"
+        mediator_host = f"{self.fly_app}.flycast"
+        mediator_port = 50051  # Use internal port for private access
+        return f"{mediator_host}:{mediator_port}"
 
     def get_private_flycast_ip(self):
         resolver = dns.resolver.Resolver(configure=False)
