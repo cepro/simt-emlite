@@ -40,8 +40,12 @@ def shutdown_handler(signal_num, frame):
 
 
 def serve():
-    registry = MeterRegistry(esco_code=esco_code)
-    registry.refresh_from_db()
+    try:
+        registry = MeterRegistry(esco_code=esco_code)
+        registry.refresh_from_db()
+    except Exception as e:
+        logger.error(f"Failed to initialize MeterRegistry: {e}")
+        sys.exit(1)
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_WORKERS))
 

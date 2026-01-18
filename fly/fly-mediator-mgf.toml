@@ -7,7 +7,7 @@ app = 'mediator-mgf'
 primary_region = 'lhr'
 
 [build]
-  image = 'ghcr.io/cepro/simt-emlite:1.0.0-beta-1'
+  image = 'ghcr.io/cepro/simt-emlite:1.0.0-beta-3-server'
 
 [env]
   ESCO = 'lab'
