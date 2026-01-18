@@ -1,14 +1,13 @@
-
 import threading
 import time
-from typing import Dict, Optional
-from datetime import datetime, timedelta
 from contextlib import contextmanager
+from datetime import datetime, timedelta
+from typing import Dict, Optional
 
 from simt_emlite.emlite.emlite_api import EmliteAPI
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client, as_list
+from simt_emlite.util.supabase import as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -16,6 +15,7 @@ logger = get_logger(__name__, __file__)
 MINIMUM_TIME_BETWEEN_REQUESTS_SECONDS = 2
 REGISTRY_REFRESH_INTERVAL_SECONDS = 300
 LOCK_TIMEOUT_SECONDS = 60.0
+
 
 @contextmanager
 def acquire_timeout(lock, timeout):
@@ -27,10 +27,12 @@ def acquire_timeout(lock, timeout):
     finally:
         lock.release()
 
+
 class MeterContext:
     """
     Holds the state for a specific physical meter.
     """
+
     def __init__(self, serial: str, host: str, port: int = 8080):
         self.serial = serial
         self.host = host
@@ -59,11 +61,13 @@ class MeterContext:
     def mark_used(self) -> None:
         self.last_request_datetime = datetime.now()
 
+
 class MeterRegistry:
     """
     Thread-safe registry of known meters.
     Backed by database.
     """
+
     def __init__(self, esco_code: Optional[str] = None):
         self._meters: Dict[str, MeterContext] = {}
         self._lock = threading.RLock()
@@ -80,8 +84,10 @@ class MeterRegistry:
             self.supabase = supa_client(
                 str(self.supabase_url),
                 str(self.supabase_anon_key),
-                str(self.supabase_access_token)
+                str(self.supabase_access_token),
             )
+        else:
+            raise Exception("No database credentials - no meters served")
 
     def get_meter(self, serial: str) -> Optional[MeterContext]:
         """
@@ -109,7 +115,10 @@ class MeterRegistry:
             # If esco_code filter is specified, look up the esco_id
             if self.esco_code:
                 escos = (
-                    self.supabase.table("escos").select("id").ilike("code", self.esco_code).execute()
+                    self.supabase.table("escos")
+                    .select("id")
+                    .ilike("code", self.esco_code)
+                    .execute()
                 )
                 escos_data = as_list(escos)
                 if len(escos_data) == 0:
@@ -118,10 +127,7 @@ class MeterRegistry:
                 esco_id = escos_data[0]["id"]
 
             # Fetch meters with IP addresses
-            query = (
-                self.supabase.table("meter_registry")
-                .select("serial, ip_address")
-            )
+            query = self.supabase.table("meter_registry").select("serial, ip_address")
 
             if esco_id is not None:
                 query = query.eq("esco", esco_id)
@@ -137,20 +143,24 @@ class MeterRegistry:
                     ip = row.get("ip_address")
                     # Only register if we have a serial and an IP
                     if serial and ip:
-                         if serial not in self._meters:
-                             logger.info(f"Adding meter {serial} at {ip}")
-                             self._meters[serial] = MeterContext(serial, ip)
-                             added_count += 1
-                         else:
-                             # Update IP if changed
-                             if self._meters[serial].host != ip:
-                                 logger.info(f"Updating meter {serial} IP to {ip}")
-                                 self._meters[serial].host = ip
-                                 self._meters[serial].api = EmliteAPI(ip, self._meters[serial].port)
-                                 updated_count += 1
+                        if serial not in self._meters:
+                            logger.info(f"Adding meter {serial} at {ip}")
+                            self._meters[serial] = MeterContext(serial, ip)
+                            added_count += 1
+                        else:
+                            # Update IP if changed
+                            if self._meters[serial].host != ip:
+                                logger.info(f"Updating meter {serial} IP to {ip}")
+                                self._meters[serial].host = ip
+                                self._meters[serial].api = EmliteAPI(
+                                    ip, self._meters[serial].port
+                                )
+                                updated_count += 1
 
                 if added_count > 0 or updated_count > 0:
-                    logger.info(f"Registry refreshed: {added_count} added, {updated_count} updated. Total meters: {len(self._meters)}")
+                    logger.info(
+                        f"Registry refreshed: {added_count} added, {updated_count} updated. Total meters: {len(self._meters)}"
+                    )
 
             self._last_refresh_time = time.time()
 

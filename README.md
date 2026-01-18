@@ -172,19 +172,18 @@ fly ips allocate-v6 --private -a $APP
 For deployments using `fly/fly-mediator-mgf.toml`:
 
 ```sh
-APP=mediator-mgf
-fly launch --no-deploy --org microgridfoundry --config fly/fly-mediator-mgf.toml --name $APP
+fly launch --no-deploy --org microgridfoundry --config fly/fly-mediator-mgf.toml --name mediator-mgf
 
 # Certificates are in lastpass or will need to be generated - see Authentication section below.
 # SOCKS password also in lastpass.
-fly secrets set --app $APP \
+fly secrets set  --config fly/fly-mediator-mgf.toml  \
     MEDIATOR_SERVER_CERT="$MEDIATOR_SERVER_CERT" \
     MEDIATOR_SERVER_KEY="$MEDIATOR_SERVER_KEY" \
     MEDIATOR_CA_CERT="$MEDIATOR_CA_CERT" \
     SOCKS_PASSWORD="$SOCKS_PASSWORD"
 
-# Deploy
-fly deploy --config fly/fly-mediator-mgf.toml --app $APP
+fly deploy --config fly/fly-mediator-mgf.toml
+fly scale count 1 --config fly/fly-mediator-mgf.toml
 ```
 
 ## Create App for a single meter with TLS Auth

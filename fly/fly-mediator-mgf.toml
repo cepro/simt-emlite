@@ -1,37 +1,35 @@
-# fly.toml app configuration file generated for mediator-mgf-wlce on 2026-01-18T14:33:16+10:00
+# fly.toml app configuration file generated for mediator-mgf on 2026-01-19T08:32:41+10:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'mediator-mgf-wlce'
+app = 'mediator-mgf'
 primary_region = 'lhr'
 
 [build]
-  dockerfile = 'docker/Dockerfile'
+  image = 'ghcr.io/cepro/simt-emlite:1.0.0-beta-1'
 
 [env]
+  ESCO = 'lab'
   LISTEN_PORT = '50051'
   MAX_WORKERS = '30'
   SOCKS_HOST = 'emnify-gateway-mgf.internal'
   SOCKS_PORT = '1080'
   SOCKS_USERNAME = 'ceprosocks'
 
-  # For now lets restrict to lab
-  ESCO = 'lab'
-
-[processes]
-  app = 'simt_emlite.mediator.grpc.serverv2'
-
 [[services]]
   protocol = 'tcp'
   internal_port = 50051
-  processes = ['app']
   auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
 
   [[services.ports]]
     port = 50051
+
+[[processes]]
+  type = "app"
+  cmd = "poetry run python -m simt_emlite.mediator.grpc.serverv2"
 
 [[vm]]
   cpu_kind = 'shared'
