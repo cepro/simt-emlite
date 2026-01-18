@@ -1,3 +1,4 @@
+import atexit
 import logging
 import os
 import sys
@@ -22,6 +23,16 @@ logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
 )
+
+
+# Flush logs on exit to ensure they're visible in containerized environments
+def flush_logs():
+    for handler in logging.root.handlers:
+        handler.flush()
+
+
+atexit.register(flush_logs)
+
 suppress_noisy_loggers()
 
 shared_processors: List[Any] = [
