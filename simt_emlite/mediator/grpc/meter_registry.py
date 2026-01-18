@@ -64,10 +64,11 @@ class MeterRegistry:
     Thread-safe registry of known meters.
     Backed by database.
     """
-    def __init__(self):
+    def __init__(self, esco_code: Optional[str] = None):
         self._meters: Dict[str, MeterContext] = {}
         self._lock = threading.RLock()
         self._last_refresh_time: float = 0.0
+        self.esco_code = esco_code
 
         # Setup DB client
         self.config = load_config()
@@ -103,12 +104,29 @@ class MeterRegistry:
 
         logger.info("Refreshing meter registry from database...")
         try:
+            esco_id = None
+
+            # If esco_code filter is specified, look up the esco_id
+            if self.esco_code:
+                escos = (
+                    self.supabase.table("escos").select("id").ilike("code", self.esco_code).execute()
+                )
+                escos_data = as_list(escos)
+                if len(escos_data) == 0:
+                    logger.error(f"no esco found for {self.esco_code}")
+                    return
+                esco_id = escos_data[0]["id"]
+
             # Fetch meters with IP addresses
-            result = (
+            query = (
                 self.supabase.table("meter_registry")
                 .select("serial, ip_address")
-                .execute()
             )
+
+            if esco_id is not None:
+                query = query.eq("esco", esco_id)
+
+            result = query.execute()
 
             rows = as_list(result)
             added_count = 0

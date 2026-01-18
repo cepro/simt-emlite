@@ -1,11 +1,11 @@
-
-
 import os
 import signal
 import sys
 from concurrent import futures
 
 import grpc
+from simt_emlite.util.logging import get_logger
+
 from .generated.mediator_pb2_grpc import (
     add_EmliteMediatorServiceServicer_to_server,
     add_InfoServiceServicer_to_server,
@@ -13,7 +13,6 @@ from .generated.mediator_pb2_grpc import (
 from .info_service import EmliteInfoServiceServicer
 from .mediator_service import EmliteMediatorServicerV2
 from .meter_registry import MeterRegistry
-from simt_emlite.util.logging import get_logger
 from .util import decode_b64_secret_to_bytes
 
 logger = get_logger(__name__, __file__)
@@ -26,6 +25,8 @@ server_cert_b64 = os.environ.get("MEDIATOR_SERVER_CERT")
 server_key_b64 = os.environ.get("MEDIATOR_SERVER_KEY")
 ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
 
+esco_code = os.environ.get("ESCO")
+
 use_cert_auth = (
     server_cert_b64 is not None
     and server_key_b64 is not None
@@ -33,13 +34,13 @@ use_cert_auth = (
 )
 
 
-
 def shutdown_handler(signal_num, frame):
     logger.info("Server shutting down...")
     sys.exit(0)
 
+
 def serve():
-    registry = MeterRegistry()
+    registry = MeterRegistry(esco_code=esco_code)
     registry.refresh_from_db()
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_WORKERS))
@@ -48,11 +49,9 @@ def serve():
     add_EmliteMediatorServiceServicer_to_server(
         EmliteMediatorServicerV2(registry), server
     )
-    add_InfoServiceServicer_to_server(
-        EmliteInfoServiceServicer(), server
-    )
+    add_InfoServiceServicer_to_server(EmliteInfoServiceServicer(), server)
 
-    listen_address = f'0.0.0.0:{LISTEN_PORT}'
+    listen_address = f"0.0.0.0:{LISTEN_PORT}"
 
     if use_cert_auth:
         try:
@@ -84,6 +83,7 @@ def serve():
 
     server.start()
     server.wait_for_termination()
+
 
 if __name__ == "__main__":
     import argparse

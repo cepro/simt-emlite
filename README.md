@@ -167,24 +167,24 @@ fly app create $APP --org <myorg>
 fly ips allocate-v6 --private -a $APP
 ```
 
-## Create App for MGF ESCOs
+## Create App for multi meter mediator server (NEW)
 
-For deployments using `fly/fly-mediator-mgf.template.toml` (typically for Microgrid Foundry):
+For deployments using `fly/fly-mediator-mgf.toml`:
 
 ```sh
-ESCO=wlce
-APP=mediator-mgf-$ESCO
-fly apps create $APP --org microgridfoundry
+APP=mediator-mgf
+fly launch --no-deploy --org microgridfoundry --config fly/fly-mediator-mgf.toml --name $APP
 
-# Set secrets. These certificates are typically found in your ~/.simt/emlite.env or LastPass.
-# Ensure variables MEDIATOR_SERVER_CERT, MEDIATOR_SERVER_KEY, MEDIATOR_CA_CERT are set in your shell before running this.
+# Certificates are in lastpass or will need to be generated - see Authentication section below.
+# SOCKS password also in lastpass.
 fly secrets set --app $APP \
     MEDIATOR_SERVER_CERT="$MEDIATOR_SERVER_CERT" \
     MEDIATOR_SERVER_KEY="$MEDIATOR_SERVER_KEY" \
-    MEDIATOR_CA_CERT="$MEDIATOR_CA_CERT"
+    MEDIATOR_CA_CERT="$MEDIATOR_CA_CERT" \
+    SOCKS_PASSWORD="$SOCKS_PASSWORD"
 
 # Deploy
-fly deploy --config fly/fly-mediator-mgf.template.toml --app $APP
+fly deploy --config fly/fly-mediator-mgf.toml --app $APP
 ```
 
 ## Create App for a single meter with TLS Auth
