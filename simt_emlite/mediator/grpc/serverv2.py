@@ -40,6 +40,8 @@ def shutdown_handler(signal_num, frame):
 
 
 def serve():
+    logger.error("ENTRY!\n\n\n")
+
     try:
         registry = MeterRegistry(esco_code=esco_code)
         registry.refresh_from_db()
