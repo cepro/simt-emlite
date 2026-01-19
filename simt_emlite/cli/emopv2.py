@@ -12,7 +12,10 @@ from typing import Any, Dict, List, cast
 
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage  # type: ignore[import-untyped]
+from rich import box
 from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
 from simt_emlite.mediator.client2 import EmliteMediatorClientV2
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
@@ -82,6 +85,26 @@ SIMPLE_READ_COMMANDS = [
 """
     This is a CLI wrapper around the mediator client v2.
 """
+
+
+def rich_status_circle(color: str) -> str:
+    return f"[{color}]●[/{color}]"
+
+
+def rich_signal_circle(csq: int | None) -> Text:
+    if csq is None or csq < 1:
+        color = "rgb(255,0,0)"  # Red
+    elif csq > 22:
+        color = "rgb(0,255,0)"  # Green
+    elif csq > 17:
+        color = "rgb(128,255,0)"  # Light Green
+    elif csq > 12:
+        color = "rgb(255,255,0)"  # Yellow
+    elif csq > 7:
+        color = "rgb(255,192,0)"  # Orange-yellow
+    elif csq > 0:
+        color = "rgb(255,128,0)"  # Orange
+    return Text("●", style=color)
 
 
 class EMOPCLI_V2(EmliteMediatorClientV2):
@@ -161,6 +184,49 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
             print(json.dumps(data, indent=2))
         except Exception:
             print(info_json)
+
+    def list(self, json_output: bool = False) -> None:
+        """List all meters with formatted table output."""
+        # Call inherited get_meters() method
+        meters_json = self.get_meters()
+
+        # Parse the JSON response
+        try:
+            meters = json.loads(meters_json)
+        except Exception as e:
+            console.print(f"Failed to parse meters data: {e}")
+            raise
+
+        # JSON output for scripting
+        if json_output:
+            print(json.dumps(meters, indent=2))
+            return
+
+        # Rich table output for human readability
+        table = Table(
+            "esco",
+            "serial",
+            "name",
+            "signal",
+            "health",
+            "hardware",
+            "feeder",
+            box=box.SQUARE,
+        )
+
+        for meter in meters:
+            row_values = [
+                meter.get("esco", ""),
+                meter.get("serial", ""),
+                meter.get("name", ""),
+                rich_signal_circle(meter.get("csq")),
+                rich_status_circle("green" if meter.get("health") == "healthy" else "red"),
+                meter.get("hardware", ""),
+                meter.get("feeder", ""),
+            ]
+            table.add_row(*row_values)
+
+        console.print(table)
 
     # =================================
     #   Tool related
@@ -343,8 +409,14 @@ def args_parser() -> argparse.ArgumentParser:
         help="Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
     ).add_argument("env")
 
-    # New command for getting all meters
-    subparsers.add_parser("get_meters", help="Get list of meters (via InfoService)")
+    # List all meters command
+    list_parser = subparsers.add_parser("list", help="List all meters with status")
+    list_parser.add_argument(
+        "--json",
+        help="Output as JSON instead of formatted table",
+        action="store_true",
+        dest="json_output",
+    )
 
     # ===========    Simple Reads (no args)    ==========
 
@@ -706,7 +778,7 @@ def main() -> None:
     serial = arg_s or arg_serial
     try:
         # Commands that don't need a serial or can work without one
-        if command in ["env_set", "env_show", "version", "get_meters"]:
+        if command in ["env_set", "env_show", "version", "list"]:
             run_command(serial, command, kwargs)
         elif serial:
             run_command(serial, command, kwargs)

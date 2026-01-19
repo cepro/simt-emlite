@@ -54,7 +54,7 @@ class EmliteMediatorGrpcClientV2:
 
         global logger
         self.log = logger.bind(mediator_address=self.mediator_address)
-        self.log.info(
+        self.log.debug(
             "init complete",
             mediator_address=self.mediator_address,
             have_certs=self.have_certs,
