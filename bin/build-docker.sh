@@ -1,2 +1,2 @@
 #!/bin/sh
-docker build -t simt-emlite -f docker/Dockerfile .
+docker build -t simt-emlite -f docker/Dockerfile.server .

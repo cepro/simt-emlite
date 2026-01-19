@@ -180,10 +180,13 @@ fly secrets set  --config fly/fly-mediator-mgf.toml  \
     MEDIATOR_SERVER_CERT="$MEDIATOR_SERVER_CERT" \
     MEDIATOR_SERVER_KEY="$MEDIATOR_SERVER_KEY" \
     MEDIATOR_CA_CERT="$MEDIATOR_CA_CERT" \
-    SOCKS_PASSWORD="$SOCKS_PASSWORD"
+    SOCKS_PASSWORD="$SOCKS_PASSWORD" \
+    SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" \
+    SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
 
 fly deploy --config fly/fly-mediator-mgf.toml
 fly scale count 1 --config fly/fly-mediator-mgf.toml
+fly ip private -a mediator-mgf
 ```
 
 ## Create App for a single meter with TLS Auth

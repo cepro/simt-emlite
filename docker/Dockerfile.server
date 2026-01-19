@@ -1,0 +1,17 @@
+FROM python:3.13-slim
+
+WORKDIR /mediator
+
+RUN useradd -m -u 1000 mediator
+
+COPY pyproject.toml poetry.lock .
+RUN pip install --no-cache-dir -e . && \
+    rm -rf /root/.cache /tmp/*
+
+COPY --chown=mediator:mediator simt_emlite simt_emlite
+COPY --chown=mediator:mediator docker/entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+USER mediator
+
+ENTRYPOINT ["./entrypoint.sh"]

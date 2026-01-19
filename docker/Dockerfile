@@ -12,5 +12,4 @@ COPY simt_emlite simt_emlite
 # RUN poetry cache clear --all .
 # RUN rm -rf /root/.cache /tmp/*
 
-ENV PYTHONUNBUFFERED=1
-ENTRYPOINT ["poetry", "run", "python", "-u", "-m"]
+ENTRYPOINT ["poetry", "run", "python", "-m"]

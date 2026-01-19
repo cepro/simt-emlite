@@ -165,4 +165,4 @@ class MeterRegistry:
             self._last_refresh_time = time.time()
 
         except Exception as e:
-            logger.error(f"Failed to refresh registry: {e}")
+            raise Exception(f"Failed to refresh registry: {e}")

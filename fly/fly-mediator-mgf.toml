@@ -7,7 +7,7 @@ app = 'mediator-mgf'
 primary_region = 'lhr'
 
 [build]
-  image = 'ghcr.io/cepro/simt-emlite:1.0.0-beta-3-server'
+  dockerfile = '../docker/Dockerfile.server'
 
 [env]
   ESCO = 'lab'
@@ -16,6 +16,7 @@ primary_region = 'lhr'
   SOCKS_HOST = 'emnify-gateway-mgf.internal'
   SOCKS_PORT = '1080'
   SOCKS_USERNAME = 'ceprosocks'
+  SUPABASE_URL = 'https://supabase-kong-mgf.fly.dev'
 
 [[services]]
   protocol = 'tcp'
@@ -27,9 +28,9 @@ primary_region = 'lhr'
   [[services.ports]]
     port = 50051
 
-[[processes]]
-  type = "app"
-  cmd = "poetry run python -m simt_emlite.mediator.grpc.serverv2"
+  [[services.tcp_checks]]
+    interval = "30s"
+    timeout = "5s"
 
 [[vm]]
   cpu_kind = 'shared'
