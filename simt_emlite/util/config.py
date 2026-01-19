@@ -23,6 +23,7 @@ def load_config() -> Dict[str, str | int | None]:
 
     return {
         "env": os.environ.get("ENV"),
+        "mediator_server": os.environ.get("MEDIATOR_SERVER"),
         # supabase
         "supabase_url": os.environ.get("SUPABASE_URL"),
         "supabase_anon_key": os.environ.get("SUPABASE_ANON_KEY"),

@@ -1,12 +1,12 @@
 import argparse
 import datetime
 import importlib
+import inspect
 import json
 import logging
 import os
 import sys
 import traceback
-import inspect
 from decimal import Decimal
 from typing import Any, Dict, List, cast
 
@@ -16,10 +16,8 @@ from rich.console import Console
 
 from simt_emlite.mediator.client2 import EmliteMediatorClientV2
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.logging import suppress_noisy_loggers
-from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 # Configure logging early to avoid being overridden by imports
 logging.basicConfig(level=logging.WARNING)
@@ -28,14 +26,9 @@ console = Console(stderr=True)
 
 config = load_config()
 
-SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
-SUPABASE_ANON_KEY = config["supabase_anon_key"]
-SUPABASE_URL = config["supabase_url"]
-
-FLY_API_TOKEN = config["fly_api_token"]
-FLY_REGION: str | None = cast(str | None, config["fly_region"])
-
 ENV: str | None = cast(str | None, config["env"])
+
+MEDIATOR_SERVER: str | None = cast(str | None, config["mediator_server"])
 
 SIMPLE_READ_COMMANDS = [
     ("csq", "Signal quality"),
@@ -109,92 +102,37 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
                 console.print(err_msg)
                 raise Exception(err_msg)
 
-            if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_ACCESS_TOKEN:
-                raise Exception(
-                    "SUPABASE_URL, SUPABASE_ANON_KEY and/or SUPABASE_ACCESS_TOKEN not set"
-                )
+            # RESTORE THIS BY RPC CALL
+            # if as_list(res):
+            #     drift_raw = as_first_item(res).get("clock_time_diff_seconds")
+            #     drift = f"{drift_raw}" if drift_raw is not None else "unknown"
 
-            self.supabase = supa_client(
-                str(SUPABASE_URL), str(SUPABASE_ANON_KEY), str(SUPABASE_ACCESS_TOKEN)
-            )
+            #     last_read_raw = as_first_item(res).get("clock_time_diff_synced_at")
 
-            mediator_address = "0.0.0.0:50051"
+            #     last_read = (
+            #         f"{last_read_raw}" if last_read_raw is not None else "unknown"
+            #     )
 
-            if serial is not None:
-                result = (
-                    self.supabase.table("meter_registry")
-                    .select("id,esco")
-                    .eq("serial", serial)
-                    .execute()
-                )
-                if len(as_list(result)) == 0:
-                    err_msg = f"meter {serial} not found"
-                    console.print(err_msg)
-                    raise Exception(err_msg)
+            #     if last_read_raw:
+            #         try:
+            #             dt = datetime.datetime.fromisoformat(
+            #                 last_read_raw.replace("Z", "+00:00")
+            #             )
+            #             last_read = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+            #         except Exception as e:
+            #             logging.warning(
+            #                 f"Failed to parse capture timestamp '{last_read_raw}': {e}"
+            #             )
 
-                meter = as_first_item(result)
-                meter_id = meter["id"]
-                esco_id = meter["esco"]
-
-                esco_code = None
-                if esco_id is not None:
-                    result = (
-                        self.supabase.schema("flows")
-                        .table("escos")
-                        .select("code")
-                        .eq("id", esco_id)
-                        .execute()
-                    )
-                    esco_code = as_first_item(result)["code"]
-
-                containers = get_instance(
-                    is_single_meter_app=False,
-                    esco=esco_code,
-                    serial=serial,
-                    region=FLY_REGION,
-                    env=cast(str | None, ENV),
-                )
-                resolved_address = containers.mediator_address(meter_id, serial)
-                if not resolved_address:
-                    raise Exception("unable to get mediator address")
-                mediator_address = resolved_address
-
-                # Show latest clock drift
-                res = (
-                    self.supabase.table("meter_shadows")
-                    .select("clock_time_diff_seconds,clock_time_diff_synced_at")
-                    .eq("id", meter_id)
-                    .execute()
-                )
-                if as_list(res):
-                    drift_raw = as_first_item(res).get("clock_time_diff_seconds")
-                    drift = f"{drift_raw}" if drift_raw is not None else "unknown"
-
-                    last_read_raw = as_first_item(res).get("clock_time_diff_synced_at")
-
-                    last_read = f"{last_read_raw}" if last_read_raw is not None else "unknown"
-
-                    if last_read_raw:
-                        try:
-                            dt = datetime.datetime.fromisoformat(
-                                last_read_raw.replace("Z", "+00:00")
-                            )
-                            last_read = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-                        except Exception as e:
-                            logging.warning(
-                                f"Failed to parse capture timestamp '{last_read_raw}': {e}"
-                            )
-
-                    console.print(
-                        f"Latest Clock Drift: {drift} seconds | Captured At: {last_read}",
-                        style="cyan",
-                        highlight=False,
-                    )
+            #     console.print(
+            #         f"Latest Clock Drift: {drift} seconds | Captured At: {last_read}",
+            #         style="cyan",
+            #         highlight=False,
+            #     )
 
             # Initialize V2 client (without meter_id, but with resolved address)
             super().__init__(
-                mediator_address=mediator_address,
-                use_cert_auth=False,
+                mediator_address=MEDIATOR_SERVER,
                 logging_level=logging_level,
             )
         except Exception as e:
@@ -206,30 +144,8 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
             raise e
 
     # =================================
-    #   Supabase / Info Commands
+    #   Info Commands
     # =================================
-
-    def serial_to_name(self, serial: str) -> None:
-        # Kept local as it's a pure registry lookup, or could use GetInfo?
-        # Leaving as strict Supabase lookup for valid registry check
-        if not serial:
-             raise ValueError("Serial required for serial_to_name")
-
-        if not self.supabase:
-             raise Exception("Supabase client not initialized")
-
-        result = (
-            self.supabase.table("meter_registry")
-            .select("name")
-            .eq("serial", serial)
-            .execute()
-        )
-        if len(as_list(result)) == 0:
-            msg = f"meter {serial} not found"
-            console.print(msg)
-            raise Exception(msg)
-
-        print(as_first_item(result)["name"])
 
     def info(self, serial: str) -> None:
         """Call the new InfoService GetInfo via the V2 client."""
@@ -241,11 +157,10 @@ class EMOPCLI_V2(EmliteMediatorClientV2):
         info_json = self.get_info(serial)
         # Parse it just to pretty print it
         try:
-             data = json.loads(info_json)
-             print(json.dumps(data, indent=2))
+            data = json.loads(info_json)
+            print(json.dumps(data, indent=2))
         except Exception:
-             print(info_json)
-
+            print(info_json)
 
     # =================================
     #   Tool related
@@ -430,7 +345,6 @@ def args_parser() -> argparse.ArgumentParser:
 
     # New command for getting all meters
     subparsers.add_parser("get_meters", help="Get list of meters (via InfoService)")
-
 
     # ===========    Simple Reads (no args)    ==========
 
@@ -705,7 +619,7 @@ emop -s EML1411222333 tariffs_future_write \
 
     # serial_to_name command (retained)
     serial_to_name_parser = subparsers.add_parser(
-         "serial_to_name", help="lookup meter name from serial"
+        "serial_to_name", help="lookup meter name from serial"
     )
     add_arg_serial(serial_to_name_parser)
 
@@ -731,9 +645,9 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
             sig = inspect.signature(method)
             params = list(sig.parameters.keys())
 
-            if params and params[0] == 'serial':
+            if params and params[0] == "serial":
                 if serial is None:
-                     raise ValueError(f"Command '{command}' requires a serial number")
+                    raise ValueError(f"Command '{command}' requires a serial number")
                 result = method(serial, **kwargs)
             else:
                 result = method(**kwargs)
@@ -793,9 +707,9 @@ def main() -> None:
     try:
         # Commands that don't need a serial or can work without one
         if command in ["env_set", "env_show", "version", "get_meters"]:
-             run_command(serial, command, kwargs)
+            run_command(serial, command, kwargs)
         elif serial:
-             run_command(serial, command, kwargs)
+            run_command(serial, command, kwargs)
         elif arg_serials:
             serial_list = arg_serials.split(",")
             run_command_for_serials(serial_list, command, kwargs)

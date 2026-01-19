@@ -129,13 +129,11 @@ class TariffsFuture(TypedDict):
 class EmliteMediatorClientV2(object):
     def __init__(
         self,
-        mediator_address: str = "0.0.0.0:50051",
-        use_cert_auth: bool = False,
+        mediator_address: str | None = "0.0.0.0:50051",
         logging_level: str | int = logging.INFO,
     ) -> None:
         self.grpc_client = EmliteMediatorGrpcClientV2(
             mediator_address=mediator_address,
-            use_cert_auth=use_cert_auth,
         )
 
         logging.getLogger().setLevel(logging_level)
@@ -230,13 +228,17 @@ class EmliteMediatorClientV2(object):
 
     def instantaneous_voltage(self, serial: str) -> float:
         data = self._read_element(serial, ObjectIdEnum.instantaneous_voltage)
-        self.log.info("received instantaneous voltage", voltage=data.voltage, serial=serial)
+        self.log.info(
+            "received instantaneous voltage", voltage=data.voltage, serial=serial
+        )
         return float(data.voltage)
 
     def instantaneous_active_power(self, serial: str) -> float:
         data = self._read_element(serial, ObjectIdEnum.instantaneous_active_power)
         power_kwh = data.power / 1000
-        self.log.info("received instantaneous active power", power_kwh=power_kwh, serial=serial)
+        self.log.info(
+            "received instantaneous active power", power_kwh=power_kwh, serial=serial
+        )
         return float(power_kwh)
 
     def instantaneous_active_power_element_a(self, serial: str) -> float:
@@ -245,7 +247,9 @@ class EmliteMediatorClientV2(object):
         )
         power_kwh = data.power / 1000
         self.log.info(
-            "received instantaneous active power (element a)", power_kwh=power_kwh, serial=serial
+            "received instantaneous active power (element a)",
+            power_kwh=power_kwh,
+            serial=serial,
         )
         return float(power_kwh)
 
@@ -255,7 +259,9 @@ class EmliteMediatorClientV2(object):
         )
         power_kwh = data.power / 1000
         self.log.info(
-            "received instantaneous active power (element b)", power_kwh=power_kwh, serial=serial
+            "received instantaneous active power (element b)",
+            power_kwh=power_kwh,
+            serial=serial,
         )
         return float(power_kwh)
 
@@ -307,35 +313,53 @@ class EmliteMediatorClientV2(object):
         )
         return enabled
 
-    def daylight_savings_correction_enabled_write(self, serial: str, enabled: bool) -> None:
+    def daylight_savings_correction_enabled_write(
+        self, serial: str, enabled: bool
+    ) -> None:
         flag_bytes = bytes.fromhex("01" if enabled else "00")
-        self._write_element(serial, ObjectIdEnum.daylight_savings_correction_flag, flag_bytes)
+        self._write_element(
+            serial, ObjectIdEnum.daylight_savings_correction_flag, flag_bytes
+        )
 
     def backlight(self, serial: str) -> EmopMessage.BacklightSettingType:
         data = self._read_element(serial, ObjectIdEnum.backlight)
-        self.log.info("received backlight setting", backlight_setting=data.setting, serial=serial)
+        self.log.info(
+            "received backlight setting", backlight_setting=data.setting, serial=serial
+        )
         return data.setting
 
-    def backlight_write(self, serial: str, setting: EmopMessage.BacklightSettingType) -> None:
+    def backlight_write(
+        self, serial: str, setting: EmopMessage.BacklightSettingType
+    ) -> None:
         setting_bytes = bytes([setting.value])
         self._write_element(serial, ObjectIdEnum.backlight, setting_bytes)
 
     def load_switch(self, serial: str) -> EmopMessage.LoadSwitchSettingType:
         data = self._read_element(serial, ObjectIdEnum.load_switch)
-        self.log.info("received load switch setting", load_switch_setting=data.setting, serial=serial)
+        self.log.info(
+            "received load switch setting",
+            load_switch_setting=data.setting,
+            serial=serial,
+        )
         return data.setting
 
-    def load_switch_write(self, serial: str, setting: EmopMessage.LoadSwitchSettingType) -> None:
+    def load_switch_write(
+        self, serial: str, setting: EmopMessage.LoadSwitchSettingType
+    ) -> None:
         setting_bytes = bytes([setting.value])
         self._write_element(serial, ObjectIdEnum.load_switch, setting_bytes)
 
     def prepay_enabled(self, serial: str) -> bool:
         data = self._read_element(serial, ObjectIdEnum.prepay_enabled_flag)
         enabled: bool = data.enabled_flag == 1
-        self.log.info("received prepay enabled flag", prepay_enabled_flag=enabled, serial=serial)
+        self.log.info(
+            "received prepay enabled flag", prepay_enabled_flag=enabled, serial=serial
+        )
         return enabled
 
-    def prepay_no_debt_recovery_when_emergency_credit_enabled(self, serial: str) -> bool:
+    def prepay_no_debt_recovery_when_emergency_credit_enabled(
+        self, serial: str
+    ) -> bool:
         data = self._read_element(
             serial, ObjectIdEnum.prepay_no_debt_recovery_when_emergency_credit_flag
         )
@@ -371,9 +395,13 @@ class EmliteMediatorClientV2(object):
 
     def prepay_balance(self, serial: str) -> Decimal:
         data = self._read_element(serial, ObjectIdEnum.prepay_balance)
-        self.log.debug("received prepay balance", prepay_balance_raw=data.balance, serial=serial)
+        self.log.debug(
+            "received prepay balance", prepay_balance_raw=data.balance, serial=serial
+        )
         balance_gbp: Decimal = emop_scale_price_amount(Decimal(data.balance))
-        self.log.info("prepay balance in GBP", prepay_balance_gbp=balance_gbp, serial=serial)
+        self.log.info(
+            "prepay balance in GBP", prepay_balance_gbp=balance_gbp, serial=serial
+        )
         return balance_gbp
 
     def prepay_send_token(self, serial: str, token: str) -> None:
@@ -382,16 +410,24 @@ class EmliteMediatorClientV2(object):
 
     def prepay_transaction_count(self, serial: str) -> int:
         data = self._read_element(serial, ObjectIdEnum.monetary_info_transaction_count)
-        self.log.info("received prepay transaction count", transaction_count=data.count, serial=serial)
+        self.log.info(
+            "received prepay transaction count",
+            transaction_count=data.count,
+            serial=serial,
+        )
         return cast(int, data.count)
 
     def three_phase_serial(self, serial: str) -> str:
         data = self._read_element(serial, ObjectIdEnum.three_phase_serial)
         serial_resp = data.serial.strip()
-        self.log.info("received three phase serial", serial=serial_resp, request_serial=serial)
+        self.log.info(
+            "received three phase serial", serial=serial_resp, request_serial=serial
+        )
         return cast(str, serial_resp)
 
-    def three_phase_read(self, serial: str, hardware: str | None) -> Dict[str, float | None]:
+    def three_phase_read(
+        self, serial: str, hardware: str | None
+    ) -> Dict[str, float | None]:
         if not hardware:
             hardware = self.hardware(serial)
 
@@ -430,13 +466,17 @@ class EmliteMediatorClientV2(object):
     def three_phase_instantaneous_voltage(
         self, serial: str
     ) -> tuple[float, float | None, float | None]:
-        vl1 = self._read_element(serial, ObjectIdEnum.three_phase_instantaneous_voltage_l1)
+        vl1 = self._read_element(
+            serial, ObjectIdEnum.three_phase_instantaneous_voltage_l1
+        )
 
         # wrapping second in a try as that's where we are seeing these
         # EOFErrors - for now want to make them warnings rather than fail
         #   but they do need fixing eventually
         try:
-            vl2 = self._read_element(serial, ObjectIdEnum.three_phase_instantaneous_voltage_l2)
+            vl2 = self._read_element(
+                serial, ObjectIdEnum.three_phase_instantaneous_voltage_l2
+            )
         except EmliteEOFError as e:
             self.log.warn(f"3p v2 failed - setting to None (e={e})", serial=serial)
             vl2 = None
@@ -444,7 +484,9 @@ class EmliteMediatorClientV2(object):
         # wrapping the third as well as now that second errors are handled
         # errors may occur on the third
         try:
-            vl3 = self._read_element(serial, ObjectIdEnum.three_phase_instantaneous_voltage_l3)
+            vl3 = self._read_element(
+                serial, ObjectIdEnum.three_phase_instantaneous_voltage_l3
+            )
         except EmliteEOFError as e:
             self.log.warn(f"3p v3 failed - setting to None (e={e})", serial=serial)
             vl3 = None
@@ -462,12 +504,20 @@ class EmliteMediatorClientV2(object):
     def three_phase_hardware_configuration(
         self, serial: str
     ) -> EmopMessage.ThreePhaseHardwareConfigurationRec:
-        data = self._read_element(serial, ObjectIdEnum.three_phase_hardware_configuration)
-        self.log.info("three phase hardware configuration", value=str(data), serial=serial)
+        data = self._read_element(
+            serial, ObjectIdEnum.three_phase_hardware_configuration
+        )
+        self.log.info(
+            "three phase hardware configuration", value=str(data), serial=serial
+        )
         return data
 
-    def profile_log_1(self, serial: str, timestamp: datetime.datetime) -> EmopProfileLog1Response:
-        log_rsp = self._profile_log(serial, timestamp, EmopData.RecordFormat.profile_log_1)
+    def profile_log_1(
+        self, serial: str, timestamp: datetime.datetime
+    ) -> EmopProfileLog1Response:
+        log_rsp = self._profile_log(
+            serial, timestamp, EmopData.RecordFormat.profile_log_1
+        )
         log_decoded: EmopProfileLog1Response = emop_decode_profile_log_1_response(
             log_rsp
         )
@@ -477,7 +527,9 @@ class EmliteMediatorClientV2(object):
     def profile_log_2(
         self, serial: str, timestamp: datetime.datetime, is_twin_element: bool
     ) -> EmopProfileLog2Response:
-        log_rsp = self._profile_log(serial, timestamp, EmopData.RecordFormat.profile_log_2)
+        log_rsp = self._profile_log(
+            serial, timestamp, EmopData.RecordFormat.profile_log_2
+        )
 
         log_decoded: EmopProfileLog2Response = emop_decode_profile_log_2_response(
             is_twin_element, log_rsp
@@ -626,7 +678,9 @@ class EmliteMediatorClientV2(object):
         standing_charge_rec = self._read_element(
             serial, ObjectIdEnum.tariff_active_standing_charge
         )
-        self.log.debug("standing charge", value=standing_charge_rec.value, serial=serial)
+        self.log.debug(
+            "standing charge", value=standing_charge_rec.value, serial=serial
+        )
 
         threshold_mask_rec: EmopMessage.TariffThresholdMaskRec = self._read_element(
             serial, ObjectIdEnum.tariff_active_threshold_mask
@@ -647,33 +701,53 @@ class EmliteMediatorClientV2(object):
 
         active_price_rec = self._read_element(serial, ObjectIdEnum.tariff_active_price)
         self.log.debug(
-            "element a unit rate (active a price)", value=active_price_rec.value, serial=serial
+            "element a unit rate (active a price)",
+            value=active_price_rec.value,
+            serial=serial,
         )
 
-        block_rate_rec = self._read_element(serial, ObjectIdEnum.tariff_active_block_rate)
-        self.log.debug("element a block rate index (0-7)", value=block_rate_rec.value, serial=serial)
+        block_rate_rec = self._read_element(
+            serial, ObjectIdEnum.tariff_active_block_rate
+        )
+        self.log.debug(
+            "element a block rate index (0-7)",
+            value=block_rate_rec.value,
+            serial=serial,
+        )
 
-        tou_rate_index_rec = self._read_element(serial, ObjectIdEnum.tariff_active_tou_rate)
-        self.log.debug("element a tou rate index (0-7)", value=tou_rate_index_rec.value, serial=serial)
+        tou_rate_index_rec = self._read_element(
+            serial, ObjectIdEnum.tariff_active_tou_rate
+        )
+        self.log.debug(
+            "element a tou rate index (0-7)",
+            value=tou_rate_index_rec.value,
+            serial=serial,
+        )
 
         element_b_price_rec = self._read_element(
             serial, ObjectIdEnum.tariff_active_element_b_price
         )
         self.log.debug(
-            "element b unit rate (active b price)", value=element_b_price_rec.value, serial=serial
+            "element b unit rate (active b price)",
+            value=element_b_price_rec.value,
+            serial=serial,
         )
 
         element_b_tou_rate_rec = self._read_element(
             serial, ObjectIdEnum.tariff_active_element_b_tou_rate
         )
         self.log.debug(
-            "element b tou rate index (0-3)", value=element_b_tou_rate_rec.value, serial=serial
+            "element b tou rate index (0-3)",
+            value=element_b_tou_rate_rec.value,
+            serial=serial,
         )
 
         emergency_credit_rec = self._read_element(
             serial, ObjectIdEnum.tariff_active_prepayment_emergency_credit
         )
-        self.log.debug("emergency credit", value=emergency_credit_rec.value, serial=serial)
+        self.log.debug(
+            "emergency credit", value=emergency_credit_rec.value, serial=serial
+        )
 
         ecredit_rec = self._read_element(
             serial, ObjectIdEnum.tariff_active_prepayment_ecredit_availability
@@ -683,7 +757,9 @@ class EmliteMediatorClientV2(object):
         debt_recovery_rec = self._read_element(
             serial, ObjectIdEnum.tariff_active_prepayment_debt_recovery_rate
         )
-        self.log.debug("debt recovery rate", value=debt_recovery_rec.value, serial=serial)
+        self.log.debug(
+            "debt recovery rate", value=debt_recovery_rec.value, serial=serial
+        )
 
         tariffs = TariffsActive(
             standing_charge=str(emop_scale_price_amount(standing_charge_rec.value)),
@@ -723,12 +799,16 @@ class EmliteMediatorClientV2(object):
         standing_charge_rec = self._read_element(
             serial, ObjectIdEnum.tariff_future_standing_charge
         )
-        self.log.debug("standing charge", value=standing_charge_rec.value, serial=serial)
+        self.log.debug(
+            "standing charge", value=standing_charge_rec.value, serial=serial
+        )
 
         activation_timestamp_rec = self._read_element(
             serial, ObjectIdEnum.tariff_future_activation_datetime
         )
-        self.log.debug("activation timestamp", value=activation_timestamp_rec.value, serial=serial)
+        self.log.debug(
+            "activation timestamp", value=activation_timestamp_rec.value, serial=serial
+        )
 
         threshold_mask_rec = self._read_element(
             serial, ObjectIdEnum.tariff_future_threshold_mask
@@ -759,7 +839,9 @@ class EmliteMediatorClientV2(object):
         emergency_credit_rec = self._read_element(
             serial, ObjectIdEnum.tariff_future_prepayment_emergency_credit
         )
-        self.log.debug("emergency credit", value=emergency_credit_rec.value, serial=serial)
+        self.log.debug(
+            "emergency credit", value=emergency_credit_rec.value, serial=serial
+        )
 
         ecredit_rec = self._read_element(
             serial, ObjectIdEnum.tariff_future_prepayment_ecredit_availability
@@ -769,14 +851,15 @@ class EmliteMediatorClientV2(object):
         debt_recovery_rec = self._read_element(
             serial, ObjectIdEnum.tariff_future_prepayment_debt_recovery_rate
         )
-        self.log.debug("debt recovery rate", value=debt_recovery_rec.value, serial=serial)
+        self.log.debug(
+            "debt recovery rate", value=debt_recovery_rec.value, serial=serial
+        )
 
         tariffs = TariffsFuture(
             standing_charge=str(emop_scale_price_amount(standing_charge_rec.value)),
             activation_datetime=emop_epoch_seconds_to_datetime(
                 activation_timestamp_rec.value
-            )
-            .isoformat(timespec="seconds"),
+            ).isoformat(timespec="seconds"),
             threshold_mask=self._pluck_keys(threshold_mask_rec, "rate"),
             threshold_values=self._pluck_keys(threshold_values_rec, "th"),
             unit_rate_element_a=str(emop_scale_price_amount(block_8_rate_1_rec.value)),
@@ -882,8 +965,12 @@ class EmliteMediatorClientV2(object):
         )
 
     def tariffs_time_switches_element_a_or_single_read(self, serial: str) -> bytes:
-        data = self._read_element(serial, ObjectIdEnum.tariff_time_switch_element_a_or_single)
-        self.log.info("element A switch settings", value=data.switch_settings, serial=serial)
+        data = self._read_element(
+            serial, ObjectIdEnum.tariff_time_switch_element_a_or_single
+        )
+        self.log.info(
+            "element A switch settings", value=data.switch_settings, serial=serial
+        )
         return cast(bytes, data.switch_settings)
 
     def tariffs_time_switches_element_a_or_single_write(self, serial: str) -> None:
@@ -893,17 +980,25 @@ class EmliteMediatorClientV2(object):
 
     def tariffs_time_switches_element_b_read(self, serial: str) -> bytes:
         data = self._read_element(serial, ObjectIdEnum.tariff_time_switch_element_b)
-        self.log.info("element B switch settings", value=data.switch_settings, serial=serial)
+        self.log.info(
+            "element B switch settings", value=data.switch_settings, serial=serial
+        )
         return cast(bytes, data.switch_settings)
 
     def tariffs_time_switches_element_b_write(self, serial: str) -> None:
-        self._tariffs_time_switches_write(serial, ObjectIdEnum.tariff_time_switch_element_b)
+        self._tariffs_time_switches_write(
+            serial, ObjectIdEnum.tariff_time_switch_element_b
+        )
 
-    def _tariffs_time_switches_write(self, serial: str, object_id: ObjectIdEnum) -> None:
+    def _tariffs_time_switches_write(
+        self, serial: str, object_id: ObjectIdEnum
+    ) -> None:
         payload = bytes(80)  # all switches off - all zeros
         self._write_element(serial, object_id, payload)
 
-    def _tariffs_pricing_blocks_read(self, serial: str, is_active: bool) -> PricingTable:
+    def _tariffs_pricing_blocks_read(
+        self, serial: str, is_active: bool
+    ) -> PricingTable:
         # create a pricings table with all values initialised to Decimal zero
         pricings: PricingTable = [[Decimal("0") for _ in range(8)] for _ in range(8)]
 
@@ -919,7 +1014,9 @@ class EmliteMediatorClientV2(object):
     def obis_read(self, serial: str, obis: str) -> bytes:
         object_id = emop_obis_triplet_to_decimal(obis)
         result = self._read_element(serial, object_id)
-        self.log.info("obis_read", obis=obis, result=result.payload.hex(), serial=serial)
+        self.log.info(
+            "obis_read", obis=obis, result=result.payload.hex(), serial=serial
+        )
         return cast(bytes, result.payload)
 
     def obis_write(self, serial: str, obis: str, payload_hex: str) -> None:
@@ -938,7 +1035,9 @@ class EmliteMediatorClientV2(object):
             raise MediatorClientException(e.code().name, str(e.details() or ""))
         return data
 
-    def _write_element(self, serial: str, object_id: ObjectIdEnum | int, payload: bytes) -> None:
+    def _write_element(
+        self, serial: str, object_id: ObjectIdEnum | int, payload: bytes
+    ) -> None:
         try:
             self.grpc_client.write_element(serial, object_id, payload)
         except EmliteConnectionFailure as e:
@@ -1006,7 +1105,10 @@ class EmliteMediatorClientV2(object):
             serial=serial,
         )
         response_bytes = self._send_message(serial, data_field_bytes)
-        self.log.debug(f"three phase intervals frame response [{response_bytes.hex()}]", serial=serial)
+        self.log.debug(
+            f"three phase intervals frame response [{response_bytes.hex()}]",
+            serial=serial,
+        )
 
         if profile == EmopProfileThreePhaseIntervalsRequest.ProfileNumber.reset:
             return None
@@ -1031,7 +1133,9 @@ class EmliteMediatorClientV2(object):
             return self._read_element(serial, element_id)
         except Exception as e:
             element_name = getattr(element_id, "name", str(element_id))
-            logger.error(f"Failed to read element {element_name}. Exception: {e}", serial=serial)
+            logger.error(
+                f"Failed to read element {element_name}. Exception: {e}", serial=serial
+            )
             return None
 
     def _scale_value(self, rec: EmopMessage.U4leValueRec | None, hardware: str):
