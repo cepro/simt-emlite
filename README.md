@@ -56,11 +56,13 @@ mediators start EML2137580826
 Downloads profile log 1 data for a single day from a specified meter using Supabase for meter info and connecting via the mediator client.
 
 Usage:
+
 ```
 python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21
 ```
 
 Example with config file:
+
 ```
 python -m simt_emlite.cli.profile_download --config config.daily-hmce.properties
 ```
@@ -70,11 +72,13 @@ python -m simt_emlite.cli.profile_download --config config.daily-hmce.properties
 Compares two replica folders containing dated CSV files, reporting files that are only in one folder or have different sizes. Optionally filter by date range.
 
 Usage:
+
 ```
 python -m simt_emlite.cli.replicas_compare <replica_dir_1> <replica_dir_2> [start_date] [end_date]
 ```
 
 Examples:
+
 ```
 # Compare all files in two replicas
 python -m simt_emlite.cli.replicas_compare /path/to/replica1 /path/to/replica2
@@ -88,6 +92,7 @@ python -m simt_emlite.cli.replicas_compare /path/to/replica1 /path/to/replica2 2
 Shell script that finds CSV files for 2025 with line counts not equal to 49, indicating missing records.
 
 Usage:
+
 ```
 ./bin/replica-files-missing-records-2025 <replica_folder>
 ```
@@ -97,6 +102,7 @@ Usage:
 Scans a directory structure for missing daily CSV files within a specified date range, expecting files named like EML...-A-YYYYMMDD.csv in subdirectories.
 
 Usage:
+
 ```
 python -m simt_emlite.cli.replica_check_missing <root_dir> <start_date> <end_date>
 ```
@@ -186,7 +192,7 @@ fly secrets set  --config fly/fly-mediator-mgf.toml  \
 
 fly deploy --config fly/fly-mediator-mgf.toml
 fly scale count 1 --config fly/fly-mediator-mgf.toml
-fly ip private -a mediator-mgf
+fly ip allocate-v6 --private -a mediator-mgf
 ```
 
 ## Create App for a single meter with TLS Auth
