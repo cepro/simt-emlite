@@ -6,12 +6,12 @@ import traceback
 from typing import Any, Callable
 
 from simt_emlite.jobs.meter_sync import MeterSyncJob
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
+mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
@@ -38,11 +38,6 @@ class MeterSyncAllJob:
     ):
         self.esco = esco
 
-        # '-public' suffix means sync only public or single_meter_app meters
-        self.single_meter_apps = self.esco.endswith("-public")
-        if self.single_meter_apps:
-            self.esco = self.esco.replace("-public", "")
-
         global logger
         self.log = logger.bind(esco=self.esco)
 
@@ -58,38 +53,22 @@ class MeterSyncAllJob:
 
         self.supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
-    def run_job(self, meter_id, serial, is_single_meter_app=False):
+    def run_job(self, meter_id, serial):
         try:
-            containers_api = None
-            if is_single_meter_app:
-                containers_api = get_instance(
-                    is_single_meter_app=is_single_meter_app,
-                    serial=serial,
-                    use_private_address=True,
-                    env=env
-                )
-            else:
-                containers_api = get_instance(esco=esco, env=env)
-
-            mediator_address = containers_api.mediator_address(meter_id, serial)
-            if mediator_address is None:
-                self.log.warn(f"no mediator container exists for meter {serial}")
-                return
-
             self.log.info(
                 "run_job",
                 meter_id=meter_id,
-                mediator_address=mediator_address,
             )
 
             # Narrow types after environment check
             assert supabase_url is not None
             assert supabase_key is not None
             assert flows_role_key is not None
+            assert mediator_server is not None
 
             job = MeterSyncJob(
                 meter_id=meter_id,
-                mediator_address=mediator_address,
+                mediator_address=mediator_server,
                 supabase_url=supabase_url,
                 supabase_key=supabase_key,
                 flows_role_key=flows_role_key,
@@ -98,7 +77,7 @@ class MeterSyncAllJob:
             job.sync()
         except Exception as e:
             self.log.error(
-                f"failure occured syncing meter {meter_id} at {mediator_address}",
+                f"failure occured syncing meter {meter_id}",
                 error=e,
                 exception=traceback.format_exception(e),
             )
@@ -121,7 +100,6 @@ class MeterSyncAllJob:
             .select("id,ip_address,serial,hardware")
             # only process meters at the given esco
             .eq("esco", esco_id)
-            .eq("single_meter_app", self.single_meter_apps)
             # only sync active / real hardware meters
             # passive meters are synced from active meters in
             #   some other database and environment
@@ -148,8 +126,7 @@ class MeterSyncAllJob:
                 executor.submit(
                     self.run_job,
                     meter["id"],
-                    meter["serial"],
-                    is_single_meter_app=self.single_meter_apps,
+                    meter["serial"]
                 )
                 for meter in meters
             ]
