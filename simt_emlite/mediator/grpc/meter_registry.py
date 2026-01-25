@@ -144,13 +144,13 @@ class MeterRegistry:
                     # Only register if we have a serial and an IP
                     if serial and ip:
                         if serial not in self._meters:
-                            logger.info(f"Adding meter {serial} at {ip}")
+                            # logger.info(f"Adding meter {serial} at {ip}")
                             self._meters[serial] = MeterContext(serial, ip)
                             added_count += 1
                         else:
                             # Update IP if changed
                             if self._meters[serial].host != ip:
-                                logger.info(f"Updating meter {serial} IP to {ip}")
+                                # logger.info(f"Updating meter {serial} IP to {ip}")
                                 self._meters[serial].host = ip
                                 self._meters[serial].api = EmliteAPI(
                                     ip, self._meters[serial].port

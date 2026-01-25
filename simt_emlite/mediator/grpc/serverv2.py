@@ -40,8 +40,6 @@ def shutdown_handler(signal_num, frame):
 
 
 def serve():
-    logger.error("ENTRY!\n\n\n")
-
     try:
         registry = MeterRegistry(esco_code=esco_code)
         registry.refresh_from_db()
@@ -73,11 +71,6 @@ def serve():
 
             logger.debug(f"add_secure_port [{listen_address}]")
             server.add_secure_port(listen_address, server_credentials)
-
-            # add a private as well for internal services like meter sync jobs
-            private_listen_address = "fly-local-6pn:44444"
-            logger.debug(f"add_insecure_port [{private_listen_address}]")
-            server.add_insecure_port(private_listen_address)
         except Exception as e:
             logger.error(f"Failed to setup SSL credentials: {e}")
             sys.exit(1)

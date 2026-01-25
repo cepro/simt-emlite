@@ -185,6 +185,8 @@ fly launch --no-deploy --org microgridfoundry --config fly/fly-mediator-mgf.toml
 fly secrets set  --config fly/fly-mediator-mgf.toml  \
     MEDIATOR_SERVER_CERT="$MEDIATOR_SERVER_CERT" \
     MEDIATOR_SERVER_KEY="$MEDIATOR_SERVER_KEY" \
+    MEDIATOR_CLIENT_CERT="$MEDIATOR_CLIENT_CERT" \
+    MEDIATOR_CLIENT_KEY="$MEDIATOR_CLIENT_KEY" \
     MEDIATOR_CA_CERT="$MEDIATOR_CA_CERT" \
     SOCKS_PASSWORD="$SOCKS_PASSWORD" \
     SUPABASE_ACCESS_TOKEN="$SUPABASE_ACCESS_TOKEN" \
@@ -194,6 +196,16 @@ fly deploy --config fly/fly-mediator-mgf.toml
 fly scale count 1 --config fly/fly-mediator-mgf.toml
 fly ip allocate-v6 --private -a mediator-mgf
 ```
+
+### Client certificates provided to server
+
+Why do we do this?
+
+It was decided to make all connections to the server secure via certificates. Initially we wanted to have an internal port exposed for the jobs like the meter sync jobs which run in an ephemeral machine inside the same fly app as the server.
+
+But you can't get auto machine start via flycast without exposing the insecure port in [[services]] ...
+
+An alternative to this setup would be to have the jobs in a separate app and that app has the client certificates defined and then they would not be needed in the server setup here... Time permitting I think we can move to that setup later.
 
 ## Create App for a single meter with TLS Auth
 
