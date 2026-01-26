@@ -5,7 +5,7 @@ from httpx import ConnectError
 
 from simt_emlite import sync
 from simt_emlite.jobs.util import handle_supabase_faliure
-from simt_emlite.mediator.client2 import EmliteMediatorClientV2
+from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
@@ -62,7 +62,7 @@ class MeterSyncJob:
 
         self.serial = as_first_item(result)["serial"]
 
-        self.emlite_client = EmliteMediatorClientV2(
+        self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
         )
 

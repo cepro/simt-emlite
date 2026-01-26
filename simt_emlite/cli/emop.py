@@ -1,25 +1,26 @@
 import argparse
 import datetime
 import importlib
+import inspect
 import json
 import logging
 import os
 import sys
 import traceback
-import inspect
 from decimal import Decimal
 from typing import Any, Dict, List, cast
 
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage  # type: ignore[import-untyped]
+from rich import box
 from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.logging import suppress_noisy_loggers
-from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 # Configure logging early to avoid being overridden by imports
 logging.basicConfig(level=logging.WARNING)
@@ -28,14 +29,9 @@ console = Console(stderr=True)
 
 config = load_config()
 
-SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
-SUPABASE_ANON_KEY = config["supabase_anon_key"]
-SUPABASE_URL = config["supabase_url"]
-
-FLY_API_TOKEN = config["fly_api_token"]
-FLY_REGION: str | None = cast(str | None, config["fly_region"])
-
 ENV: str | None = cast(str | None, config["env"])
+
+MEDIATOR_SERVER: str | None = cast(str | None, config["mediator_server"])
 
 SIMPLE_READ_COMMANDS = [
     ("csq", "Signal quality"),
@@ -91,6 +87,26 @@ SIMPLE_READ_COMMANDS = [
 """
 
 
+def rich_status_circle(color: str) -> str:
+    return f"[{color}]●[/{color}]"
+
+
+def rich_signal_circle(csq: int | None) -> Text:
+    if csq is None or csq < 1:
+        color = "rgb(255,0,0)"  # Red
+    elif csq > 22:
+        color = "rgb(0,255,0)"  # Green
+    elif csq > 17:
+        color = "rgb(128,255,0)"  # Light Green
+    elif csq > 12:
+        color = "rgb(255,255,0)"  # Yellow
+    elif csq > 7:
+        color = "rgb(255,192,0)"  # Orange-yellow
+    elif csq > 0:
+        color = "rgb(255,128,0)"  # Orange
+    return Text("●", style=color)
+
+
 class EMOPCLI(EmliteMediatorClient):
     def __init__(
         self,
@@ -99,6 +115,7 @@ class EMOPCLI(EmliteMediatorClient):
         logging_level: str | int = logging.INFO,
     ) -> None:
         self.serial = serial
+        self.supabase = None
 
         try:
             # TODO: necessary for meters that have not yet had a serial read
@@ -108,135 +125,108 @@ class EMOPCLI(EmliteMediatorClient):
                 console.print(err_msg)
                 raise Exception(err_msg)
 
-            if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_ACCESS_TOKEN:
-                raise Exception(
-                    "SUPABASE_URL, SUPABASE_ANON_KEY and/or SUPABASE_ACCESS_TOKEN not set"
-                )
+            # RESTORE THIS BY RPC CALL
+            # if as_list(res):
+            #     drift_raw = as_first_item(res).get("clock_time_diff_seconds")
+            #     drift = f"{drift_raw}" if drift_raw is not None else "unknown"
 
-            self.supabase = supa_client(
-                str(SUPABASE_URL), str(SUPABASE_ANON_KEY), str(SUPABASE_ACCESS_TOKEN)
+            #     last_read_raw = as_first_item(res).get("clock_time_diff_synced_at")
+
+            #     last_read = (
+            #         f"{last_read_raw}" if last_read_raw is not None else "unknown"
+            #     )
+
+            #     if last_read_raw:
+            #         try:
+            #             dt = datetime.datetime.fromisoformat(
+            #                 last_read_raw.replace("Z", "+00:00")
+            #             )
+            #             last_read = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+            #         except Exception as e:
+            #             logging.warning(
+            #                 f"Failed to parse capture timestamp '{last_read_raw}': {e}"
+            #             )
+
+            #     console.print(
+            #         f"Latest Clock Drift: {drift} seconds | Captured At: {last_read}",
+            #         style="cyan",
+            #         highlight=False,
+            #     )
+
+            # Initialize client (without meter_id, but with resolved address)
+            super().__init__(
+                mediator_address=MEDIATOR_SERVER,
+                logging_level=logging_level,
             )
-
-            if serial is not None:
-                result = (
-                    self.supabase.table("meter_registry")
-                    .select("id,esco")
-                    .eq("serial", serial)
-                    .execute()
-                )
-                if len(as_list(result)) == 0:
-                    err_msg = f"meter {serial} not found"
-                    console.print(err_msg)
-                    raise Exception(err_msg)
-
-                meter = as_first_item(result)
-                meter_id = meter["id"]
-                esco_id = meter["esco"]
-
-                esco_code = None
-                if esco_id is not None:
-                    result = (
-                        self.supabase.schema("flows")
-                        .table("escos")
-                        .select("code")
-                        .eq("id", esco_id)
-                        .execute()
-                    )
-                    esco_code = as_first_item(result)["code"]
-
-                containers = get_instance(
-                    is_single_meter_app=False,
-                    esco=esco_code,
-                    serial=serial,
-                    region=FLY_REGION,
-                    env=cast(str | None, ENV),
-                )
-                mediator_address = containers.mediator_address(meter_id, serial)
-                if not mediator_address:
-                    raise Exception("unable to get mediator address")
-
-                # Show latest clock drift
-                res = (
-                    self.supabase.table("meter_shadows")
-                    .select("clock_time_diff_seconds,clock_time_diff_synced_at")
-                    .eq("id", meter_id)
-                    .execute()
-                )
-                if as_list(res):
-                    drift_raw = as_first_item(res).get("clock_time_diff_seconds")
-                    drift = f"{drift_raw}" if drift_raw is not None else "unknown"
-
-                    last_read_raw = as_first_item(res).get("clock_time_diff_synced_at")
-                    last_read = f"{last_read_raw}" if last_read_raw is not None else "unknown"
-
-                    if last_read_raw:
-                        try:
-                            dt = datetime.datetime.fromisoformat(
-                                last_read_raw.replace("Z", "+00:00")
-                            )
-                            last_read = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-                        except Exception as e:
-                            logging.warning(
-                                f"Failed to parse capture timestamp '{last_read_raw}': {e}"
-                            )
-
-                    console.print(
-                        f"Latest Clock Drift: {drift} seconds | Captured At: {last_read}",
-                        style="cyan",
-                        highlight=False,
-                    )
-
-                super().__init__(
-                    mediator_address=mediator_address,
-                    use_cert_auth=False,
-                    logging_level=logging_level,
-                )
         except Exception as e:
             console.print(
                 f"Failure: [{e}], exception [{traceback.format_exception(e)}]"
             )
+            # Re-raise unless it's just a missing serial for commands that don't need it?
+            # Existing emop.py re-raises.
             raise e
 
     # =================================
-    #   Supabase Commands
+    #   Info Commands
     # =================================
 
-    def serial_to_name(self, serial: str) -> None:
-        result = (
-            self.supabase.table("meter_registry")
-            .select("name")
-            .eq("serial", serial)
-            .execute()
-        )
-        if len(as_list(result)) == 0:
-            msg = f"meter {serial} not found"
-            console.print(msg)
-            raise Exception(msg)
-
-        print(as_first_item(result)["name"])
-
     def info(self, serial: str) -> None:
-        result = (
-            self.supabase.table("meter_registry")
-            .select("*")
-            .eq("serial", serial)
-            .execute()
-        )
-        if len(as_list(result)) == 0:
-            msg = f"meter {serial} not found"
-            console.print(msg)
-            raise Exception(msg)
-        registry_rec = as_first_item(result)
+        """Call the new InfoService GetInfo via the client."""
+        if not serial:
+            raise ValueError("Serial required for info command")
 
-        result = (
-            self.supabase.table("meter_shadows")
-            .select("*")
-            .eq("id", registry_rec["id"])
-            .execute()
-        )
-        shadow_rec = as_first_item(result)
+        # Use the client method method inherited from EmliteMediatorClient
+        # which calls the gRPC service
+        info_json = self.get_info(serial)
+        # Parse it just to pretty print it
+        try:
+            data = json.loads(info_json)
+            print(json.dumps(data, indent=2))
+        except Exception:
+            print(info_json)
 
-        print(json.dumps({"registry": registry_rec, "shadow": shadow_rec}, indent=2))
+    def list(self, json_output: bool = False) -> None:
+        """List all meters with formatted table output."""
+        # Call inherited get_meters() method
+        meters_json = self.get_meters()
+
+        # Parse the JSON response
+        try:
+            meters = json.loads(meters_json)
+        except Exception as e:
+            console.print(f"Failed to parse meters data: {e}")
+            raise
+
+        # JSON output for scripting
+        if json_output:
+            print(json.dumps(meters, indent=2))
+            return
+
+        # Rich table output for human readability
+        table = Table(
+            "esco",
+            "serial",
+            "name",
+            "signal",
+            "health",
+            "hardware",
+            "feeder",
+            box=box.SQUARE,
+        )
+
+        for meter in meters:
+            row_values = [
+                meter.get("esco", ""),
+                meter.get("serial", ""),
+                meter.get("name", ""),
+                rich_signal_circle(meter.get("csq")),
+                rich_status_circle("green" if meter.get("health") == "healthy" else "red"),
+                meter.get("hardware", ""),
+                meter.get("feeder", ""),
+            ]
+            table.add_row(*row_values)
+
+        console.print(table)
 
     # =================================
     #   Tool related
@@ -256,37 +246,6 @@ class EMOPCLI(EmliteMediatorClient):
         except Exception as e:
             logging.error(f"ERROR: {e}")
             sys.exit(1)
-
-    # =================================
-    #   Shelved for now
-    # =================================
-
-    # NOTE: initially implemented the below to support login by user/password
-    #  with Supabase. However this mechanism requires auth.users user and RLS
-    #  based authorization. As we want to access flows tables which are FDWs
-    #  this doesn't work.  So for now at least we generate a postgres role and
-    #  a JWT for it and set up the auth rules using postgres roles and grants.
-    #  JWT is checked by supabase (postgrest) but does not use auth.users
-    #  or the authenticated role.
-
-    # def login(self, email: str, password: str):
-    #     supabase = supa_client(supabase_url, supabase_anon_key)
-    #     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    #     self._save_tokens(result.session.access_token, result.session.refresh_token)
-
-    # def logout(self, email: str, password: str):
-    #     supabase = supa_client(supabase_url, supabase_anon_key)
-    #     result = supabase.auth.sign_in_with_password({"email": email, "password": password})
-    #     print(result)
-
-    # def _save_tokens(self, access_token: str, refresh_token: str):
-    #     with open(SUPABASE_TOKEN_FILE, "w") as env_file:
-    #         env_file.write(f"# Supabase logged in user JWT tokens\n")
-    #         env_file.write(f"access_token={access_token}\n")
-    #         env_file.write(f"refresh_token={refresh_token}\n")
-
-    # def _read_tokens(self):
-    #     return dotenv_values(SUPABASE_TOKEN_FILE)
 
 
 def valid_log_level(level_str: str | None) -> Any:
@@ -449,6 +408,15 @@ def args_parser() -> argparse.ArgumentParser:
         "env_set",
         help="Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
     ).add_argument("env")
+
+    # List all meters command
+    list_parser = subparsers.add_parser("list", help="List all meters with status")
+    list_parser.add_argument(
+        "--json",
+        help="Output as JSON instead of formatted table",
+        action="store_true",
+        dest="json_output",
+    )
 
     # ===========    Simple Reads (no args)    ==========
 
@@ -660,12 +628,12 @@ emop -s EML1411222333 load_switch_write never_button_required
 
 Example usage:
 
-emop -s EML1411222333 tariffs_future_write \\
-        --from-ts "2024-08-21T06:54:00+00" \\
-        --unit-rate "0.23812" \\
-        --standing-charge "0.6975" \\
-        --ecredit-availability "10.0" \\
-        --debt-recovery-rate "0.25" \\
+emop -s EML1411222333 tariffs_future_write \
+        --from-ts "2024-08-21T06:54:00+00" \
+        --unit-rate "0.23812" \
+        --standing-charge "0.6975" \
+        --ecredit-availability "10.0" \
+        --debt-recovery-rate "0.25" \
         --emergency-credit "15.00"
 """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -714,12 +682,18 @@ emop -s EML1411222333 tariffs_future_write \\
         type=valid_decimal,
     )
 
-    # ===========    Supabase lookups    ==========
+    # ===========    Info lookups    ==========
 
     info_parser = subparsers.add_parser(
         "info", help="metadata and shadows data for a meter"
     )
     add_arg_serial(info_parser)
+
+    # serial_to_name command (retained)
+    serial_to_name_parser = subparsers.add_parser(
+        "serial_to_name", help="lookup meter name from serial"
+    )
+    add_arg_serial(serial_to_name_parser)
 
     return parser
 
@@ -736,6 +710,10 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
             cli = EMOPCLI(serial=serial, logging_level=log_level)
             method = getattr(cli, command)
 
+            # INSPECT: Check if the method expects a 'serial' argument as the first parameter
+            # EMOPCLI methods inherited from EmliteMediatorClient mostly start with (self, serial, ...)
+            # except those that don't need it.
+            # Local methods like 'info' use 'self.serial' internally and don't take it as arg.
             sig = inspect.signature(method)
             params = list(sig.parameters.keys())
 
@@ -761,9 +739,11 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
             logging.error("Failed to connect to meter")
         else:
             logging.error(f"Failure [{e}]")
-    except Exception:
+    except Exception as e:
         # assume constructor or method already handled logging but just in case
-        pass
+        # print wrapper trace if needed or rely on higher level
+        # console.print(f"Error executing command: {e}")
+        raise e
 
 
 def run_command_for_serials(
@@ -789,18 +769,7 @@ def main() -> None:
         parser.print_help()
         exit(-1)
 
-    # logging.info(kwargs)
-
-    # cli works on a given serial or list of serials.
-    #
-    # there are 4 ways to specify serials:
-    #  * emop -s <serial> csq
-    #  * emop csq <serial>
-    #  * emop --serials <serial1,serial2,...> csq
-    #  * emop --serials-file serials.txt csq
-    #
-    # pop off all serial argument possibilities so they are removed from
-    # kwargs. then use first seen in the order documented above.
+    # CLI works on a given serial or list of serials.
     arg_s = kwargs.pop("s", None)
     arg_serial = kwargs.pop("serial", None)
     arg_serials = kwargs.pop("serials", None)
@@ -808,7 +777,10 @@ def main() -> None:
 
     serial = arg_s or arg_serial
     try:
-        if serial or command in ["env_set", "env_show", "version", "info"]:
+        # Commands that don't need a serial or can work without one
+        if command in ["env_set", "env_show", "version", "list"]:
+            run_command(serial, command, kwargs)
+        elif serial:
             run_command(serial, command, kwargs)
         elif arg_serials:
             serial_list = arg_serials.split(",")
@@ -823,6 +795,8 @@ def main() -> None:
 
             run_command_for_serials(serial_list, command, kwargs)
         else:
+            # check commands that might be self-contained in methods/args?
+            # info requires serial in V2
             parser.print_help()
             exit(-1)
     except KeyboardInterrupt:

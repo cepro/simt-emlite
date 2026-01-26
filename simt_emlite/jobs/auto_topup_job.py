@@ -131,7 +131,6 @@ class AutoTopupJob:
                             # Initialize client with proper setup
                             emlite_client = EmliteMediatorClient(
                                 mediator_address=mediator_address,
-                                use_cert_auth=False,
                                 logging_level=logging.INFO,
                             )
 

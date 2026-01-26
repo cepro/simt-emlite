@@ -1,64 +1,31 @@
-# mypy: disable-error-code="import-untyped"
-
 import os
 import signal
 import sys
-import threading
-import time
-import traceback
 from concurrent import futures
-from datetime import datetime, timedelta
-
-from emop_frame_protocol.util import emop_encode_u3be
 
 import grpc
-from simt_emlite.emlite.emlite_api import EmliteAPI
 from simt_emlite.util.logging import get_logger
-from .util import decode_b64_secret_to_bytes
 
-from .generated.mediator_pb2 import (
-    ReadElementReply,
-    ReadElementRequest,
-    SendRawMessageReply,
-    SendRawMessageRequest,
-    WriteElementReply,
-    WriteElementRequest,
-)
 from .generated.mediator_pb2_grpc import (
-    EmliteMediatorServiceServicer,
     add_EmliteMediatorServiceServicer_to_server,
+    add_InfoServiceServicer_to_server,
 )
+from .info_service import EmliteInfoServiceServicer
+from .mediator_service import EmliteMediatorServicer
+from .meter_registry import MeterRegistry
+from .util import decode_b64_secret_to_bytes
 
 logger = get_logger(__name__, __file__)
 
-"""
-    Wait this amount of time between requests to avoid the emlite meter
-    returning "connection refused" errors.
-"""
-minimum_time_between_emlite_requests_seconds = 2
+LISTEN_PORT = os.environ.get("LISTEN_PORT", "50051")
+MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "30"))
 
-"""
-    Allow one request to the meter at a time only.
-"""
-max_workers = 1
-
-"""
-    Address details of the Emlite meter.
-"""
-emlite_host = os.environ.get("EMLITE_HOST")
-emlite_port = os.environ.get("EMLITE_PORT") or "8080"
-
-"""
-    Port to listen on.
-"""
-listen_port = os.environ.get("LISTEN_PORT") or "50051"
-
-"""
-    Auth Certificates and Keys.
-"""
+# Auth Certificates and Keys
 server_cert_b64 = os.environ.get("MEDIATOR_SERVER_CERT")
 server_key_b64 = os.environ.get("MEDIATOR_SERVER_KEY")
 ca_cert_b64 = os.environ.get("MEDIATOR_CA_CERT")
+
+esco_code = os.environ.get("ESCO")
 
 use_cert_auth = (
     server_cert_b64 is not None
@@ -66,223 +33,70 @@ use_cert_auth = (
     and ca_cert_b64 is not None
 )
 
-"""
-    Inactive shutdown properties
-"""
 
-inactivity_seconds = int(os.environ.get("MEDIATOR_INACTIVITY_SECONDS") or "0")
-inactivity_check_interval_seconds = 30
-
-
-def epoch_seconds() -> int:
-    return round(time.time())
-
-
-last_request_time: int = epoch_seconds()
-inactivity_event: threading.Event = threading.Event()
-
-server = None
-
-"""
-    The mediator is a gRPC server that takes requests and relays them to an
-    Emlite meter over the EMOP protocol.
-
-    Clients can send a raw data_field or request just a specific object_id request
-    and the mediator will build a corresponding Emlite frame to send to the meter.
-
-    Only one emlite meter request can be processed at a time so this server
-    will queue incoming gRPC requests and process them one at a time.
-    This is achieved by simply setting max_workers=1 on the grpc server.
-
-    Additionally there will be a wait of minimum_time_between_emlite_requests_seconds
-    between back to back requests. Therefore client requests will have to wait
-    a little if a number of requests are in the queue.
-
-    NOTE: this performance could potentially be improved by reusing the socket
-    connection however at this stage a higher throughput is not required.
-"""
-
-
-class EmliteMediatorServicer(EmliteMediatorServiceServicer):
-    def __init__(self, host: str, port: int) -> None:
-        self.api = EmliteAPI(host, port)
-        self.log = logger.bind(emlite_host=host)
-
-    def sendRawMessage(
-        self, request: SendRawMessageRequest, context: grpc.ServicerContext
-    ) -> SendRawMessageReply:
-        self._refresh_last_request_time()
-        self.log.debug("sendRawMessage", message=request.dataField.hex())
-        self._space_out_requests()
-        try:
-            rsp_payload = self.api.send_message(request.dataField)
-            self.log.debug("sendRawMessage response", payload=rsp_payload.hex())
-            return SendRawMessageReply(response=rsp_payload)
-        except Exception as e:
-            self._handle_failure(e, "sendRawMessage", context)
-            return SendRawMessageReply()
-
-    def readElement(
-        self, request: ReadElementRequest, context: grpc.ServicerContext
-    ) -> ReadElementReply:
-        self._refresh_last_request_time()
-        object_id_bytes = emop_encode_u3be(request.objectId)
-        self.log.debug("readElement request", object_id=object_id_bytes.hex())
-        self._space_out_requests()
-        try:
-            rsp_payload = self.api.read_element(object_id_bytes)
-            self.log.debug(
-                "readElement response",
-                object_id=object_id_bytes.hex(),
-                payload=rsp_payload.hex(),
-            )
-            return ReadElementReply(response=rsp_payload)
-        except Exception as e:
-            self._handle_failure(e, "readElement", context)
-            return ReadElementReply()
-
-    def writeElement(
-        self, request: WriteElementRequest, context: grpc.ServicerContext
-    ) -> WriteElementReply:
-        self._refresh_last_request_time()
-        object_id_bytes = emop_encode_u3be(request.objectId)
-        self.log.debug(
-            "writeElement request",
-            object_id=object_id_bytes.hex(),
-            payload=request.payload.hex(),
-        )
-        self._space_out_requests()
-        try:
-            self.api.write_element(object_id_bytes, request.payload)
-            self.log.debug(
-                "writeElement returned",
-                object_id=object_id_bytes.hex(),
-            )
-            return WriteElementReply()
-        except Exception as e:
-            self._handle_failure(e, "writeElement", context)
-            return WriteElementReply()
-
-    def _handle_failure(
-        self, exception: Exception, call_name: str, context: grpc.ServicerContext
-    ) -> None:
-        if exception.__class__.__name__.startswith("RetryError"):
-            self.log.warn(
-                "Failed to connect to meter after a number of retries",
-                call_name=call_name,
-            )
-            context.set_details("failed to connect after retries")
-        elif exception.__class__.__name__.startswith("EOFError"):
-            self.log.warn(
-                "EOFError seen - so far only happens on back to back calls for 3p voltage",
-                call_name=call_name,
-                exception=traceback.format_exception(exception),
-            )
-            context.set_details("EOFError")
-        else:
-            self.log.error(
-                "call failed",
-                call_name=call_name,
-                error=exception,
-                exception=traceback.format_exception(exception),
-            )
-            context.set_details("network failure or internal error")
-
-        context.set_code(grpc.StatusCode.INTERNAL)
-
-    """ sleep the minimum amount of time between requests if there was a request recently in that range """
-
-    def _space_out_requests(self) -> None:
-        if self.api.last_request_datetime is None:
-            return
-
-        next_request_allowed_datetime = self.api.last_request_datetime + timedelta(
-            seconds=minimum_time_between_emlite_requests_seconds
-        )
-
-        if datetime.now() < next_request_allowed_datetime:
-            self.log.debug(
-                f"sleeping {minimum_time_between_emlite_requests_seconds} seconds between requests"
-            )
-            time.sleep(minimum_time_between_emlite_requests_seconds)
-
-    def _refresh_last_request_time(self) -> None:
-        global last_request_time
-        last_request_time = epoch_seconds()
-
-
-def shutdown_handler(signal: int | None, frame: object | None) -> None:
-    logger.debug("Server shutting down...")
+def shutdown_handler(signal_num, frame):
+    logger.info("Server shutting down...")
     sys.exit(0)
 
 
-def inactivity_checking() -> None:
-    """
-    check for inactivity on a Timer and reaise event and exit the thread when reached
-    """
-    seconds_inactive = epoch_seconds() - last_request_time
-    if seconds_inactive >= inactivity_seconds:
-        logger.debug(f"Server inactive for {seconds_inactive} seconds")
-        global inactivity_event
-        inactivity_event.set()
-        sys.exit(0)
-    else:
-        threading.Timer(inactivity_check_interval_seconds, inactivity_checking).start()
+def serve():
+    try:
+        registry = MeterRegistry(esco_code=esco_code)
+        registry.refresh_from_db()
+    except Exception as e:
+        logger.error(f"Failed to initialize MeterRegistry: {e}")
+        sys.exit(1)
 
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_WORKERS))
 
-
-
-
-def serve() -> None:
-    global logger
-    log = logger.bind(emlite_host=emlite_host)
-
-    if emlite_host is None:
-        log.error("EMLITE_HOST environment variable not set")
-        return
-
-    log.debug("starting server")
-
-    global server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
-    add_EmliteMediatorServiceServicer_to_server(  # type: ignore[no-untyped-call]
-        EmliteMediatorServicer(emlite_host, int(emlite_port)), server
+    # Register Services
+    add_EmliteMediatorServiceServicer_to_server(
+        EmliteMediatorServicer(registry), server
     )
+    add_InfoServiceServicer_to_server(EmliteInfoServiceServicer(), server)
 
-    listen_address = f"0.0.0.0:{listen_port}"
+    listen_address = f"0.0.0.0:{LISTEN_PORT}"
 
     if use_cert_auth:
-        server_cert = decode_b64_secret_to_bytes(server_cert_b64)
-        server_key = decode_b64_secret_to_bytes(server_key_b64)
-        ca_cert = decode_b64_secret_to_bytes(ca_cert_b64)
+        try:
+            server_cert = decode_b64_secret_to_bytes(server_cert_b64)
+            server_key = decode_b64_secret_to_bytes(server_key_b64)
+            ca_cert = decode_b64_secret_to_bytes(ca_cert_b64)
 
-        server_credentials = grpc.ssl_server_credentials(
-            [(server_key, server_cert)],
-            root_certificates=ca_cert,
-            require_client_auth=True,
-        )
+            server_credentials = grpc.ssl_server_credentials(
+                [(server_key, server_cert)],
+                root_certificates=ca_cert,
+                require_client_auth=True,
+            )
 
-        log.debug(f"add_secure_port [{listen_address}]")
-        server.add_secure_port(listen_address, server_credentials)
-
-        # add a private as well for internal services like meter sync jobs
-        private_listen_address = "[::]:44444"
-        log.debug(f"add_insecure_port [{private_listen_address}]")
-        server.add_insecure_port(private_listen_address)
+            logger.debug(f"add_secure_port [{listen_address}]")
+            server.add_secure_port(listen_address, server_credentials)
+        except Exception as e:
+            logger.error(f"Failed to setup SSL credentials: {e}")
+            sys.exit(1)
     else:
-        log.debug(f"add_insecure_port [{listen_address}]")
+        logger.debug(f"add_insecure_port [{listen_address}]")
         server.add_insecure_port(listen_address)
 
-    server.start()
+    logger.info(f"Server starting with {MAX_WORKERS} workers")
 
-    if inactivity_seconds > 0:
-        inactivity_checking()
-        inactivity_event.wait()
-        shutdown_handler(None, None)
-    else:
-        server.wait_for_termination()
+    server.start()
+    server.wait_for_termination()
 
 
 if __name__ == "__main__":
+    import argparse
+    import logging
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable verbose logging"
+    )
+    args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Verbose logging enabled")
+
     signal.signal(signal.SIGINT, shutdown_handler)
     serve()

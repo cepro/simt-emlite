@@ -192,7 +192,6 @@ class ProfileDownloader:
 
         self.client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            use_cert_auth=False,
             logging_level=self.logging_level,
         )
 

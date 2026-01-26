@@ -16,7 +16,7 @@ from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
+class EmliteMediatorServicer(EmliteMediatorServiceServicer):
     def __init__(self, registry: MeterRegistry):
         self.registry = registry
 
