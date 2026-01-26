@@ -136,6 +136,11 @@ poetry run test
 
 ## Publish
 
+### Deployment Tags
+
+- PyPI Package: Push a tag ending in `-package` (e.g. `0.1.0-package`)
+- Server Docker Image: Push a tag ending in `-server` (e.g. `0.1.0-server`)
+
 ### Create App Meter Gateway
 
 For deployments using `fly/fly-mediator-mgf.toml`:
