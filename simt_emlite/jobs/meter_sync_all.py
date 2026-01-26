@@ -16,7 +16,6 @@ supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 15)
-env: str | None = os.environ.get("ENV")
 
 
 def filter_connected(meter):

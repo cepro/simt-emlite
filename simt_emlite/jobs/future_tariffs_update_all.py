@@ -18,7 +18,6 @@ supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 public_backend_role_key: str | None = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
-env: str | None = os.environ.get("ENV")
 mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 
 

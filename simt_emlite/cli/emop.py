@@ -29,8 +29,6 @@ console = Console(stderr=True)
 
 config = load_config()
 
-ENV: str | None = cast(str | None, config["env"])
-
 MEDIATOR_SERVER: str | None = cast(str | None, config["mediator_server"])
 
 SIMPLE_READ_COMMANDS = [
