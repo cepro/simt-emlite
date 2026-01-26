@@ -456,7 +456,7 @@ class EmliteMediatorAPI(object):
         day: datetime.datetime | None,
         start_time: datetime.datetime | None,
         end_time: datetime.datetime | None,
-        csv: str,
+        csv: str | None = None,
         include_statuses: bool = False,
     ) -> ThreePhaseIntervals:
         hours_per_frame = 4
@@ -522,7 +522,10 @@ class EmliteMediatorAPI(object):
         export_three_phase_intervals_to_csv(
             all_intervals, csv, hardware.meter_type, include_statuses
         )
-        self.log.info(f"wrote intervals to [{csv}]", serial=serial)
+        if csv:
+            self.log.info(f"wrote intervals to [{csv}]", serial=serial)
+        else:
+            self.log.info("wrote intervals to stdout", serial=serial)
 
         return all_intervals
 

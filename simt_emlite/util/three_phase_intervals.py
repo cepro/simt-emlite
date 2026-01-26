@@ -1,5 +1,6 @@
 # mypy: disable-error-code="import-untyped"
 import csv
+import sys
 from datetime import timedelta
 from typing import List
 
@@ -52,7 +53,7 @@ def blocks_to_intervals_rec(
 
 def export_three_phase_intervals_to_csv(
     record: ThreePhaseIntervals,
-    csv_file_path: str,
+    csv_file_path: str | None,
     meter_type: EmopMessage.ThreePhaseMeterType,
     include_statuses: bool = False,
 ) -> None:
@@ -61,7 +62,7 @@ def export_three_phase_intervals_to_csv(
 
     Args:
         record: ThreePhaseIntervals instance to export
-        csv_file_path: Path where CSV file will be written
+        csv_file_path: Path where CSV file will be written, or None for stdout
         include_statuses: If True, include status columns in the output
     """
 
@@ -97,8 +98,10 @@ def export_three_phase_intervals_to_csv(
         headers.extend(status_headers)
 
     # Write CSV file
-    with open(csv_file_path, "w", newline="", encoding="utf-8") as csvfile:
-        writer = csv.writer(csvfile)
+    buffer = open(csv_file_path, "w", newline="", encoding="utf-8") if csv_file_path else sys.stdout
+
+    try:
+        writer = csv.writer(buffer)
 
         writer.writerow(headers)
 
@@ -138,6 +141,9 @@ def export_three_phase_intervals_to_csv(
                 row.extend(status_values)
 
             writer.writerow(row)
+    finally:
+        if csv_file_path:
+            buffer.close()
 
 
 def _channel_ids_to_header_names(channel_ids: List[int] | List[bytes]) -> List[str]:
