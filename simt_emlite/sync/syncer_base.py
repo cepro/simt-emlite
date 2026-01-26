@@ -11,7 +11,7 @@ from simt_emlite.jobs.util import (
     handle_supabase_faliure,
     update_meter_shadows_when_healthy,
 )
-from simt_emlite.mediator.api_prepay import EmlitePrepayClient
+from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
@@ -37,7 +37,7 @@ class SyncerBase(ABC):
     def __init__(
         self,
         supabase: SupabaseClient,
-        emlite_client: EmlitePrepayClient,
+        emlite_client: EmlitePrepayAPI,
         meter_id: str,
         serial: str,
     ):

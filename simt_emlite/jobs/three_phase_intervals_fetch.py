@@ -5,7 +5,7 @@ import os
 import traceback
 from zoneinfo import ZoneInfo
 
-from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.api_core import EmliteMediatorAPI
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
@@ -69,7 +69,7 @@ class ThreePhaseIntervalsFetchJob:
         if not mediator_address or not isinstance(mediator_address, str):
             raise Exception("MEDIATOR_SERVER environment variable not set")
 
-        self.emlite_client = EmliteMediatorClient(
+        self.emlite_client = EmliteMediatorAPI(
             mediator_address=mediator_address,
             logging_level=logging.INFO,
         )

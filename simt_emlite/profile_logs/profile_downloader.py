@@ -19,7 +19,7 @@ from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 from supabase import Client as SupabaseClient
 
-from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.smip.smip_file_finder import SMIPFileFinder
@@ -65,7 +65,7 @@ class ProfileDownloader:
 
         self._check_config_and_args()
 
-        self.client: EmliteMediatorClient | None = None
+        self.client: EmliteMediatorAPI | None = None
         self.supabase: SupabaseClient = self._init_supabase()
 
         self._fetch_meter_info()
@@ -177,7 +177,7 @@ class ProfileDownloader:
         if not self.mediator_server:
             raise Exception("MEDIATOR_SERVER environment variable not set.")
 
-        self.client = EmliteMediatorClient(
+        self.client = EmliteMediatorAPI(
             mediator_address=self.mediator_server,
             logging_level=self.logging_level,
         )

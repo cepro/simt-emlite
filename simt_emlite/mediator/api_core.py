@@ -64,17 +64,18 @@ from simt_emlite.util.three_phase_intervals import (
 
 from .grpc.client import EmliteMediatorGrpcClient
 from .mediator_client_exception import MediatorClientException
+from .validation import valid_event_log_idx
 
 logger = get_logger(__name__, __file__)
 
 
-class EmliteMediatorClient(object):
+class EmliteMediatorAPI(object):
     """
     Core API client for Emlite meter operations.
 
     This class provides methods for reading meter data, managing settings,
     and performing core meter operations. For prepay and tariff operations,
-    use EmlitePrepayClient from api_prepay.py.
+    use EmlitePrepayAPI from api_prepay.py.
     """
 
     def __init__(
@@ -526,6 +527,7 @@ class EmliteMediatorClient(object):
         return all_intervals
 
     def event_log(self, serial: str, log_idx: int) -> EmopEventLogResponse:
+        valid_event_log_idx(log_idx)
         message_len = 4  # object id (3) + log_idx (1)
 
         message_field = EmopEventLogRequest()

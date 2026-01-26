@@ -16,7 +16,7 @@ class TestClockTimeRead(unittest.TestCase):
     @patch("simt_emlite.mediator.api_core.EmliteMediatorGrpcClient")
     def test_clock_time_read_parses_datetime(self, mock_grpc_client_class: MagicMock) -> None:
         """Test that clock_time_read correctly parses a datetime from the response."""
-        from simt_emlite.mediator.api_core import EmliteMediatorClient
+        from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
         # Create a mock response object that mimics the EmopMessage structure
         mock_response = MagicMock()
@@ -33,7 +33,7 @@ class TestClockTimeRead(unittest.TestCase):
         mock_grpc_client_class.return_value = mock_grpc_instance
 
         # Create client and call clock_time_read
-        client = EmliteMediatorClient(mediator_address="test:50051")
+        client = EmliteMediatorAPI(mediator_address="test:50051")
         result = client.clock_time_read("EML123456789")
 
         # Verify the result
@@ -49,7 +49,7 @@ class TestFirmwareVersion(unittest.TestCase):
     @patch("simt_emlite.mediator.api_core.EmliteMediatorGrpcClient")
     def test_firmware_version_single_phase(self, mock_grpc_client_class: MagicMock) -> None:
         """Test firmware_version for single phase meters (4 bytes)."""
-        from simt_emlite.mediator.api_core import EmliteMediatorClient
+        from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
         # Create mock response with 4 byte version
         mock_response = MagicMock()
@@ -59,7 +59,7 @@ class TestFirmwareVersion(unittest.TestCase):
         mock_grpc_instance.read_element.return_value = mock_response
         mock_grpc_client_class.return_value = mock_grpc_instance
 
-        client = EmliteMediatorClient(mediator_address="test:50051")
+        client = EmliteMediatorAPI(mediator_address="test:50051")
         result = client.firmware_version("EML123456789")
 
         # emop_format_firmware_version transforms "0142" to "01.42" format
@@ -69,7 +69,7 @@ class TestFirmwareVersion(unittest.TestCase):
     @patch("simt_emlite.mediator.api_core.EmliteMediatorGrpcClient")
     def test_firmware_version_three_phase(self, mock_grpc_client_class: MagicMock) -> None:
         """Test firmware_version for three phase meters (>4 bytes returns hex)."""
-        from simt_emlite.mediator.api_core import EmliteMediatorClient
+        from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
         # Create mock response with >4 byte version (three phase)
         mock_response = MagicMock()
@@ -79,7 +79,7 @@ class TestFirmwareVersion(unittest.TestCase):
         mock_grpc_instance.read_element.return_value = mock_response
         mock_grpc_client_class.return_value = mock_grpc_instance
 
-        client = EmliteMediatorClient(mediator_address="test:50051")
+        client = EmliteMediatorAPI(mediator_address="test:50051")
         result = client.firmware_version("EML123456789")
 
         # Should return hex string for three phase
@@ -92,7 +92,7 @@ class TestInstantaneousVoltage(unittest.TestCase):
     @patch("simt_emlite.mediator.api_core.EmliteMediatorGrpcClient")
     def test_instantaneous_voltage_returns_float(self, mock_grpc_client_class: MagicMock) -> None:
         """Test that instantaneous_voltage returns the voltage as a float."""
-        from simt_emlite.mediator.api_core import EmliteMediatorClient
+        from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
         mock_response = MagicMock()
         mock_response.voltage = 2401  # Raw value, actual voltage = 240.1V
@@ -101,7 +101,7 @@ class TestInstantaneousVoltage(unittest.TestCase):
         mock_grpc_instance.read_element.return_value = mock_response
         mock_grpc_client_class.return_value = mock_grpc_instance
 
-        client = EmliteMediatorClient(mediator_address="test:50051")
+        client = EmliteMediatorAPI(mediator_address="test:50051")
         result = client.instantaneous_voltage("EML123456789")
 
         self.assertIsInstance(result, float)
@@ -114,7 +114,7 @@ class TestReadElementA(unittest.TestCase):
     @patch("simt_emlite.mediator.api_core.EmliteMediatorGrpcClient")
     def test_read_element_a_returns_dict(self, mock_grpc_client_class: MagicMock) -> None:
         """Test that read_element_a returns a properly formatted dict with scaled values."""
-        from simt_emlite.mediator.api_core import EmliteMediatorClient
+        from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
         mock_response = MagicMock()
         # Raw values in Wh, should be converted to kWh
@@ -127,7 +127,7 @@ class TestReadElementA(unittest.TestCase):
         mock_grpc_instance.read_element.return_value = mock_response
         mock_grpc_client_class.return_value = mock_grpc_instance
 
-        client = EmliteMediatorClient(mediator_address="test:50051")
+        client = EmliteMediatorAPI(mediator_address="test:50051")
         result = client.read_element_a("EML123456789")
 
         # Verify dict structure and scaled values (divided by 1000)
@@ -149,7 +149,7 @@ class TestCsq(unittest.TestCase):
     @patch("simt_emlite.mediator.api_core.EmliteMediatorGrpcClient")
     def test_csq_returns_int(self, mock_grpc_client_class: MagicMock) -> None:
         """Test that csq returns the signal quality as an integer."""
-        from simt_emlite.mediator.api_core import EmliteMediatorClient
+        from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
         mock_response = MagicMock()
         mock_response.csq = 22  # Good signal
@@ -158,7 +158,7 @@ class TestCsq(unittest.TestCase):
         mock_grpc_instance.read_element.return_value = mock_response
         mock_grpc_client_class.return_value = mock_grpc_instance
 
-        client = EmliteMediatorClient(mediator_address="test:50051")
+        client = EmliteMediatorAPI(mediator_address="test:50051")
         result = client.csq("EML123456789")
 
         self.assertIsInstance(result, int)

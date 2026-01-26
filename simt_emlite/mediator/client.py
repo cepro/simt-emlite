@@ -1,7 +1,7 @@
 """
 Backward compatibility module.
 
-This module re-exports EmliteMediatorClient from api_core for backward compatibility.
+This module re-exports EmliteMediatorAPI from api_core for backward compatibility.
 New code should import directly from api_core or api_prepay.
 
 Deprecated: Import from simt_emlite.mediator instead.
@@ -9,9 +9,9 @@ Deprecated: Import from simt_emlite.mediator instead.
 
 import warnings
 
-from .api_core import EmliteMediatorClient
+from .api_core import EmliteMediatorAPI
 from .api_prepay import (
-    EmlitePrepayClient,
+    EmlitePrepayAPI,
     PricingTable,
     TariffsActive,
     TariffsFuture,
@@ -26,8 +26,8 @@ warnings.warn(
 )
 
 __all__ = [
-    "EmliteMediatorClient",
-    "EmlitePrepayClient",
+    "EmliteMediatorAPI",
+    "EmlitePrepayAPI",
     "PricingTable",
     "TariffsActive",
     "TariffsFuture",

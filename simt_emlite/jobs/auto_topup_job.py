@@ -6,7 +6,7 @@ import traceback
 from httpx import ConnectError
 
 from simt_emlite.jobs.util import handle_supabase_faliure
-from simt_emlite.mediator.api_prepay import EmlitePrepayClient
+from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import as_list, supa_client
 
@@ -86,7 +86,7 @@ class AutoTopupJob:
                             mediator_address = str(mediator_server)
 
                             # Initialize client with proper setup
-                            emlite_client = EmlitePrepayClient(
+                            emlite_client = EmlitePrepayAPI(
                                 mediator_address=mediator_address,
                                 logging_level=logging.INFO,
                             )

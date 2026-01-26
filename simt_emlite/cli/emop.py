@@ -17,7 +17,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
-from simt_emlite.mediator.api_prepay import EmlitePrepayClient
+from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.mediator.validation import (
     cli_valid_decimal,
@@ -111,7 +111,7 @@ def rich_signal_circle(csq: int | None) -> Text:
     return Text("●", style=color)
 
 
-class EMOPCLI(EmlitePrepayClient):
+class EMOPCLI(EmlitePrepayAPI):
     def __init__(
         self,
         serial: str | None = None,
@@ -179,7 +179,7 @@ class EMOPCLI(EmlitePrepayClient):
         if not serial:
             raise ValueError("Serial required for info command")
 
-        # Use the client method method inherited from EmliteMediatorClient
+        # Use the client method method inherited from EmliteMediatorAPI
         # which calls the gRPC service
         info_json = self.get_info(serial)
         # Parse it just to pretty print it
@@ -315,9 +315,9 @@ def valid_load_switch_setting(setting: str) -> EmopMessage.LoadSwitchSettingType
     elif setting == "normal_button_always":
         return EmopMessage.LoadSwitchSettingType.normal_button_always
     elif setting == "no_button_prepay_mode":
-        return EmopMessage.BacklightSettingType.no_button_prepay_mode
+        return EmopMessage.LoadSwitchSettingType.no_button_prepay_mode
     elif setting == "no_button_credit_mode":
-        return EmopMessage.BacklightSettingType.no_button_credit_mode
+        return EmopMessage.LoadSwitchSettingType.no_button_credit_mode
     else:
         raise argparse.ArgumentTypeError(
             f"Invalid or unsupported load switch setting string '{setting}'. See choices with -h."
@@ -671,7 +671,7 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
             method = getattr(cli, command)
 
             # INSPECT: Check if the method expects a 'serial' argument as the first parameter
-            # EMOPCLI methods inherited from EmliteMediatorClient mostly start with (self, serial, ...)
+            # EMOPCLI methods inherited from EmliteMediatorAPI mostly start with (self, serial, ...)
             # except those that don't need it.
             # Local methods like 'info' use 'self.serial' internally and don't take it as arg.
             sig = inspect.signature(method)
@@ -685,6 +685,9 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
                 result = method(**kwargs)
 
         if result is not None:
+            if command == "three_phase_intervals":
+                return
+
             if isinstance(result, (dict, list)):
                 print(json.dumps(result, indent=2, default=str))
             elif isinstance(result, (int, float, str, Decimal)):

@@ -5,7 +5,7 @@ import sys
 import traceback
 from typing import Any, Dict
 
-from simt_emlite.mediator.api_prepay import EmlitePrepayClient
+from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
@@ -33,7 +33,7 @@ class PrepayEnabledFlipJob:
         self.mediator_address = mediator_address
         self.supabase = supabase
 
-        self.emlite_client = EmlitePrepayClient(
+        self.emlite_client = EmlitePrepayAPI(
             mediator_address=mediator_address,
         )
 

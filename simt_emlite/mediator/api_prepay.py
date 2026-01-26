@@ -18,7 +18,8 @@ from emop_frame_protocol.util import (
     emop_scale_price_amount,
 )
 
-from .api_core import EmliteMediatorClient
+from .api_core import EmliteMediatorAPI
+from .validation import valid_rate
 
 
 # 8 blocks x 8 rates for tariff pricings
@@ -80,11 +81,11 @@ class TariffsFuture(TypedDict):
     pricings: PricingTable | None
 
 
-class EmlitePrepayClient(EmliteMediatorClient):
+class EmlitePrepayAPI(EmliteMediatorAPI):
     """
     API client for Emlite prepay and tariff operations.
 
-    Extends EmliteMediatorClient with prepay mode management, balance operations,
+    Extends EmliteMediatorAPI with prepay mode management, balance operations,
     token handling, and tariff configuration methods.
     """
 
@@ -378,6 +379,9 @@ class EmlitePrepayClient(EmliteMediatorClient):
         ecredit_availability: Decimal,
         debt_recovery_rate: Decimal,
     ) -> None:
+        valid_rate(standing_charge)
+        valid_rate(unit_rate)
+
         # block threshold mask and values - set values to zeros and rate 1 only in mask
         threshold_mask_bytes = bytes(1)
         self.log.debug("zero out threshold mask")

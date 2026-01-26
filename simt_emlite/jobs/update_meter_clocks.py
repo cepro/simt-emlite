@@ -6,7 +6,7 @@ import sys
 import traceback
 from typing import Any, Dict, List
 
-from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.api_core import EmliteMediatorAPI
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
@@ -65,7 +65,7 @@ class UpdateMeterClocksJob:
                 drift_seconds=drift_seconds,
             )
 
-            client = EmliteMediatorClient(
+            client = EmliteMediatorAPI(
                 mediator_address=mediator_address,
             )
 
