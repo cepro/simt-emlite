@@ -72,6 +72,7 @@ class MeterSyncAllJob:
                 supabase_key=supabase_key,
                 flows_role_key=flows_role_key,
                 run_frequency=self.run_frequency,
+                use_cert_auth=False,
             )
             job.sync()
         except Exception as e:

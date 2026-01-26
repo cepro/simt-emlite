@@ -23,7 +23,9 @@ class SyncerClockDiff(SyncerBase):
         return UpdatesTuple(
             {
                 "clock_time_diff_seconds": clock_time_diff_seconds,
-                "clock_time_diff_synced_at": datetime.datetime.now(datetime.UTC),
+                "clock_time_diff_synced_at": datetime.datetime.now(
+                    datetime.UTC
+                ).isoformat(),
             },
             None,
         )

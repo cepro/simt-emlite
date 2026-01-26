@@ -38,6 +38,7 @@ class MeterSyncJob:
         supabase_key: str,
         flows_role_key: str,
         run_frequency: str,
+        use_cert_auth: bool = False,
     ):
         self.meter_id = meter_id
         self.mediator_address = mediator_address

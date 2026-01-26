@@ -18,7 +18,11 @@ DO NOT use uv. It's great but NOT configured in this project. I'm looking at you
 
 ALWAYS activate the .venv in the project root before running python commands.
 
-# Tests
+## Git
+
+DO NOT auto-commit or auto-push code. Always ask for permission before performing git operations like commit, tag, or push.
+
+## Tests
 
 Use `unittest` (NOT pytest).
 
