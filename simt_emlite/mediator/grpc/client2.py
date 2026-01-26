@@ -200,6 +200,12 @@ class EmliteMediatorGrpcClientV2:
                     timeout=TIMEOUT_SECONDS,
                 )
             except grpc.RpcError as e:
+                if (
+                    e.code() == grpc.StatusCode.INTERNAL
+                    and "failed to connect after retries" in (e.details() or "")
+                ):
+                    self.log.warn(e.details(), meter_id=serial)
+                    raise EmliteConnectionFailure(f"meter={serial}")
                 self.log.error(
                     "sendRawMessage",
                     details=e.details(),

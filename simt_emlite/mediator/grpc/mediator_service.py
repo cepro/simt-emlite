@@ -10,6 +10,7 @@ from .generated.mediator_pb2 import (
 )
 from .generated.mediator_pb2_grpc import EmliteMediatorServiceServicer
 from .meter_registry import MeterRegistry, acquire_timeout, LOCK_TIMEOUT_SECONDS
+from tenacity import RetryError
 
 from simt_emlite.util.logging import get_logger
 
@@ -53,6 +54,14 @@ class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
                     rsp_payload = meter.api.read_element(object_id_bytes)
                     meter.mark_used()
                     return ReadElementReply(response=rsp_payload)
+                except RetryError:
+                    logger.error(
+                        f"readElement failed for {meter.serial}: max attempts reached"
+                    )
+                    context.abort(
+                        grpc.StatusCode.INTERNAL, "failed to connect after retries"
+                    )
+                    return ReadElementReply()
                 except Exception as e:
                     logger.error(f"readElement failed for {meter.serial}: {e}")
                     context.abort(grpc.StatusCode.INTERNAL, "Meter communication failed")
@@ -80,6 +89,14 @@ class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
                     meter.api.write_element(object_id_bytes, request.payload)
                     meter.mark_used()
                     return WriteElementReply()
+                except RetryError:
+                    logger.error(
+                        f"writeElement failed for {meter.serial}: max attempts reached"
+                    )
+                    context.abort(
+                        grpc.StatusCode.INTERNAL, "failed to connect after retries"
+                    )
+                    return WriteElementReply()
                 except Exception as e:
                     logger.error(f"writeElement failed for {meter.serial}: {e}")
                     context.abort(grpc.StatusCode.INTERNAL, "Meter communication failed")
@@ -104,6 +121,14 @@ class EmliteMediatorServicerV2(EmliteMediatorServiceServicer):
                     rsp_payload = meter.api.send_message(request.dataField)
                     meter.mark_used()
                     return SendRawMessageReply(response=rsp_payload)
+                except RetryError:
+                    logger.error(
+                        f"sendRawMessage failed for {meter.serial}: max attempts reached"
+                    )
+                    context.abort(
+                        grpc.StatusCode.INTERNAL, "failed to connect after retries"
+                    )
+                    return SendRawMessageReply()
                 except Exception as e:
                     logger.error(f"sendRawMessage failed for {meter.serial}: {e}")
                     context.abort(grpc.StatusCode.INTERNAL, "Meter communication failed")
