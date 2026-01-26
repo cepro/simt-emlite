@@ -4,23 +4,25 @@ This repository contains:
 
 - API to connect to and send EMOP messages to Emlite meters
 - a CLI (emop) for sending messages to the meters
-- a CLI (mediators) for managing mediator servers
 
-# Configure
+## Configure
 
 Configuration steps:
+
 - create file ~/.simt/emlite.prod.env from Lastpass secret 'emop-cli-env-file (prod)'
 - create file ~/.simt/emlite.qa.env from Lastpass secret 'emop-cli-env-file (qa)'
 - ln -s ~/.simt/emlite.<qa|prod|custom>.env ~/.simt/emlite.env
 
 NOTE:
+
 - FLY_DNS_SERVER needs the DNS that wireguard uses (on Linux look under `resolvectl status` for the interface and DNS)
 
-see also https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8
+see also <https://www.notion.so/Emop-and-mediators-CLI-setup-834d32be5c794add8716399ab186abe8>
 
-# Use
+## Use
 
-## emop
+### emop
+
 ```sh
 emop env_show
 emop env_set prod
@@ -30,15 +32,4 @@ emop --help
 emop prepay_balance EML2137555666
 emop csq EML2137555666
 emop profile_log_1 --timestamp 2024-07-19T00:00 EML2137555666
-```
-
-## mediators
-```sh
-mediators list
-mediators list --esco wlce      # show only mediators from the Waterlilies esco
-mediators list --exists False   # show all meters that don't yet have a mediator
-
-mediators create EML2137555666
-mediators destroy EML2137555666
-mediators start EML2137555666
 ```

@@ -16,7 +16,7 @@ class SyncerLoadSwitch(SyncerBase):
         if is_3p:
             return UpdatesTuple(None, None)
 
-        setting = self.emlite_client.load_switch()
+        setting = self.emlite_client.load_switch(self.serial)
 
         if not isinstance(setting, EmopMessage.LoadSwitchSettingType):
             logger.warn("skipping because the load_switch value is unknown")

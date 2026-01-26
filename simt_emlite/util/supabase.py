@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from supabase import Client, create_client
 from supabase.lib.client_options import SyncClientOptions
 
@@ -24,3 +26,11 @@ def supa_client(
     client.postgrest.session.headers["authorization"] = f"Bearer {role_key}"
 
     return client
+
+
+def as_list(result: Any) -> list[dict[str, Any]]:
+    return cast(list[dict[str, Any]], result.data)
+
+
+def as_first_item(result: Any) -> dict[str, Any]:
+    return as_list(result)[0]

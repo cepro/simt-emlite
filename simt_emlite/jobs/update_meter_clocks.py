@@ -4,7 +4,7 @@ import datetime
 import os
 import sys
 import traceback
-from typing import Dict
+from typing import Any, Dict, List
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
@@ -48,17 +48,8 @@ class UpdateMeterClocksJob:
         serial = meter_drift_record["serial"]
         drift_seconds = meter_drift_record["clock_time_diff_seconds"]
         meter_id = meter_drift_record["id"]
-        is_single_meter_app = meter_drift_record.get("single_meter_app", False)
 
-        if is_single_meter_app:
-            containers = get_instance(
-                is_single_meter_app=is_single_meter_app,
-                serial=serial,
-                use_private_address=True,
-                env=env
-            )
-        else:
-            containers = self.containers
+        containers = self.containers
 
         mediator_address = containers.mediator_address(meter_id, serial)
         if mediator_address is None:
@@ -76,12 +67,10 @@ class UpdateMeterClocksJob:
 
             client = EmliteMediatorClient(
                 mediator_address=mediator_address,
-                meter_id=meter_id,
-                use_cert_auth=False,
             )
 
             # Write the correct time
-            client.clock_time_write()
+            client.clock_time_write(serial)
 
             # 2. Reset clock drift in meter_shadows now that it's synced
             self.flows_supabase.table("meter_shadows").update(
@@ -125,7 +114,7 @@ class UpdateMeterClocksJob:
 
         try:
             # Query meter_shadows, joining meter_registry and escos to allow filtering by code
-            select_str = "clock_time_diff_seconds, id, meter_registry!inner(serial, mode, single_meter_app"
+            select_str = "clock_time_diff_seconds, id, meter_registry!inner(serial, mode"
             if self.esco:
                 select_str += ", escos!inner(code)"
             select_str += ")"
@@ -149,26 +138,31 @@ class UpdateMeterClocksJob:
         # Python post-check filtering as esco filtering in Supabase might be failing
         records = response.data
         if self.esco:
-            records = [
-                r
-                for r in records
-                if r.get("meter_registry", {}).get("escos", {}).get("code") == self.esco
-            ]
+            filtered_records: List[Any] = []
+            for r in records:
+                if isinstance(r, dict):
+                    meter_reg = r.get("meter_registry")
+                    if isinstance(meter_reg, dict):
+                        escos = meter_reg.get("escos")
+                        if isinstance(escos, dict) and escos.get("code") == self.esco:
+                            filtered_records.append(r)
+            records = filtered_records
             self.log.info(
                 f"Post-filtered by esco {self.esco}",
                 original_count=len(response.data),
                 filtered_count=len(records),
             )
 
-        drifted_meters = [
-            {
-                "id": record["id"],
-                "serial": record["meter_registry"]["serial"],
-                "clock_time_diff_seconds": record["clock_time_diff_seconds"],
-                "single_meter_app": record["meter_registry"]["single_meter_app"],
-            }
-            for record in records
-        ]
+        drifted_meters = []
+        for record in records:
+            if isinstance(record, dict):
+                meter_registry = record.get("meter_registry")
+                if isinstance(meter_registry, dict):
+                    drifted_meters.append({
+                        "id": record["id"],
+                        "serial": meter_registry["serial"],
+                        "clock_time_diff_seconds": record["clock_time_diff_seconds"],
+                    })
         self.log.info(
             f"Found {len(drifted_meters)} meters with clock drift > {drift_threshold_seconds}s",
             drifted_meters=drifted_meters,

@@ -5,9 +5,8 @@ import sys
 import traceback
 
 from simt_emlite.jobs.push_topup_token import PushTopupTokenJob
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -16,7 +15,7 @@ supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 public_backend_role_key: str | None = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
 max_parallel_jobs: int | None = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
-env: str | None = os.environ.get("ENV")
+mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 
 
 """
@@ -36,7 +35,6 @@ class PushTopupTokensAllJob:
         assert supabase_key is not None
 
         self.esco = esco
-        self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.backend_supabase = supa_client(
             supabase_url, supabase_key, public_backend_role_key, schema="myenergy"
@@ -56,7 +54,7 @@ class PushTopupTokensAllJob:
             .execute()
         )
 
-        if len(meter_query.data) == 0:
+        if len(as_list(meter_query)) == 0:
             self.log.error(
                 f"No active meter found in meter_registry with serial {serial}"
             )
@@ -71,21 +69,9 @@ class PushTopupTokensAllJob:
 
             return False
 
-        meter_id = meter_query.data[0]["id"]
+        meter_id = as_first_item(meter_query)["id"]
 
-        mediator_address = self.containers.mediator_address(meter_id, serial)
-        if mediator_address is None:
-            self.log.warn(f"No mediator container exists for meter {serial}")
-
-            # Update topup status to failed
-            self.backend_supabase.table("topups").update(
-                {
-                    "status": "failed_token_push",
-                    "notes": "No mediator container available",
-                }
-            ).eq("id", topup_id).execute()
-
-            return False
+        mediator_address = str(mediator_server)
 
         try:
             self.log.info(
@@ -99,6 +85,7 @@ class PushTopupTokensAllJob:
             job = PushTopupTokenJob(
                 topup_id=topup_id,
                 meter_id=meter_id,
+                serial=serial,
                 token=token,
                 mediator_address=mediator_address,
                 supabase=self.backend_supabase,
@@ -125,10 +112,10 @@ class PushTopupTokensAllJob:
                 .ilike("code", self.esco)
                 .execute()
             )
-            if len(escos.data) == 0:
+            if len(as_list(escos)) == 0:
                 self.log.error("No esco found for " + self.esco)
                 sys.exit(10)
-            esco_id = list(escos.data)[0]["id"]
+            esco_id = as_first_item(escos)["id"]
 
             # all supply meters filtered by ESCO
             supply_meters_result = (
@@ -138,7 +125,7 @@ class PushTopupTokensAllJob:
                 .execute()
             )
             supply_meters_for_esco = list(
-                map(lambda m: m["supply_meter"], supply_meters_result.data)
+                map(lambda m: m["supply_meter"], as_list(supply_meters_result))
             )
 
             # topups in wait_token_push status for supply meters in esco
@@ -147,11 +134,11 @@ class PushTopupTokensAllJob:
             # Query all topups with status across all ESCOs
             topups_result = self._get_topups_query(status)
 
-        if len(topups_result.data) == 0:
+        if len(as_list(topups_result)) == 0:
             self.log.info(f"No topups in status {status}")
             return
 
-        topups = topups_result.data
+        topups = as_list(topups_result)
         self.log.info(f"Found {len(topups)} topups requiring token push")
 
         # Extract all serials from topups
@@ -167,8 +154,8 @@ class PushTopupTokensAllJob:
                 .eq("mode", "active")
                 .execute()
             )
-            if len(meter_result.data) > 0:
-                active_meters_by_serial[serial] = meter_result.data[0]
+            if len(as_list(meter_result)) > 0:
+                active_meters_by_serial[serial] = as_first_item(meter_result)
 
         # Log any topups that don't have an active meter in meter_registry
         missing_serials = set()
@@ -227,6 +214,10 @@ class PushTopupTokensAllJob:
         if not public_backend_role_key:
             self.log.error("Environment variable PUBLIC_BACKEND_ROLE_KEY not set.")
             sys.exit(4)
+
+        if not mediator_server:
+            self.log.error("Environment variable MEDIATOR_SERVER not set.")
+            sys.exit(5)
 
     def _get_topups_query(self, status: str, meters: list[str] | None = None):
         """Query topups table with optional meter filter"""

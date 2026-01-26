@@ -1,0 +1,37 @@
+# fly.toml app configuration file generated for mediator-mgf on 2026-01-19T08:32:41+10:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'mediator-mgf'
+primary_region = 'lhr'
+
+[build]
+  dockerfile = '../docker/Dockerfile.server'
+
+[env]
+  LISTEN_PORT = '50051'
+  MAX_WORKERS = '90'
+  SOCKS_HOST = 'emnify-gateway-mgf.internal'
+  SOCKS_PORT = '1080'
+  SOCKS_USERNAME = 'ceprosocks'
+  SUPABASE_URL = 'https://supabase-kong-mgf.fly.dev'
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 50051
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[services.ports]]
+    port = 50051
+
+  [[services.tcp_checks]]
+    interval = "30s"
+    timeout = "5s"
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 512

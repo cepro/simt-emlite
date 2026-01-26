@@ -57,7 +57,6 @@ class FlyAdapter(BaseAdapter):
         api_token: str,
         dns_server: str,
         image: str,
-        is_single_meter_app: bool = False,
         app_name: str | None = None,
         serial: str | None = None,
         use_private_address: bool | None = None,
@@ -67,18 +66,14 @@ class FlyAdapter(BaseAdapter):
         self.api = API(api_token)
         self.dns_server = dns_server
         self.image = image
-        self.is_single_meter_app = is_single_meter_app
         self.fly_app = app_name
         self.serial = serial
         self.region = region if region is not None else FLY_REGION_DEFAULT
 
-        if is_single_meter_app and serial is None:
-            raise Exception("FlyAdapter needs a serial to work with a single meter app")
-
-        # default to public for single meter apps and private for everything else
+        # default to private
         self.use_private_address = use_private_address
         if self.use_private_address is None:
-            self.use_private_address = not self.is_single_meter_app
+            self.use_private_address = True
 
     @retry(
         stop=stop_after_attempt(5),
@@ -223,15 +218,11 @@ Create machine with these details (y/n): """)
 
     def get_app_address(self, machine) -> str:
         if self.use_private_address:
-            if self.is_single_meter_app:
-                return self.get_private_address_for_single_meter_app(machine)
-            else:
-                return self.get_private_address(machine)
+            return self.get_private_address(machine)
         else:
             return self.get_public_address()
 
-    # connect by public address. for single meter per app setup that supports
-    # external access through fly proxy.
+    # connect by public address.
     def get_public_address(self):
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = ["1.1.1.1"]
@@ -241,14 +232,6 @@ Create machine with these details (y/n): """)
         except Exception as e:
             print(f"\nFailed to resolve address [{e}]\n")
             sys.exit(11)
-
-    # connect by private address. assumes wireguard running and connects via ip
-    # private to our fly organisation. see fly docs on flycast and private
-    # '6PN' addresses.
-    def get_private_address_for_single_meter_app(self, machine):
-        mediator_host = f"{self.fly_app}.flycast"
-        mediator_port = 44444  # fixed port for single_meter_app private access (insecure)
-        return f"{mediator_host}:{mediator_port}"
 
     # connect by private address. assumes wireguard running and connects via ip
     # private to our fly organisation. see fly docs on flycast and private

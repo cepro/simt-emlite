@@ -39,11 +39,11 @@ class MockAPIResponse:
 class PushTopupTokensAllJobTests(unittest.TestCase):
     """Test cases for the PushTopupTokensAllJob class"""
 
+    @patch("simt_emlite.jobs.push_topup_tokens_all.mediator_server", "mediator-address")
     @patch("simt_emlite.jobs.push_topup_tokens_all.supa_client")
-    @patch("simt_emlite.jobs.push_topup_tokens_all.get_instance")
     @patch("simt_emlite.jobs.push_topup_token.PushTopupTokenJob")
     def test_run_with_three_topups(
-        self, mock_push_topup_token_job, mock_get_instance, mock_supa_client
+        self, mock_push_topup_token_job, mock_supa_client
     ):
         """Test running the job with three topups that need to be processed"""
         # Set up test data
@@ -125,10 +125,7 @@ class PushTopupTokensAllJobTests(unittest.TestCase):
 
         mock_flows_supabase.table.return_value.select.side_effect = select_side_effect
 
-        # Set up containers mock
-        mock_containers = MagicMock()
-        mock_containers.mediator_address.return_value = "mediator-address"
-        mock_get_instance.return_value = mock_containers
+        # No containers mock needed - mediator_server is patched directly
 
         # Set up PushTopupTokenJob mock
         mock_token_job_instance = MagicMock()
@@ -138,17 +135,9 @@ class PushTopupTokensAllJobTests(unittest.TestCase):
         # Create and run the job
         job = TestPushTopupTokensAllJob(esco="test-esco")
 
-        # Set up the mocks directly - we're not using the patch for get_instance since
-        # we're overriding the initialization
+        # Set up the mocks directly
         job.flows_supabase = mock_flows_supabase
         job.backend_supabase = mock_backend_supabase
-        job.containers = mock_containers
-
-        # Since we're not calling get_instance directly anymore, call it here
-        # to ensure it's counted for the assertion
-        get_instance_result = mock_get_instance("test-esco")
-        if not isinstance(get_instance_result, MagicMock):
-            mock_get_instance.return_value = mock_containers
 
         # Mock the run_job method to ensure PushTopupTokenJob is called for each topup
         job.run_job = lambda topup: True  # Simplify to always return True
@@ -170,9 +159,6 @@ class PushTopupTokensAllJobTests(unittest.TestCase):
             job.push()
 
         # Assertions
-
-        # We're directly calling get_instance so we can check it
-        mock_get_instance.assert_called_once_with("test-esco")
 
         # We need to ensure table was called with meter_registry
         # The patched mock automatically keeps track of calls

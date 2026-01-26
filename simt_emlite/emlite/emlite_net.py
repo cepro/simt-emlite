@@ -17,7 +17,7 @@ from simt_emlite.util.logging import get_logger
 
 logger = get_logger(__name__, __file__)
 
-socket_timeout_seconds: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 20.0)
+socket_timeout_seconds: float = float(os.environ.get("EMLITE_TIMEOUT_SECONDS") or 10.0)
 
 
 socks_host: str | None = os.environ.get("SOCKS_HOST")
@@ -66,6 +66,7 @@ class EmliteNET:
         return rsp_bytes
 
     def _open_socket(self, attempt: int | None = None) -> socket.socket:
+        sock: socket.socket | None = None
         try:
             if use_socks is True:
                 logger.debug(
@@ -81,12 +82,13 @@ class EmliteNET:
                     socks_username=socks_username,
                     attempt=attempt,
                 )
-                sock: socket.socket = proxy.connect(
+                sock = proxy.connect(
                     dest_host=self.host, dest_port=self.port, timeout=10
                 )
                 logger.debug("connected")
             else:
                 sock = socket.socket()
+                sock.settimeout(socket_timeout_seconds)
                 logger.debug("connect()")
                 sock.connect((self.host, self.port))
 
@@ -95,7 +97,8 @@ class EmliteNET:
         except ProxyTimeoutError as e:
             # very common so log at debug level
             logger.debug("timeout connecting to meter by proxy")
-            sock.close()
+            if sock:
+                sock.close()
             # raise again will be caught by @retry
             raise e
         except ProxyError as e:
@@ -111,7 +114,8 @@ class EmliteNET:
                 getattr(logger, log_level)(
                     f"ProxyError: {err_str}", attempt=attempt_num
                 )
-            sock.close()
+            if sock:
+                sock.close()
             # raise again will be caught by @retry
             raise e
         except ProxyConnectionError as e:
@@ -120,12 +124,14 @@ class EmliteNET:
             # generally this occurs because the emnify-gateway is being restarted which is unfortunately
             # a number of times a day
             logger.info(f"socks proxy connection failure [{e}]")
-            sock.close()
+            if sock:
+                sock.close()
             # raise again will be caught by @retry
             raise e
         except socket.timeout as e:
             logger.info("timeout connecting to socket", error=e)
-            sock.close()
+            if sock:
+                sock.close()
             # raise again will be caught by @retry
             raise e
         except socket.error as e:
@@ -141,13 +147,16 @@ class EmliteNET:
                 logger.warn("ConnectionRefused connecting to socket")
             else:
                 logger.warn("Error connecting to socket", error=e)
-            sock.close()
+            if sock:
+                sock.close()
             # raise again will be caught by @retry
             raise e
         except Exception as e:
             logger.error(
                 f"catch all exception in _open_socket: [class={e.__class__.__name__}] [{e}] "
             )
+            if sock:
+                sock.close()
             raise e
 
         return sock

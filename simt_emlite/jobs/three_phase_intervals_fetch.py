@@ -3,17 +3,15 @@ import datetime
 import logging
 import os
 import traceback
-from typing import cast
 from zoneinfo import ZoneInfo
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -44,7 +42,6 @@ class ThreePhaseIntervalsFetchJob:
         SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
         SUPABASE_ANON_KEY = config["supabase_anon_key"]
         SUPABASE_URL = config["supabase_url"]
-        FLY_REGION: str | None = cast(str | None, config["fly_region"])
 
         if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_ACCESS_TOKEN:
             raise Exception(
@@ -58,44 +55,22 @@ class ThreePhaseIntervalsFetchJob:
         # Look up meter details by serial
         result = (
             self.supabase.table("meter_registry")
-            .select("id,esco,single_meter_app")
+            .select("id,esco")
             .eq("serial", serial)
             .execute()
         )
-        if len(result.data) == 0:
+        if len(as_list(result)) == 0:
             raise Exception(f"meter {serial} not found")
 
-        meter = result.data[0]
+        meter = as_first_item(result)
         meter_id = meter["id"]
-        esco_id = meter["esco"]
-        is_single_meter_app = meter["single_meter_app"]
 
-        esco_code = None
-        if esco_id is not None:
-            result = (
-                self.supabase.schema("flows")
-                .table("escos")
-                .select("code")
-                .eq("id", esco_id)
-                .execute()
-            )
-            esco_code = result.data[0]["code"]
-
-        containers = get_instance(
-            is_single_meter_app=is_single_meter_app,
-            esco=esco_code,
-            serial=serial,
-            use_private_address=True,
-            region=FLY_REGION,
-        )
-        mediator_address = containers.mediator_address(meter_id, serial)
-        if not mediator_address:
-            raise Exception("unable to get mediator address")
+        mediator_address = config["mediator_server"]
+        if not mediator_address or not isinstance(mediator_address, str):
+            raise Exception("MEDIATOR_SERVER environment variable not set")
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=meter_id,
-            use_cert_auth=False,
             logging_level=logging.INFO,
         )
 
@@ -148,6 +123,7 @@ class ThreePhaseIntervalsFetchJob:
 
                 # Call three_phase_intervals with day parameter (start_time and end_time will be ignored)
                 intervals = self.emlite_client.three_phase_intervals(
+                    self.serial,
                     day=day_dt,
                     start_time=None,  # Will be ignored when day is provided
                     end_time=None,    # Will be ignored when day is provided

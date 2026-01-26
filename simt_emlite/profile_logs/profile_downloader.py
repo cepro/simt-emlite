@@ -22,7 +22,6 @@ from supabase import Client as SupabaseClient
 from simt_emlite.mediator.client import EmliteMediatorClient
 
 # mypy: disable-error-code="import-untyped"
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_file_finder import SMIPFileFinder
 from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
 from simt_emlite.smip.smip_filename import ElementMarker
@@ -32,7 +31,7 @@ from simt_emlite.util.meters import (
     is_three_phase,
     is_twin_element,
 )
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -60,6 +59,7 @@ class ProfileDownloader:
         self.supabase_access_token = config["supabase_access_token"]
         self.fly_region = config["fly_region"]
         self.env = config["env"]
+        self.mediator_server = cast(str | None, config["mediator_server"])
 
         self.future_date_detected: Optional[datetime.date] = None
 
@@ -125,7 +125,7 @@ class ProfileDownloader:
 
     def _fetch_meter_info(self):
         query = self.supabase.table("meter_registry").select(
-            "id,esco,single_meter_app,hardware,serial,name"
+            "id,esco,hardware,serial,name"
         )
         if self.serial:
             query.eq("serial", self.serial)
@@ -133,17 +133,16 @@ class ProfileDownloader:
             query.eq("name", self.name)
         result = query.execute()
 
-        if len(result.data) == 0:
+        if len(as_list(result)) == 0:
             raise Exception(
                 f"Meter not found in registry for serial=[{self.serial}]. name=[{self.name}]."
             )
 
-        meter_data = result.data[0]
+        meter_data = as_first_item(result)
         self.meter_id = meter_data["id"]
         self.esco_id = meter_data["esco"]
         self.name = meter_data["name"]
         self.serial = meter_data["serial"]
-        self.is_single_meter_app = meter_data["single_meter_app"]
         self.hardware: str = meter_data.get("hardware", "")
         self.is_twin_element: bool = is_twin_element(self.hardware)
 
@@ -157,7 +156,6 @@ class ProfileDownloader:
 
         logger.info(
             f"Found meter [{self.serial}]. id: [{self.meter_id}], "
-            f"is_single_meter_app=[{self.is_single_meter_app}], "
             f"hardware=[{self.hardware}], is_twin_element=[{self.is_twin_element}]"
         )
 
@@ -171,35 +169,20 @@ class ProfileDownloader:
                 .eq("id", self.esco_id)
                 .execute()
             )
-            self.esco_code = result.data[0]["code"] if result.data else None
+            self.esco_code = as_first_item(result)["code"] if as_list(result) else None
             logger.info(f"Found esco_code [{self.esco_code}] for esco [{self.esco_id}]")
 
     def _init_emlite_client(self):
         """Initialize the Emlite mediator client"""
-        containers = get_instance(
-            is_single_meter_app=self.is_single_meter_app,
-            esco=self.esco_code,
-            serial=self.serial,
-            region=cast(str | None, self.fly_region),
-            env=cast(str | None, self.env),
-        )
-
-        assert self.serial is not None
-
-        mediator_address = containers.mediator_address(self.meter_id, self.serial)
-        if not mediator_address:
-            raise Exception(
-                "Unable to get mediator address for serial=[{self.serial}], meter_id=[{self.meter_id}]."
-            )
+        if not self.mediator_server:
+            raise Exception("MEDIATOR_SERVER environment variable not set.")
 
         self.client = EmliteMediatorClient(
-            mediator_address=mediator_address,
-            meter_id=self.meter_id,
-            use_cert_auth=self.is_single_meter_app,
+            mediator_address=self.mediator_server,
             logging_level=self.logging_level,
         )
 
-        logger.info(f"Connected to mediator at {mediator_address}")
+        logger.info(f"Connected to mediator at {self.mediator_server}")
 
     def find_download_file(self) -> SMIPFileFinderResult:
         assert self.serial is not None
@@ -259,7 +242,8 @@ class ProfileDownloader:
 
             # Download profile log for this chunk
             assert self.client is not None
-            response = self.client.profile_log_1(current_time)
+            assert self.serial is not None
+            response = self.client.profile_log_1(self.serial, current_time)
             if response and response.records:
                 logger.info(
                     f"Received {len(response.records)} records for {current_time}",
@@ -339,7 +323,8 @@ class ProfileDownloader:
                 progress_callback(msg)
 
             assert self.client is not None
-            response = self.client.profile_log_2(current_time, self.is_twin_element)
+            assert self.serial is not None
+            response = self.client.profile_log_2(self.serial, current_time, self.is_twin_element)
             if response and response.records:
                 logger.info(
                     f"Received {len(response.records)} records for {current_time}"

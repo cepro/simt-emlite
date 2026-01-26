@@ -4,7 +4,7 @@ BIN_DIR=`dirname $0`
 PROJECT_ROOT=`dirname $BIN_DIR`
 
 sourceEnv() {
-  . ~/.simt/emlite.env
+  . ${PROJECT_ROOT}/emlite.local.env
 }
 
 runDocker() {
@@ -15,7 +15,7 @@ runDocker() {
   docker run --rm \
     --name $MODULE \
 	--network=host \
-	--env-file ~/.simt/emlite.env \
+	--env-file ${PROJECT_ROOT}/emlite.local.env \
 	-v /var/run/docker.sock:/var/run/docker.sock \
 	$SIMT_EMLITE_IMAGE $MODULE $ARGS
 }

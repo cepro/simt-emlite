@@ -3,12 +3,10 @@
 import grpc
 import warnings
 
-from .mediator_pb2 import ReadElementRequest, ReadElementReply, SendRawMessageRequest, SendRawMessageReply, WriteElementRequest, WriteElementReply
+from . import mediator_pb2 as mediator__pb2
 
-GRPC_GENERATED_VERSION = '1.63.0'
+GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
-EXPECTED_ERROR_RELEASE = '1.65.0'
-SCHEDULED_RELEASE_DATE = 'June 25, 2024'
 _version_not_supported = False
 
 try:
@@ -18,15 +16,12 @@ except ImportError:
     _version_not_supported = True
 
 if _version_not_supported:
-    warnings.warn(
+    raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in mediator_pb2_grpc.py depends on'
+        + ' but the generated code in mediator_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
-        + f' This warning will become an error in {EXPECTED_ERROR_RELEASE},'
-        + f' scheduled for release on {SCHEDULED_RELEASE_DATE}.',
-        RuntimeWarning
     )
 
 
@@ -41,18 +36,18 @@ class EmliteMediatorServiceStub(object):
         """
         self.sendRawMessage = channel.unary_unary(
                 '/simt_emlite.mediator.grpc.EmliteMediatorService/sendRawMessage',
-                request_serializer=SendRawMessageRequest.SerializeToString,
-                response_deserializer=SendRawMessageReply.FromString,
+                request_serializer=mediator__pb2.SendRawMessageRequest.SerializeToString,
+                response_deserializer=mediator__pb2.SendRawMessageReply.FromString,
                 _registered_method=True)
         self.readElement = channel.unary_unary(
                 '/simt_emlite.mediator.grpc.EmliteMediatorService/readElement',
-                request_serializer=ReadElementRequest.SerializeToString,
-                response_deserializer=ReadElementReply.FromString,
+                request_serializer=mediator__pb2.ReadElementRequest.SerializeToString,
+                response_deserializer=mediator__pb2.ReadElementReply.FromString,
                 _registered_method=True)
         self.writeElement = channel.unary_unary(
                 '/simt_emlite.mediator.grpc.EmliteMediatorService/writeElement',
-                request_serializer=WriteElementRequest.SerializeToString,
-                response_deserializer=WriteElementReply.FromString,
+                request_serializer=mediator__pb2.WriteElementRequest.SerializeToString,
+                response_deserializer=mediator__pb2.WriteElementReply.FromString,
                 _registered_method=True)
 
 
@@ -82,23 +77,24 @@ def add_EmliteMediatorServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'sendRawMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.sendRawMessage,
-                    request_deserializer=SendRawMessageRequest.FromString,
-                    response_serializer=SendRawMessageReply.SerializeToString,
+                    request_deserializer=mediator__pb2.SendRawMessageRequest.FromString,
+                    response_serializer=mediator__pb2.SendRawMessageReply.SerializeToString,
             ),
             'readElement': grpc.unary_unary_rpc_method_handler(
                     servicer.readElement,
-                    request_deserializer=ReadElementRequest.FromString,
-                    response_serializer=ReadElementReply.SerializeToString,
+                    request_deserializer=mediator__pb2.ReadElementRequest.FromString,
+                    response_serializer=mediator__pb2.ReadElementReply.SerializeToString,
             ),
             'writeElement': grpc.unary_unary_rpc_method_handler(
                     servicer.writeElement,
-                    request_deserializer=WriteElementRequest.FromString,
-                    response_serializer=WriteElementReply.SerializeToString,
+                    request_deserializer=mediator__pb2.WriteElementRequest.FromString,
+                    response_serializer=mediator__pb2.WriteElementReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'simt_emlite.mediator.grpc.EmliteMediatorService', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('simt_emlite.mediator.grpc.EmliteMediatorService', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -120,8 +116,8 @@ class EmliteMediatorService(object):
             request,
             target,
             '/simt_emlite.mediator.grpc.EmliteMediatorService/sendRawMessage',
-            SendRawMessageRequest.SerializeToString,
-            SendRawMessageReply.FromString,
+            mediator__pb2.SendRawMessageRequest.SerializeToString,
+            mediator__pb2.SendRawMessageReply.FromString,
             options,
             channel_credentials,
             insecure,
@@ -147,8 +143,8 @@ class EmliteMediatorService(object):
             request,
             target,
             '/simt_emlite.mediator.grpc.EmliteMediatorService/readElement',
-            ReadElementRequest.SerializeToString,
-            ReadElementReply.FromString,
+            mediator__pb2.ReadElementRequest.SerializeToString,
+            mediator__pb2.ReadElementReply.FromString,
             options,
             channel_credentials,
             insecure,
@@ -174,8 +170,123 @@ class EmliteMediatorService(object):
             request,
             target,
             '/simt_emlite.mediator.grpc.EmliteMediatorService/writeElement',
-            WriteElementRequest.SerializeToString,
-            WriteElementReply.FromString,
+            mediator__pb2.WriteElementRequest.SerializeToString,
+            mediator__pb2.WriteElementReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+
+class InfoServiceStub(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.GetInfo = channel.unary_unary(
+                '/simt_emlite.mediator.grpc.InfoService/GetInfo',
+                request_serializer=mediator__pb2.GetInfoRequest.SerializeToString,
+                response_deserializer=mediator__pb2.GetInfoReply.FromString,
+                _registered_method=True)
+        self.GetMeters = channel.unary_unary(
+                '/simt_emlite.mediator.grpc.InfoService/GetMeters',
+                request_serializer=mediator__pb2.GetMetersRequest.SerializeToString,
+                response_deserializer=mediator__pb2.GetMetersReply.FromString,
+                _registered_method=True)
+
+
+class InfoServiceServicer(object):
+    """Missing associated documentation comment in .proto file."""
+
+    def GetInfo(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetMeters(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_InfoServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'GetInfo': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetInfo,
+                    request_deserializer=mediator__pb2.GetInfoRequest.FromString,
+                    response_serializer=mediator__pb2.GetInfoReply.SerializeToString,
+            ),
+            'GetMeters': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetMeters,
+                    request_deserializer=mediator__pb2.GetMetersRequest.FromString,
+                    response_serializer=mediator__pb2.GetMetersReply.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'simt_emlite.mediator.grpc.InfoService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('simt_emlite.mediator.grpc.InfoService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class InfoService(object):
+    """Missing associated documentation comment in .proto file."""
+
+    @staticmethod
+    def GetInfo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simt_emlite.mediator.grpc.InfoService/GetInfo',
+            mediator__pb2.GetInfoRequest.SerializeToString,
+            mediator__pb2.GetInfoReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetMeters(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/simt_emlite.mediator.grpc.InfoService/GetMeters',
+            mediator__pb2.GetMetersRequest.SerializeToString,
+            mediator__pb2.GetMetersReply.FromString,
             options,
             channel_credentials,
             insecure,

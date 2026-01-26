@@ -1,3 +1,4 @@
+import datetime
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, NamedTuple, Optional, cast
@@ -16,7 +17,7 @@ from simt_emlite.mediator.mediator_client_exception import (
 )
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import Client as SupabaseClient
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -38,10 +39,12 @@ class SyncerBase(ABC):
         supabase: SupabaseClient,
         emlite_client: EmliteMediatorClient,
         meter_id: str,
+        serial: str,
     ):
         self.supabase = supabase
         self.emlite_client = emlite_client
         self.meter_id = meter_id
+        self.serial = serial
 
         self.supabase_extra: SupabaseClient | None = None
         if sync_extra is True:
@@ -90,10 +93,26 @@ class SyncerBase(ABC):
     def fetch_metrics(self) -> UpdatesTuple:
         pass
 
+    def _sanitize_props(self, props: Dict[str, Any]) -> Dict[str, Any]:
+        sanitized: Dict[str, Any] = {}
+        for k, v in props.items():
+            if isinstance(v, (datetime.datetime, datetime.date)):
+                sanitized[k] = v.isoformat()
+            elif isinstance(v, dict):
+                sanitized[k] = self._sanitize_props(v)
+            elif isinstance(v, list):
+                sanitized[k] = [
+                    self._sanitize_props(i) if isinstance(i, dict) else i for i in v
+                ]
+            else:
+                sanitized[k] = v
+        return sanitized
+
     def _update_shadow(self, update_props: Dict[str, Any]):
         self.log.info(
             "update shadow props", meter_id=self.meter_id, update_props=update_props
         )
+        update_props = self._sanitize_props(update_props)
         try:
             update_meter_shadows_when_healthy(
                 self.supabase, self.meter_id, update_props
@@ -120,6 +139,7 @@ class SyncerBase(ABC):
         self.log.info(
             "update registry props", meter_id=self.meter_id, update_props=update_props
         )
+        update_props = self._sanitize_props(update_props)
         try:
             # first fetch existing values and build map of differences
             query_result = (
@@ -128,7 +148,7 @@ class SyncerBase(ABC):
                 .eq("id", self.meter_id)
                 .execute()
             )
-            current_record = query_result.data[0]
+            current_record = as_first_item(query_result)
 
             modified_or_new = {}
             for key in current_record:

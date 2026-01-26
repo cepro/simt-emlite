@@ -9,13 +9,15 @@ service EmliteMediatorService {
 }
 
 message SendRawMessageRequest {
+  string serial = 1;
+
   // The data field part of an EMOP message as defined in section 1.2.6 of the
   // "EMOP EM-Lite Object Protocol" version 1.7:
   //   - format - 1 byte
   //   - object id - 3 bytes
   //   - rw - 1 byte
   //   - payload - variable length bytes
-  bytes dataField = 1;
+  bytes dataField = 2;
 }
 
 message SendRawMessageReply {
@@ -23,6 +25,8 @@ message SendRawMessageReply {
 }
 
 message ReadElementRequest {
+  string serial = 1;
+
   // Request the data for a given 3 byte Object Id.
   // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
   //
@@ -33,7 +37,7 @@ message ReadElementRequest {
   // We don't use the enum on the server side and instead just pass through
   // the corresponding integer value so no upgrade would be required on the
   // server side for new object ids.
-  int32 objectId = 1;
+  int32 objectId = 2;
 }
 
 message ReadElementReply {
@@ -42,6 +46,8 @@ message ReadElementReply {
 }
 
 message WriteElementRequest {
+  string serial = 1;
+
   // Request the data for a given 3 byte Object Id.
   // See section 1.2.6.2 of the "EMOP EM-Lite Object Protocol" version 1.7.
   //
@@ -52,12 +58,32 @@ message WriteElementRequest {
   // We don't use the enum on the server side and instead just pass through
   // the corresponding integer value so no upgrade would be required on the
   // server side for new object ids.
-  int32 objectId = 1;
+  int32 objectId = 2;
 
   // Payload to write into the EMOP request - EmopData.payload field
-  bytes payload = 2;
+  bytes payload = 3;
 }
 
 message WriteElementReply {
   // no response data for writes
+}
+
+service InfoService {
+  rpc GetInfo (GetInfoRequest) returns (GetInfoReply) {}
+  rpc GetMeters (GetMetersRequest) returns (GetMetersReply) {}
+}
+
+message GetInfoRequest {
+  string serial = 1;
+}
+
+message GetInfoReply {
+  string json_data = 1;
+}
+
+message GetMetersRequest {
+}
+
+message GetMetersReply {
+  string json_meters = 1;
 }

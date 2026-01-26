@@ -3,7 +3,7 @@ name: Cython Wheel Build
 on:
   push:
     tags:
-      - '*'
+      - '*-package'
 
 jobs:
   build_wheels:

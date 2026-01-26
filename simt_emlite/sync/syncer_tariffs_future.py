@@ -11,5 +11,5 @@ class SyncerTariffsFuture(SyncerBase):
         if is_3p:
             return UpdatesTuple(None, None)
 
-        tariffs = self.emlite_client.tariffs_future_read()
+        tariffs = self.emlite_client.tariffs_future_read(self.serial)
         return UpdatesTuple({"tariffs_future": tariffs}, None)

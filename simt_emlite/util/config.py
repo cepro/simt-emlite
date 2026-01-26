@@ -10,15 +10,20 @@ EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emlite.env")
 
 def load_config() -> Dict[str, str | int | None]:
     if os.path.isfile(EMOP_CONFIG_FILE) is False:
-        print(
-            "ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up."
-        )
-        sys.exit(5)
-
-    load_dotenv(EMOP_CONFIG_FILE)
+        # If config file is missing, check if critical env vars are already set (e.g. inside Docker)
+        if os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY"):
+            pass
+        else:
+            print(
+                "ERROR: ~/.simt/emlite.env does not exist. See tool help for how to set this up."
+            )
+            sys.exit(5)
+    else:
+        load_dotenv(EMOP_CONFIG_FILE)
 
     return {
         "env": os.environ.get("ENV"),
+        "mediator_server": os.environ.get("MEDIATOR_SERVER"),
         # supabase
         "supabase_url": os.environ.get("SUPABASE_URL"),
         "supabase_anon_key": os.environ.get("SUPABASE_ANON_KEY"),

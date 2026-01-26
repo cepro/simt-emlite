@@ -2,13 +2,11 @@ import os
 
 from simt_emlite.orchestrate.adapter.docker_adapter import DockerAdapter
 from simt_emlite.orchestrate.adapter.fly_adapter import FlyAdapter
-from simt_emlite.orchestrate.adapter.adapter_utils import build_app_name
 
 fly_region: str | None = os.environ.get("FLY_REGION")
 
 
 def get_instance(
-    is_single_meter_app: bool = False,
     esco: str | None = None,
     env: str | None = None,
     serial: str | None = None,
@@ -20,6 +18,7 @@ def get_instance(
     # is invoked) this module gets executed before env loading as imports are
     # above. better would be a wrapper around the cli that sets up all env
     # variables first so consider moving to that.
+
     fly_api_token = os.environ.get("FLY_API_TOKEN")
     fly_dns_server = os.environ.get("FLY_DNS_SERVER") or "fdaa::3"
     mediator_image = os.environ.get("SIMT_EMLITE_IMAGE")
@@ -30,15 +29,18 @@ def get_instance(
     adapter: DockerAdapter | FlyAdapter
 
     if fly_api_token is not None:
+        fly_app_name = os.environ.get("FLY_APP_NAME")
+        if not fly_app_name:
+            raise Exception("FLY_APP_NAME environment variable must be set when using Fly")
+
         adapter = FlyAdapter(
             fly_api_token,
             fly_dns_server,
             mediator_image,
-            is_single_meter_app,
-            build_app_name(is_single_meter_app, serial, esco, env),
+            fly_app_name,
             serial,
             use_private_address,
-            region
+            region,
         )
     else:
         adapter = DockerAdapter(mediator_image)

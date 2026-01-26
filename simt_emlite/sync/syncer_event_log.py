@@ -118,7 +118,7 @@ class SyncerEventLog(SyncerBase):
         sync_more = True
         log_idx = 0
         while sync_more:
-            log = self.emlite_client.event_log(log_idx)
+            log = self.emlite_client.event_log(self.serial, log_idx)
             unseen_events = filter_event_log_for_unseen_events(
                 log.events, last_seen_event
             )

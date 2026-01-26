@@ -9,17 +9,16 @@ from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import Client as SupabaseClient
-from simt_emlite.util.supabase import supa_client
+from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
 supabase_url: str | None = os.environ.get("SUPABASE_URL")
 supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
-env: str | None = os.environ.get("ENV")
+mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 
 
 class PrepayEnabledFlipJob:
@@ -36,7 +35,6 @@ class PrepayEnabledFlipJob:
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,
-            meter_id=meter["id"],
         )
 
         global logger
@@ -53,7 +51,7 @@ class PrepayEnabledFlipJob:
         """
 
         try:
-            self.emlite_client.prepay_enabled_write(False)
+            self.emlite_client.prepay_enabled_write(self.meter["serial"], False)
             self.log.info("prepay disabled")
             return True
         except MediatorClientException as e:
@@ -89,7 +87,6 @@ class PrepayEnabledFlipAllJob:
         assert supabase_key is not None
 
         self.esco = esco
-        self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run_job(self, meter_row) -> bool:
@@ -98,10 +95,7 @@ class PrepayEnabledFlipAllJob:
         meter_id = meter_row["id"]
         serial = meter_row["serial"]
 
-        mediator_address = self.containers.mediator_address(meter_id, serial)
-        if mediator_address is None:
-            self.log.error(f"No mediator container exists for meter {serial}")
-            return False
+        mediator_address = str(mediator_server)
 
         try:
             self.log.info(
@@ -132,11 +126,11 @@ class PrepayEnabledFlipAllJob:
         escos = (
             self.flows_supabase.table("escos").select("id").ilike("code", self.esco).execute()
         )
-        if len(escos.data) == 0:
+        if len(as_list(escos)) == 0:
             self.log.error("no esco found for " + self.esco)
             sys.exit(10)
 
-        esco_id = list(escos.data)[0]["id"]
+        esco_id = as_first_item(escos)["id"]
 
         meters_result = (
             self.flows_supabase.table("meter_registry")
@@ -148,11 +142,11 @@ class PrepayEnabledFlipAllJob:
             .execute()
         )
 
-        if len(meters_result.data) == 0:
+        if len(as_list(meters_result)) == 0:
             self.log.error("No meter found to disable")
             sys.exit(10)
 
-        meters_to_disable = meters_result.data
+        meters_to_disable = as_list(meters_result)
         self.log.info(f"Processing {len(meters_to_disable)} meters")
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
@@ -182,6 +176,10 @@ class PrepayEnabledFlipAllJob:
         if not flows_role_key:
             self.log.error("Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)
+
+        if not mediator_server:
+            self.log.error("Environment variable MEDIATOR_SERVER not set.")
+            sys.exit(4)
 
 
 if __name__ == "__main__":
