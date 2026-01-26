@@ -10,7 +10,6 @@ primary_region = 'lhr'
   dockerfile = '../docker/Dockerfile.server'
 
 [env]
-  ESCO = 'lab'
   LISTEN_PORT = '50051'
   MAX_WORKERS = '30'
   SOCKS_HOST = 'emnify-gateway-mgf.internal'
