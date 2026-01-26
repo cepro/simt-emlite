@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict
 
-from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.api_prepay import EmlitePrepayClient
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
@@ -25,7 +25,7 @@ class FutureTariffsUpdateJob:
         self.mediator_address = mediator_address
         self.supabase = supabase
 
-        self.emlite_client = EmliteMediatorClient(
+        self.emlite_client = EmlitePrepayClient(
             mediator_address=mediator_address,
         )
 

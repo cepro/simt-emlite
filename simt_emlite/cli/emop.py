@@ -17,8 +17,14 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
-from simt_emlite.mediator.client import EmliteMediatorClient
+from simt_emlite.mediator.api_prepay import EmlitePrepayClient
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
+from simt_emlite.mediator.validation import (
+    cli_valid_decimal,
+    cli_valid_event_log_idx,
+    cli_valid_rate,
+    cli_valid_switch,
+)
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.logging import suppress_noisy_loggers
 
@@ -105,7 +111,7 @@ def rich_signal_circle(csq: int | None) -> Text:
     return Text("●", style=color)
 
 
-class EMOPCLI(EmliteMediatorClient):
+class EMOPCLI(EmlitePrepayClient):
     def __init__(
         self,
         serial: str | None = None,
@@ -268,64 +274,20 @@ def valid_iso_datetime(timestamp: str | None) -> datetime.datetime:
         raise argparse.ArgumentTypeError(f"Invalid ISO datetime format: {timestamp}")
 
 
-def valid_event_log_idx(idx: str | None) -> int:
-    if idx is None:
-        raise argparse.ArgumentTypeError("event log idx cannot be None")
-
-    try:
-        idx_int = int(idx)
-    except Exception:
-        raise argparse.ArgumentTypeError(
-            f"Invalid log_idx {idx}. Should be an int between 0-9."
-        )
-
-    if idx_int < 0 or idx_int > 9:
-        raise argparse.ArgumentTypeError(
-            f"Invalid log_idx {idx}. Must be in range 0-9."
-        )
-
-    return idx_int
+# Use validation from shared module
+valid_event_log_idx = cli_valid_event_log_idx
 
 
-def valid_decimal(rate: str | None) -> Decimal:
-    if rate is None:
-        raise argparse.ArgumentTypeError("rate cannot be None")
-    try:
-        return Decimal(rate)
-    except Exception:
-        raise argparse.ArgumentTypeError(
-            f"Invalid rate {rate}. Should be a floating point number."
-        )
+# Use validation from shared module
+valid_decimal = cli_valid_decimal
 
 
-def valid_rate(rate: str | None) -> Decimal:
-    rate_decimal: Decimal = valid_decimal(rate)
-
-    if rate_decimal > 1.0:
-        raise argparse.ArgumentTypeError(
-            f"Invalid rate {rate}. Can't be greater than 1 GBP."
-        )
-
-    exponent_int: int = rate_decimal.as_tuple().exponent  # type: ignore[assignment]
-    decimal_places = abs(exponent_int)
-    if decimal_places > 5:
-        raise argparse.ArgumentTypeError(
-            f"Invalid rate {rate}. Emlite meters can only store up to 5 decimal places."
-        )
-
-    return rate_decimal
+# Use validation from shared module
+valid_rate = cli_valid_rate
 
 
-def valid_switch(bool_str: str) -> bool:
-    bool_str_lc = bool_str.lower()
-    if bool_str_lc == "on":
-        return True
-    elif bool_str_lc == "off":
-        return False
-    else:
-        raise argparse.ArgumentTypeError(
-            f"Invalid flag string '{bool_str}'. Should be 'on' or 'off'."
-        )
+# Use validation from shared module
+valid_switch = cli_valid_switch
 
 
 def valid_backlight_setting(setting: str) -> EmopMessage.BacklightSettingType:
