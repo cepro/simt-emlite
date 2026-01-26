@@ -78,7 +78,6 @@ class EmliteInfoServiceServicer(InfoServiceServicer):
              return GetMetersReply()
 
         try:
-            # Replicate behavior from simt_emlite/cli/mediators.py
             result = self.supabase.rpc(
                 "get_meters_for_cli", {"esco_filter": None, "feeder_filter": None}
             ).execute()

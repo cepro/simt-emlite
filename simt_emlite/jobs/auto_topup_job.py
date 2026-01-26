@@ -7,9 +7,8 @@ from httpx import ConnectError
 
 from simt_emlite.jobs.util import handle_supabase_faliure
 from simt_emlite.mediator.client import EmliteMediatorClient
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
-from simt_emlite.util.supabase import as_first_item, as_list, supa_client
+from simt_emlite.util.supabase import as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -18,6 +17,7 @@ supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 public_backend_role_key: str | None = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 fly_region: str | None = os.environ.get("FLY_REGION")
+mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 
 
 class AutoTopupJob:
@@ -83,50 +83,7 @@ class AutoTopupJob:
                     if auto_topup_enabled:
                         # Get latest balance from meter via EMOP to confirm it's still below minimum
                         try:
-                            # Look up meter details from meter_registry
-                            result = (
-                                self.flows_supabase.table("meter_registry")
-                                .select("id,esco")
-                                .eq("serial", meter["serial"])
-                                .execute()
-                            )
-                            if len(as_list(result)) == 0:
-                                self.log.warning(
-                                    "Meter not found in meter_registry",
-                                    serial=meter["serial"],
-                                )
-                                continue
-
-                            meter_registry = as_first_item(result)
-                            meter_id = meter_registry["id"]
-                            esco_id = meter_registry["esco"]
-
-                            esco_code = None
-                            if esco_id is not None:
-                                result = (
-                                    self.flows_supabase.table("escos")
-                                    .select("code")
-                                    .eq("id", esco_id)
-                                    .execute()
-                                )
-                                if len(as_list(result)) > 0:
-                                    esco_code = as_first_item(result)["code"]
-
-                            # Get mediator address
-                            containers = get_instance(
-                                is_single_meter_app=False,
-                                esco=esco_code,
-                                serial=meter["serial"],
-                                region=self.FLY_REGION,
-                            )
-                            mediator_address = containers.mediator_address(meter_id, meter["serial"])
-                            if not mediator_address:
-                                self.log.warning(
-                                    "Unable to get mediator address",
-                                    meter_id=meter["id"],
-                                    serial=meter["serial"],
-                                )
-                                continue
+                            mediator_address = str(mediator_server)
 
                             # Initialize client with proper setup
                             emlite_client = EmliteMediatorClient(
@@ -137,7 +94,6 @@ class AutoTopupJob:
                             latest_balance = emlite_client.prepay_balance(meter["serial"])
                             self.log.info(
                                 "Fetched latest prepay balance from meter",
-                                meter_id=meter["id"],
                                 serial=meter["serial"],
                                 latest_balance=latest_balance,
                                 wallet_minimum_balance=wallet_minimum,
@@ -231,6 +187,10 @@ class AutoTopupJob:
         if not fly_region:
             self.log.error("Environment variable FLY_REGION not set.")
             sys.exit(4)
+
+        if not mediator_server:
+            self.log.error("Environment variable MEDIATOR_SERVER not set.")
+            sys.exit(5)
 
 
 if __name__ == "__main__":

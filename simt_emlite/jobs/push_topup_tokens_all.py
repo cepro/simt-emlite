@@ -5,7 +5,6 @@ import sys
 import traceback
 
 from simt_emlite.jobs.push_topup_token import PushTopupTokenJob
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
@@ -17,6 +16,7 @@ flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 public_backend_role_key: str | None = os.environ.get("PUBLIC_BACKEND_ROLE_KEY")
 max_parallel_jobs: int | None = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
 env: str | None = os.environ.get("ENV")
+mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 
 
 """
@@ -36,7 +36,6 @@ class PushTopupTokensAllJob:
         assert supabase_key is not None
 
         self.esco = esco
-        self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
         self.backend_supabase = supa_client(
             supabase_url, supabase_key, public_backend_role_key, schema="myenergy"
@@ -73,19 +72,7 @@ class PushTopupTokensAllJob:
 
         meter_id = as_first_item(meter_query)["id"]
 
-        mediator_address = self.containers.mediator_address(meter_id, serial)
-        if mediator_address is None:
-            self.log.warn(f"No mediator container exists for meter {serial}")
-
-            # Update topup status to failed
-            self.backend_supabase.table("topups").update(
-                {
-                    "status": "failed_token_push",
-                    "notes": "No mediator container available",
-                }
-            ).eq("id", topup_id).execute()
-
-            return False
+        mediator_address = str(mediator_server)
 
         try:
             self.log.info(
@@ -228,6 +215,10 @@ class PushTopupTokensAllJob:
         if not public_backend_role_key:
             self.log.error("Environment variable PUBLIC_BACKEND_ROLE_KEY not set.")
             sys.exit(4)
+
+        if not mediator_server:
+            self.log.error("Environment variable MEDIATOR_SERVER not set.")
+            sys.exit(5)
 
     def _get_topups_query(self, status: str, meters: list[str] | None = None):
         """Query topups table with optional meter filter"""

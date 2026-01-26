@@ -2,18 +2,16 @@ import argparse
 import datetime
 import logging
 import traceback
-from typing import cast
 from zoneinfo import ZoneInfo
 
 from simt_emlite.mediator.client import EmliteMediatorClient
 from simt_emlite.mediator.mediator_client_exception import (
     MediatorClientException,
 )
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.config import load_config
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.meters import is_twin_element
-from simt_emlite.util.supabase import as_first_item, as_list, supa_client
+from simt_emlite.util.supabase import as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -33,7 +31,6 @@ class ProfileLogFetchJob:
         SUPABASE_ACCESS_TOKEN = config["supabase_access_token"]
         SUPABASE_ANON_KEY = config["supabase_anon_key"]
         SUPABASE_URL = config["supabase_url"]
-        FLY_REGION: str | None = cast(str | None, config["fly_region"])
 
         if not SUPABASE_URL or not SUPABASE_ANON_KEY or not SUPABASE_ACCESS_TOKEN:
             raise Exception(
@@ -57,30 +54,12 @@ class ProfileLogFetchJob:
 
         meter = result_data[0]
         meter_id = meter["id"]
-        esco_id = meter["esco"]
         hardware: str = meter.get("hardware", "")
         self.is_twin_element = is_twin_element(hardware)
 
-        esco_code = None
-        if esco_id is not None:
-            result = (
-                self.supabase.schema("flows")
-                .table("escos")
-                .select("code")
-                .eq("id", esco_id)
-                .execute()
-            )
-            esco_code = as_first_item(result)["code"]
-
-        containers = get_instance(
-            is_single_meter_app=False,
-            esco=esco_code,
-            serial=serial,
-            region=FLY_REGION,
-        )
-        mediator_address = containers.mediator_address(meter_id, serial)
-        if not mediator_address:
-            raise Exception("unable to get mediator address")
+        mediator_address = config["mediator_server"]
+        if not mediator_address or not isinstance(mediator_address, str):
+            raise Exception("MEDIATOR_SERVER environment variable not set")
 
         self.emlite_client = EmliteMediatorClient(
             mediator_address=mediator_address,

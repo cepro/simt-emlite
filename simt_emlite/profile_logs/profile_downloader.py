@@ -22,7 +22,6 @@ from supabase import Client as SupabaseClient
 from simt_emlite.mediator.client import EmliteMediatorClient
 
 # mypy: disable-error-code="import-untyped"
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.smip.smip_file_finder import SMIPFileFinder
 from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
 from simt_emlite.smip.smip_filename import ElementMarker
@@ -60,6 +59,7 @@ class ProfileDownloader:
         self.supabase_access_token = config["supabase_access_token"]
         self.fly_region = config["fly_region"]
         self.env = config["env"]
+        self.mediator_server = cast(str | None, config["mediator_server"])
 
         self.future_date_detected: Optional[datetime.date] = None
 
@@ -174,28 +174,15 @@ class ProfileDownloader:
 
     def _init_emlite_client(self):
         """Initialize the Emlite mediator client"""
-        containers = get_instance(
-            is_single_meter_app=False,
-            esco=self.esco_code,
-            serial=self.serial,
-            region=cast(str | None, self.fly_region),
-            env=cast(str | None, self.env),
-        )
-
-        assert self.serial is not None
-
-        mediator_address = containers.mediator_address(self.meter_id, self.serial)
-        if not mediator_address:
-            raise Exception(
-                "Unable to get mediator address for serial=[{self.serial}], meter_id=[{self.meter_id}]."
-            )
+        if not self.mediator_server:
+            raise Exception("MEDIATOR_SERVER environment variable not set.")
 
         self.client = EmliteMediatorClient(
-            mediator_address=mediator_address,
+            mediator_address=self.mediator_server,
             logging_level=self.logging_level,
         )
 
-        logger.info(f"Connected to mediator at {mediator_address}")
+        logger.info(f"Connected to mediator at {self.mediator_server}")
 
     def find_download_file(self) -> SMIPFileFinderResult:
         assert self.serial is not None

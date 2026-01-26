@@ -146,6 +146,10 @@ class MeterSyncAllJob:
             self.log.error("Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)
 
+        if not mediator_server:
+            self.log.error("Environment variable MEDIATOR_SERVER not set.")
+            sys.exit(4)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
