@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "1.1.0"
+version = "1.1.1"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@simtricity.com" }]
 requires-python = ">=3.13,<4.0"
@@ -51,11 +51,15 @@ extend-exclude = ["generated"]
 
 [tool.mypy]
 python_version = "3.13"
-exclude = "generated/"
+exclude = ".*generated.*"
 mypy_path = "stubs"
 # disable strict until we've fixed all the issues:
 # strict = true
 check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "simt_emlite.mediator.grpc.generated.*"
+ignore_errors = true
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "cython"]

@@ -1,5 +1,6 @@
 import os
 import shutil
+import tomllib
 from pathlib import Path
 
 from Cython.Build import cythonize
@@ -52,6 +53,13 @@ def get_extensions(package_name):
     return extensions
 
 
+def get_version():
+    """Read version from pyproject.toml"""
+    with open("pyproject.toml", "rb") as f:
+        data = tomllib.load(f)
+    return data["project"]["version"]
+
+
 class CythonBuildCommand:
     def __init__(self, package_name):
         self.package_name = package_name
@@ -74,7 +82,7 @@ class CythonBuildCommand:
         # Setup with Cython extensions
         setup(
             name="simt-emlite",
-            version="0.21.4",
+            version=get_version(),
             ext_modules=cythonize(
                 extensions,
                 compiler_directives={
