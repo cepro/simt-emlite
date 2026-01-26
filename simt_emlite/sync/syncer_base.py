@@ -1,3 +1,4 @@
+import datetime
 import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, NamedTuple, Optional, cast
@@ -92,10 +93,26 @@ class SyncerBase(ABC):
     def fetch_metrics(self) -> UpdatesTuple:
         pass
 
+    def _sanitize_props(self, props: Dict[str, Any]) -> Dict[str, Any]:
+        sanitized: Dict[str, Any] = {}
+        for k, v in props.items():
+            if isinstance(v, (datetime.datetime, datetime.date)):
+                sanitized[k] = v.isoformat()
+            elif isinstance(v, dict):
+                sanitized[k] = self._sanitize_props(v)
+            elif isinstance(v, list):
+                sanitized[k] = [
+                    self._sanitize_props(i) if isinstance(i, dict) else i for i in v
+                ]
+            else:
+                sanitized[k] = v
+        return sanitized
+
     def _update_shadow(self, update_props: Dict[str, Any]):
         self.log.info(
             "update shadow props", meter_id=self.meter_id, update_props=update_props
         )
+        update_props = self._sanitize_props(update_props)
         try:
             update_meter_shadows_when_healthy(
                 self.supabase, self.meter_id, update_props
@@ -122,6 +139,7 @@ class SyncerBase(ABC):
         self.log.info(
             "update registry props", meter_id=self.meter_id, update_props=update_props
         )
+        update_props = self._sanitize_props(update_props)
         try:
             # first fetch existing values and build map of differences
             query_result = (
