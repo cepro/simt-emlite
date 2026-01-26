@@ -8,7 +8,6 @@ from typing import Any, Dict, List
 
 from simt_emlite.mediator.api_core import EmliteMediatorAPI
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
-from simt_emlite.orchestrate.adapter.factory import get_instance
 from simt_emlite.util.logging import get_logger
 from simt_emlite.util.supabase import supa_client
 
@@ -19,6 +18,7 @@ supabase_key: str | None = os.environ.get("SUPABASE_ANON_KEY")
 flows_role_key: str | None = os.environ.get("FLOWS_ROLE_KEY")
 max_parallel_jobs: int = int(os.environ.get("MAX_PARALLEL_JOBS") or 5)
 drift_threshold_seconds: int = int(os.environ.get("DRIFT_THRESHOLD_SECONDS") or 20)
+mediator_server: str | None = os.environ.get("MEDIATOR_SERVER")
 env: str | None = os.environ.get("ENV")
 
 
@@ -41,7 +41,6 @@ class UpdateMeterClocksJob:
         assert flows_role_key is not None
 
         self.esco = esco
-        self.containers = get_instance(esco=esco, env=env)
         self.flows_supabase = supa_client(supabase_url, supabase_key, flows_role_key)
 
     def run_job(self, meter_drift_record: Dict):
@@ -49,24 +48,17 @@ class UpdateMeterClocksJob:
         drift_seconds = meter_drift_record["clock_time_diff_seconds"]
         meter_id = meter_drift_record["id"]
 
-        containers = self.containers
-
-        mediator_address = containers.mediator_address(meter_id, serial)
-        if mediator_address is None:
-            self.log.error(f"No mediator container exists for meter {serial}")
-            return False
-
         try:
             self.log.info(
                 "Updating clock",
                 meter_id=meter_id,
                 serial=serial,
-                mediator_address=mediator_address,
+                mediator_address=mediator_server,
                 drift_seconds=drift_seconds,
             )
 
             client = EmliteMediatorAPI(
-                mediator_address=mediator_address,
+                mediator_address=mediator_server,
             )
 
             # Write the correct time
@@ -195,6 +187,9 @@ class UpdateMeterClocksJob:
             self.log.error("Environment variable FLOWS_ROLE_KEY not set.")
             sys.exit(3)
 
+        if not mediator_server:
+            self.log.error("Environment variable MEDIATOR_SERVER not set.")
+            sys.exit(5)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
