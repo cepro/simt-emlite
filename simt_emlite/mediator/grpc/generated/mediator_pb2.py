@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emediator.proto\x12\x19simt_emlite.mediator.grpc\":\n\x15SendRawMessageRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\x12\x11\n\tdataField\x18\x02 \x01(\x0c\"\'\n\x13SendRawMessageReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"6\n\x12ReadElementRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\x12\x10\n\x08objectId\x18\x02 \x01(\x05\"$\n\x10ReadElementReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"H\n\x13WriteElementRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\x12\x10\n\x08objectId\x18\x02 \x01(\x05\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\"\x13\n\x11WriteElementReply\" \n\x0eGetInfoRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\"!\n\x0cGetInfoReply\x12\x11\n\tjson_data\x18\x01 \x01(\t\"\x12\n\x10GetMetersRequest\"%\n\x0eGetMetersReply\x12\x13\n\x0bjson_meters\x18\x01 \x01(\t2\xea\x02\n\x15\x45mliteMediatorService\x12t\n\x0esendRawMessage\x12\x30.simt_emlite.mediator.grpc.SendRawMessageRequest\x1a..simt_emlite.mediator.grpc.SendRawMessageReply\"\x00\x12k\n\x0breadElement\x12-.simt_emlite.mediator.grpc.ReadElementRequest\x1a+.simt_emlite.mediator.grpc.ReadElementReply\"\x00\x12n\n\x0cwriteElement\x12..simt_emlite.mediator.grpc.WriteElementRequest\x1a,.simt_emlite.mediator.grpc.WriteElementReply\"\x00\x32\xd5\x01\n\x0bInfoService\x12_\n\x07GetInfo\x12).simt_emlite.mediator.grpc.GetInfoRequest\x1a\'.simt_emlite.mediator.grpc.GetInfoReply\"\x00\x12\x65\n\tGetMeters\x12+.simt_emlite.mediator.grpc.GetMetersRequest\x1a).simt_emlite.mediator.grpc.GetMetersReply\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0emediator.proto\x12\x19simt_emlite.mediator.grpc\":\n\x15SendRawMessageRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\x12\x11\n\tdataField\x18\x02 \x01(\x0c\"\'\n\x13SendRawMessageReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"6\n\x12ReadElementRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\x12\x10\n\x08objectId\x18\x02 \x01(\x05\"$\n\x10ReadElementReply\x12\x10\n\x08response\x18\x01 \x01(\x0c\"H\n\x13WriteElementRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\x12\x10\n\x08objectId\x18\x02 \x01(\x05\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\"\x13\n\x11WriteElementReply\" \n\x0eGetInfoRequest\x12\x0e\n\x06serial\x18\x01 \x01(\t\"!\n\x0cGetInfoReply\x12\x11\n\tjson_data\x18\x01 \x01(\t\" \n\x10GetMetersRequest\x12\x0c\n\x04\x65sco\x18\x01 \x01(\t\"%\n\x0eGetMetersReply\x12\x13\n\x0bjson_meters\x18\x01 \x01(\t2\xea\x02\n\x15\x45mliteMediatorService\x12t\n\x0esendRawMessage\x12\x30.simt_emlite.mediator.grpc.SendRawMessageRequest\x1a..simt_emlite.mediator.grpc.SendRawMessageReply\"\x00\x12k\n\x0breadElement\x12-.simt_emlite.mediator.grpc.ReadElementRequest\x1a+.simt_emlite.mediator.grpc.ReadElementReply\"\x00\x12n\n\x0cwriteElement\x12..simt_emlite.mediator.grpc.WriteElementRequest\x1a,.simt_emlite.mediator.grpc.WriteElementReply\"\x00\x32\xd5\x01\n\x0bInfoService\x12_\n\x07GetInfo\x12).simt_emlite.mediator.grpc.GetInfoRequest\x1a\'.simt_emlite.mediator.grpc.GetInfoReply\"\x00\x12\x65\n\tGetMeters\x12+.simt_emlite.mediator.grpc.GetMetersRequest\x1a).simt_emlite.mediator.grpc.GetMetersReply\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -48,11 +48,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETINFOREPLY']._serialized_start=369
   _globals['_GETINFOREPLY']._serialized_end=402
   _globals['_GETMETERSREQUEST']._serialized_start=404
-  _globals['_GETMETERSREQUEST']._serialized_end=422
-  _globals['_GETMETERSREPLY']._serialized_start=424
-  _globals['_GETMETERSREPLY']._serialized_end=461
-  _globals['_EMLITEMEDIATORSERVICE']._serialized_start=464
-  _globals['_EMLITEMEDIATORSERVICE']._serialized_end=826
-  _globals['_INFOSERVICE']._serialized_start=829
-  _globals['_INFOSERVICE']._serialized_end=1042
+  _globals['_GETMETERSREQUEST']._serialized_end=436
+  _globals['_GETMETERSREPLY']._serialized_start=438
+  _globals['_GETMETERSREPLY']._serialized_end=475
+  _globals['_EMLITEMEDIATORSERVICE']._serialized_start=478
+  _globals['_EMLITEMEDIATORSERVICE']._serialized_end=840
+  _globals['_INFOSERVICE']._serialized_start=843
+  _globals['_INFOSERVICE']._serialized_end=1056
 # @@protoc_insertion_point(module_scope)

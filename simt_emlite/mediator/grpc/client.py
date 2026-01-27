@@ -243,12 +243,14 @@ class EmliteMediatorGrpcClient:
                 )
                 raise e
 
-    def get_meters(self) -> str:
+    def get_meters(self, esco: str | None = None) -> str:
         with self._get_channel() as channel:
             stub = InfoServiceStub(channel)
             try:
-                self.log.debug("send request - get_meters")
-                rsp_obj = stub.GetMeters(GetMetersRequest(), timeout=TIMEOUT_SECONDS)
+                self.log.debug("send request - get_meters", esco=esco)
+                rsp_obj = stub.GetMeters(
+                    GetMetersRequest(esco=esco), timeout=TIMEOUT_SECONDS
+                )
                 return rsp_obj.json_meters
             except grpc.RpcError as e:
                 self.log.error("GetMeters failed", details=e.details(), code=e.code())

@@ -82,6 +82,7 @@ message GetInfoReply {
 }
 
 message GetMetersRequest {
+  string esco = 1;
 }
 
 message GetMetersReply {

@@ -59,8 +59,10 @@ class GetInfoReply(_message.Message):
     def __init__(self, json_data: _Optional[str] = ...) -> None: ...
 
 class GetMetersRequest(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("esco",)
+    ESCO_FIELD_NUMBER: _ClassVar[int]
+    esco: str
+    def __init__(self, esco: _Optional[str] = ...) -> None: ...
 
 class GetMetersReply(_message.Message):
     __slots__ = ("json_meters",)

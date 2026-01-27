@@ -38,54 +38,37 @@ config = load_config()
 
 MEDIATOR_SERVER: str | None = cast(str | None, config["mediator_server"])
 
-SIMPLE_READ_COMMANDS = [
-    ("csq", "Signal quality"),
-    ("hardware", "Hardware code"),
-    ("firmware_version", "Firmware version code"),
-    ("serial_read", "Meter serial"),
-    ("clock_time_read", "Current clock time on the meter"),
-    ("instantaneous_voltage", "Current voltage"),
-    ("instantaneous_active_power", "Current active power (single or combined)"),
-    ("instantaneous_active_power_element_a", "Current active power (element a)"),
-    ("instantaneous_active_power_element_b", "Current active power (element b)"),
-    ("read_element_a", "Current read on element A"),
-    ("read_element_b", "Current read on element B"),
-    ("read", "Current read - will read all available for meter type"),
-    ("backlight", "Backlight setting"),
-    ("load_switch", "Load switch setting"),
-    ("prepay_enabled", "Is prepay mode enabled?"),
-    (
-        "daylight_savings_correction_enabled",
-        "Is daylight savings correction enabled?",
-    ),
-    (
-        "prepay_no_debt_recovery_when_emergency_credit_enabled",
-        "Is no debt recovery in ecredit mode enabled?",
-    ),
-    (
-        "prepay_no_standing_charge_when_power_fail_enabled",
-        "Is no standing charge when power fail enabled?",
-    ),
-    ("prepay_balance", "Current prepay balance (if in prepay mode)"),
-    (
-        "prepay_transaction_count",
-        "Count of prepay transactions (0 indexed so is num tx - 1)",
-    ),
-    ("three_phase_serial", "Three phase meter serial"),
-    (
-        "three_phase_instantaneous_voltage",
-        "Current three phase voltage (if three phase meter)",
-    ),
-    ("three_phase_read", "Three phase reading"),
-    ("three_phase_hardware_configuration", "Three phase hardware configuration"),
-    ("tariffs_active_read", "Current tariff settings"),
-    ("tariffs_future_read", "Future tariff settings"),
-    (
-        "tariffs_time_switches_element_a_or_single_read",
-        "Time switches for element A",
-    ),
-    ("tariffs_time_switches_element_b_read", "Time switches for element B"),
-]
+SIMPLE_READ_COMMANDS = {
+    "backlight",
+    "clock_time_read",
+    "csq",
+    "daylight_savings_correction_enabled",
+    "firmware_version",
+    "hardware",
+    "instantaneous_active_power",
+    "instantaneous_active_power_element_a",
+    "instantaneous_active_power_element_b",
+    "instantaneous_voltage",
+    "load_switch",
+    "prepay_balance",
+    "prepay_enabled",
+    "prepay_no_debt_recovery_when_emergency_credit_enabled",
+    "prepay_no_standing_charge_when_power_fail_enabled",
+    "prepay_transaction_count",
+    "read",
+    "read_element_a",
+    "read_element_b",
+    "serial_read",
+    "tariffs_active_read",
+    "tariffs_future_read",
+    "tariffs_time_switches_element_a_or_single_read",
+    "tariffs_time_switches_element_b_read",
+    "three_phase_hardware_configuration",
+    "three_phase_instantaneous_voltage",
+    "three_phase_read",
+    "three_phase_serial",
+}
+
 
 """
     This is a CLI wrapper around the mediator client.
@@ -162,10 +145,10 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
         except Exception:
             print(info_json)
 
-    def list(self, json_output: bool = False) -> None:
+    def list(self, json_output: bool = False, esco: str | None = None) -> None:
         """List all meters with formatted table output."""
         # Call inherited meter_list() method
-        meters_json = self.meter_list()
+        meters_json = self.meter_list(esco=esco)
 
         # Parse the JSON response
         try:
@@ -334,163 +317,184 @@ def args_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers(dest="subparser")
 
-    subparsers.add_parser("version", help="Show version")
+    # Helper functions for argument setup
+    def setup_no_args(p: argparse.ArgumentParser) -> None:
+        pass
 
-    subparsers.add_parser("env_show", help="Show current environment context")
-    subparsers.add_parser(
-        "env_set",
-        help="Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
-    ).add_argument("env")
+    def setup_serial(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
 
-    # List all meters command
-    list_parser = subparsers.add_parser("list", help="List all meters with status")
-    list_parser.add_argument(
-        "--json",
-        help="Output as JSON instead of formatted table",
-        action="store_true",
-        dest="json_output",
-    )
+    def setup_env_set(p: argparse.ArgumentParser) -> None:
+        p.add_argument("env")
 
-    # ===========    Simple Reads (no args)    ==========
-
-    for cmd_tuple in SIMPLE_READ_COMMANDS:
-        cmd_parser = subparsers.add_parser(cmd_tuple[0], help=cmd_tuple[1])
-        add_arg_serial(cmd_parser)
-
-    # ===========    Event logs     ==========
-
-    event_log_parser = subparsers.add_parser(
-        "event_log",
-        help="Read a block of 10 events from the event log at a given index",
-    )
-    event_log_parser.add_argument(
-        "log_idx",
-        type=valid_event_log_idx,
-        help="value 0-9 where 0 returns the latest 10 log entries; 9 the oldest 10 entries",
-    )
-    add_arg_serial(event_log_parser)
-
-    # ===========    Profile logs (half hourly reads)    ==========
-
-    profile_log_commands = [
-        "profile_log_1",
-        "profile_log_2",
-    ]
-    for cmd_str in profile_log_commands:
-        profile_parser = subparsers.add_parser(
-            cmd_str,
-            description=f"""Fetch half hourly data for a given date time.
-
-Example usage:
-
-  emop -s EML1411222333 {cmd_str} --timestamp 2024-08-21T14:00
-""",
-            formatter_class=argparse.RawDescriptionHelpFormatter,
+    def setup_list(p: argparse.ArgumentParser) -> None:
+        p.add_argument(
+            "--json",
+            help="Output as JSON instead of formatted table",
+            action="store_true",
+            dest="json_output",
         )
-        add_arg_serial(profile_parser)
-        profile_parser.add_argument(
+        p.add_argument(
+            "--esco",
+            help="Filter by ESCO code (e.g. wlce)",
+            required=False,
+        )
+
+    def setup_event_log(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "log_idx",
+            type=valid_event_log_idx,
+            help="value 0-9 where 0 returns the latest 10 log entries; 9 the oldest 10 entries",
+        )
+
+    def setup_profile_log(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
             "--timestamp",
             help="Timestamp in iso8601 format (eg. 2024-08-21 or 2024-08-21T14:00) of time to read profile logs for.",
             required=True,
             type=valid_iso_datetime,
         )
 
-    # ===========    Three phase intervals (half hourly intervals)    ==========
+    def setup_three_phase_intervals(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "--day",
+            help="Date to pull intervals for.",
+            required=False,
+            type=valid_iso_datetime,
+        )
+        p.add_argument(
+            "--start-time",
+            help="Start date time for intervals range.",
+            required=False,
+            type=valid_iso_datetime,
+        )
+        p.add_argument(
+            "--end-time",
+            help="End date time for intervals range.",
+            required=False,
+            type=valid_iso_datetime,
+        )
+        p.add_argument(
+            "--csv",
+            help="Path to CSV file to output intervals data",
+            required=True,
+            type=str,
+        )
+        p.add_argument(
+            "--include_statuses",
+            help="Include statuses in the CSV",
+            required=False,
+            action="store_true",
+        )
 
-    three_phase_intervals_parser = subparsers.add_parser(
-        "three_phase_intervals",
-        description="""Fetch three phase intervals for given time range.
+    def setup_obis_read(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument("obis", help="obis / objectid to read")
 
-Example usage:
+    def setup_obis_write(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument("obis", help="obis / objectid to read")
+        p.add_argument("payload_hex", help="payload to write to obis (hex string)")
 
-emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" --end-time "2025-02-21T00:00+00"
-""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    add_arg_serial(three_phase_intervals_parser)
-    three_phase_intervals_parser.add_argument(
-        "--day",
-        help="Date to pull intervals for.",
-        required=False,
-        type=valid_iso_datetime,
-    )
-    three_phase_intervals_parser.add_argument(
-        "--start-time",
-        help="Start date time for intervals range.",
-        required=False,
-        type=valid_iso_datetime,
-    )
-    three_phase_intervals_parser.add_argument(
-        "--end-time",
-        help="End date time for intervals range.",
-        required=False,
-        type=valid_iso_datetime,
-    )
-    three_phase_intervals_parser.add_argument(
-        "--csv",
-        help="Path to CSV file to output intervals data",
-        required=True,
-        type=str,
-    )
-    three_phase_intervals_parser.add_argument(
-        "--include_statuses",
-        help="Include statuses in the CSV",
-        required=False,
-        action="store_true",
-    )
+    def setup_prepay_enabled_write(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "enabled",
+            type=valid_switch,
+            help="set prepay flag (on=prepay mode, off=credit mode)",
+        )
 
-    # ===========    generic obis read    ==========
+    def setup_daylight_savings_write(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "enabled",
+            type=valid_switch,
+            help="set daylight_savings_correction flag (on, off)",
+        )
 
-    obis_read_parser = subparsers.add_parser(
-        "obis_read", help="read a payload from an arbitrary obis / object id"
-    )
-    add_arg_serial(obis_read_parser)
-    obis_read_parser.add_argument(
-        "obis",
-        help="obis / objectid to read",
-    )
+    def setup_prepay_send_token(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument("token", help="prepay token obtained from topupmeters.co.uk")
 
-    # ===========    Writes    ==========
+    def setup_backlight_write(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "setting",
+            help="new backlight setting",
+            type=valid_backlight_setting,
+        )
 
-    clock_write_parser = subparsers.add_parser(
-        "clock_time_write", help="Update clock time with current timestamp"
-    )
-    add_arg_serial(clock_write_parser)
+    def setup_load_switch_write(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "setting",
+            help="new load_switch setting",
+            type=valid_load_switch_setting,
+        )
 
-    prepay_enabled_write_parser = subparsers.add_parser(
-        "prepay_enabled_write", help="Set prepay mode flag"
-    )
-    add_arg_serial(prepay_enabled_write_parser)
-    prepay_enabled_write_parser.add_argument(
-        "enabled",
-        type=valid_switch,
-        help="set prepay flag (on=prepay mode, off=credit mode)",
-    )
+    def setup_tariffs_future_write(p: argparse.ArgumentParser) -> None:
+        add_arg_serial(p)
+        p.add_argument(
+            "--from-ts",
+            help="Date and time in iso8601 format of when the date tariff will apply from. NOTE: this is a clock time meaning in summer the BST time should be used here. If however a meter was configured with the daylight savings flag UNCHECKED then it should be UTC.",
+            required=True,
+            type=valid_iso_datetime,
+        )
+        p.add_argument(
+            "--unit-rate",
+            help="Tariff unit rate (eg. '0.25' is 25 pence)",
+            required=True,
+            type=valid_rate,
+        )
+        p.add_argument(
+            "--standing-charge",
+            help="Tariff standing charge (eg. '0.695' is 69.5 pence)",
+            required=True,
+            type=valid_rate,
+        )
+        p.add_argument(
+            "--emergency-credit",
+            help="Emergency credit level (eg. '15.00' is 15 GBP)",
+            required=False,
+            default=Decimal("15.00"),
+            type=valid_decimal,
+        )
+        p.add_argument(
+            "--ecredit-availability",
+            help="Emergency credit availability level. EC button can be pressed when balance goes under this. (eg. '10.00' is 10 GBP)",
+            required=False,
+            default=Decimal("10.00"),
+            type=valid_decimal,
+        )
+        p.add_argument(
+            "--debt-recovery-rate",
+            help="Daily rate of debt recovery (eg. '0.3' is 30 pence)",
+            required=False,
+            default=Decimal("0.30"),
+            type=valid_decimal,
+        )
 
-    prepay_send_token_parser = subparsers.add_parser(
-        "prepay_send_token",
-        help="Write a prepay token to the meter to topup the balance",
-    )
-    add_arg_serial(prepay_send_token_parser)
-    prepay_send_token_parser.add_argument(
-        "token", help="prepay token obtained from topupmeters.co.uk"
-    )
+    # Command Definitions
+    # (command_name, help_text, setup_func, description)
+    # Commands are grouped by API module and alphabetized within groups.
 
-    daylight_savings_correction_enabled_write_parser = subparsers.add_parser(
-        "daylight_savings_correction_enabled_write",
-        help="Set daylight_savings_correction flag",
-    )
-    add_arg_serial(daylight_savings_correction_enabled_write_parser)
-    daylight_savings_correction_enabled_write_parser.add_argument(
-        "enabled",
-        type=valid_switch,
-        help="set daylight_savings_correction flag (on, off)",
-    )
+    # 1. Management / Tooling
+    management_commands = [
+        ("env_set", "Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]", setup_env_set, None),
+        ("env_show", "Show current environment context", setup_no_args, None),
+        ("info", "metadata and shadows data for a meter", setup_serial, None),
+        ("list", "List all meters with status", setup_list, None),
+        ("serial_to_name", "lookup meter name from serial", setup_serial, None),
+        ("version", "Show version", setup_no_args, None),
+    ]
 
-    backlight_write_parser = subparsers.add_parser(
-        "backlight_write",
-        help="Write backlight setting to meter",
-        description="""Supported settings:
+    # 2. Core API
+    core_commands = [
+        ("backlight", "Backlight setting", setup_serial, None),
+        ("backlight_write", "Write backlight setting to meter", setup_backlight_write, """Supported settings:
 
   Single Phase Meters:
 
@@ -507,20 +511,30 @@ emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" -
 Example usage:
 
 emop -s EML1411222333 backlight_write normal_sp
-""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    add_arg_serial(backlight_write_parser)
-    backlight_write_parser.add_argument(
-        "setting",
-        help="new backlight setting",
-        type=valid_backlight_setting,
-    )
+"""),
+        ("clock_time_read", "Current clock time on the meter", setup_serial, None),
+        ("clock_time_write", "Update clock time with current timestamp", setup_serial, None),
+        ("csq", "Signal quality", setup_serial, None),
+        ("daylight_savings_correction_enabled", "Is daylight savings correction enabled?", setup_serial, None),
+        ("daylight_savings_correction_enabled_write", "Set daylight_savings_correction flag", setup_daylight_savings_write, None),
+        ("event_log", "Read a block of 10 events from the event log at a given index", setup_event_log, """Read a block of 10 events from the event log at the given index.
 
-    load_switch_write_parser = subparsers.add_parser(
-        "load_switch_write",
-        help="Write load_switch setting to meter",
-        description="""Supported settings:
+The log_idx argument (0-9) determines which block of 10 events to read:
+  0 = most recent 10 events
+  9 = oldest 10 events
+
+Example usage:
+
+  emop -s EML1411222333 event_log 0
+"""),
+        ("firmware_version", "Firmware version code", setup_serial, None),
+        ("hardware", "Hardware code", setup_serial, None),
+        ("instantaneous_active_power", "Current active power (single or combined)", setup_serial, None),
+        ("instantaneous_active_power_element_a", "Current active power (element a)", setup_serial, None),
+        ("instantaneous_active_power_element_b", "Current active power (element b)", setup_serial, None),
+        ("instantaneous_voltage", "Current voltage", setup_serial, None),
+        ("load_switch", "Load switch setting", setup_serial, None),
+        ("load_switch_write", "Write load_switch setting to meter", setup_load_switch_write, """Supported settings:
     normal_button_always
     no_button_prepay_mode
     no_button_credit_mode
@@ -529,104 +543,91 @@ emop -s EML1411222333 backlight_write normal_sp
 Example usage:
 
 emop -s EML1411222333 load_switch_write never_button_required
-""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    add_arg_serial(load_switch_write_parser)
-    load_switch_write_parser.add_argument(
-        "setting",
-        help="new load_switch setting",
-        type=valid_load_switch_setting,
-    )
+"""),
+        ("obis_read", "read a payload from an arbitrary obis / object id", setup_obis_read, """Read raw data from an arbitrary OBIS code / object id.
 
-    obis_write_parser = subparsers.add_parser(
-        "obis_write", help="Write a payload to an arbitrary obis / object id"
-    )
-    add_arg_serial(obis_write_parser)
-    obis_write_parser.add_argument(
-        "obis",
-        help="obis / objectid to read",
-    )
-    obis_write_parser.add_argument(
-        "payload_hex",
-        help="payload to write to obis (hex string)",
-    )
-
-    # ===========      Tariff Writes    ==========
-
-    tariff_write_parser = subparsers.add_parser(
-        "tariffs_future_write",
-        help="Write future tariffs to meter",
-        description="""Write future dated tariffs and emergency credit properties into the meter.
+The obis argument should be an OBIS triplet (e.g. "1.0.0") or object id.
 
 Example usage:
 
-emop -s EML1411222333 tariffs_future_write \
-        --from-ts "2024-08-21T06:54:00+00" \
-        --unit-rate "0.23812" \
-        --standing-charge "0.6975" \
-        --ecredit-availability "10.0" \
-        --debt-recovery-rate "0.25" \
+  emop -s EML1411222333 obis_read 1.0.0
+"""),
+        ("obis_write", "Write a payload to an arbitrary obis / object id", setup_obis_write, """Write raw data to an arbitrary OBIS code / object id.
+
+Arguments:
+  obis        - OBIS triplet (e.g. "1.0.0") or object id
+  payload_hex - hex string of the payload to write
+
+Example usage:
+
+  emop -s EML1411222333 obis_write 1.0.0 01020304
+"""),
+        ("profile_log_1", "Fetch half hourly profile log 1 data for a given date time.", setup_profile_log, """Fetch half hourly data for a given date time.
+
+Example usage:
+
+  emop -s EML1411222333 profile_log_1 --timestamp 2024-08-21T14:00
+"""),
+        ("profile_log_2", "Fetch half hourly profile log 2 data for a given date time.", setup_profile_log, """Fetch half hourly data for a given date time.
+
+Example usage:
+
+  emop -s EML1411222333 profile_log_2 --timestamp 2024-08-21T14:00
+"""),
+        ("read", "Current read - will read all available for meter type", setup_serial, None),
+        ("read_element_a", "Current read on element A", setup_serial, None),
+        ("read_element_b", "Current read on element B", setup_serial, None),
+        ("serial_read", "Meter serial", setup_serial, None),
+        ("three_phase_hardware_configuration", "Three phase hardware configuration", setup_serial, None),
+        ("three_phase_instantaneous_voltage", "Current three phase voltage (if three phase meter)", setup_serial, None),
+        ("three_phase_intervals", "Fetch three phase intervals for given time range.", setup_three_phase_intervals, """Fetch three phase intervals for given time range.
+
+Example usage:
+
+emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" --end-time "2025-02-21T00:00+00"
+"""),
+        ("three_phase_read", "Three phase reading", setup_serial, None),
+        ("three_phase_serial", "Three phase meter serial", setup_serial, None),
+    ]
+
+    # 3. Prepay API
+    prepay_commands = [
+        ("prepay_balance", "Current prepay balance (if in prepay mode)", setup_serial, None),
+        ("prepay_enabled", "Is prepay mode enabled?", setup_serial, None),
+        ("prepay_enabled_write", "Set prepay mode flag", setup_prepay_enabled_write, None),
+        ("prepay_no_debt_recovery_when_emergency_credit_enabled", "Is no debt recovery in ecredit mode enabled?", setup_serial, None),
+        ("prepay_no_standing_charge_when_power_fail_enabled", "Is no standing charge when power fail enabled?", setup_serial, None),
+        ("prepay_send_token", "Write a prepay token to the meter to topup the balance", setup_prepay_send_token, None),
+        ("prepay_transaction_count", "Count of prepay transactions (0 indexed so is num tx - 1)", setup_serial, None),
+        ("tariffs_active_read", "Current tariff settings", setup_serial, None),
+        ("tariffs_future_read", "Future tariff settings", setup_serial, None),
+        ("tariffs_future_write", "Write future tariffs to meter", setup_tariffs_future_write, """Write future dated tariffs and emergency credit properties into the meter.
+
+Example usage:
+
+emop -s EML1411222333 tariffs_future_write \\
+        --from-ts "2024-08-21T06:54:00+00" \\
+        --unit-rate "0.23812" \\
+        --standing-charge "0.6975" \\
+        --ecredit-availability "10.0" \\
+        --debt-recovery-rate "0.25" \\
         --emergency-credit "15.00"
-""",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    add_arg_serial(tariff_write_parser)
-    tariff_write_parser.add_argument(
-        "--from-ts",
-        help="Date and time in iso8601 format of when the date tariff will apply from. NOTE: this is a clock time meaning in summer the BST time should be used here. If however a meter was configured with the daylight savings flag UNCHECKED then it should be UTC.",
-        required=True,
-        type=valid_iso_datetime,
-    )
-    tariff_write_parser.add_argument(
-        "--unit-rate",
-        help="Tariff unit rate (eg. '0.25' is 25 pence)",
-        required=True,
-        type=valid_rate,
-    )
-    tariff_write_parser.add_argument(
-        "--standing-charge",
-        help="Tariff standing charge (eg. '0.695' is 69.5 pence)",
-        required=True,
-        type=valid_rate,
-    )
-    tariff_write_parser.add_argument(
-        # "--ec",
-        "--emergency-credit",
-        help="Emergency credit level (eg. '15.00' is 15 GBP)",
-        required=False,
-        default=Decimal("15.00"),
-        type=valid_decimal,
-    )
-    tariff_write_parser.add_argument(
-        # "--ea",
-        "--ecredit-availability",
-        help="Emergency credit availability level. EC button can be pressed when balance goes under this. (eg. '10.00' is 10 GBP)",
-        required=False,
-        default=Decimal("10.00"),
-        type=valid_decimal,
-    )
-    tariff_write_parser.add_argument(
-        # "-drr",
-        "--debt-recovery-rate",
-        help="Daily rate of debt recovery (eg. '0.3' is 30 pence)",
-        required=False,
-        default=Decimal("0.30"),
-        type=valid_decimal,
-    )
+"""),
+        ("tariffs_time_switches_element_a_or_single_read", "Time switches for element A", setup_serial, None),
+        ("tariffs_time_switches_element_b_read", "Time switches for element B", setup_serial, None),
+    ]
 
-    # ===========    Info lookups    ==========
+    # Add all groups to subparsers
+    all_commands = management_commands + core_commands + prepay_commands
 
-    info_parser = subparsers.add_parser(
-        "info", help="metadata and shadows data for a meter"
-    )
-    add_arg_serial(info_parser)
-
-    # serial_to_name command (retained)
-    serial_to_name_parser = subparsers.add_parser(
-        "serial_to_name", help="lookup meter name from serial"
-    )
-    add_arg_serial(serial_to_name_parser)
+    for cmd, help_text, setup_func, description in all_commands:
+        p = subparsers.add_parser(
+            cmd,
+            help=help_text,
+            description=description or help_text,
+            formatter_class=argparse.RawDescriptionHelpFormatter if description else argparse.HelpFormatter,
+        )
+        setup_func(p)
 
     return parser
 
@@ -664,7 +665,7 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
             if isinstance(result, (dict, list)):
                 print(json.dumps(result, indent=2, default=str))
             elif isinstance(result, (int, float, str, Decimal)):
-                if command in [c[0] for c in SIMPLE_READ_COMMANDS]:
+                if command in SIMPLE_READ_COMMANDS:
                     print(f"{command}={result}")
                 else:
                     print(result)

@@ -51,15 +51,18 @@ class EmliteMeterManagementAPI:
         self.log = logger.bind(mediator_address=mediator_address)
         self.log.debug("EmliteMeterManagementAPI init")
 
-    def meter_list(self) -> str:
+    def meter_list(self, esco: str | None = None) -> str:
         """
         Get a list of all meters.
+
+        Args:
+            esco: Optional ESCO code to filter by (e.g. "wlce").
 
         Returns:
             JSON string containing meter list.
         """
-        data = self.grpc_client.get_meters()
-        self.log.info("received meters list")
+        data = self.grpc_client.get_meters(esco=esco)
+        self.log.info("received meters list", esco=esco)
         return data
 
     def meter_info(self, serial: str) -> str:
