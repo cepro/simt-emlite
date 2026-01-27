@@ -94,16 +94,6 @@ class EmliteMediatorAPI(object):
         self.log.debug("EmliteMediatorClient init")
         self._hardware_cache: Dict[str, str] = {}
 
-    def get_info(self, serial: str) -> str:
-        data = self.grpc_client.get_info(serial)
-        self.log.info("received info", serial=serial)
-        return data
-
-    def get_meters(self) -> str:
-        data = self.grpc_client.get_meters()
-        self.log.info("received meters list")
-        return data
-
     def serial_read(self, serial: str) -> str:
         data = self._read_element(serial, ObjectIdEnum.serial)
         serial_resp: str = data.serial.strip()

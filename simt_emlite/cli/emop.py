@@ -17,6 +17,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.text import Text
 
+from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
 from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.mediator.validation import (
@@ -111,7 +112,7 @@ def rich_signal_circle(csq: int | None) -> Text:
     return Text("●", style=color)
 
 
-class EMOPCLI(EmlitePrepayAPI):
+class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
     def __init__(
         self,
         serial: str | None = None,
@@ -128,34 +129,6 @@ class EMOPCLI(EmlitePrepayAPI):
                 err_msg = "emnify_id lookup is not yet supported."
                 console.print(err_msg)
                 raise Exception(err_msg)
-
-            # RESTORE THIS BY RPC CALL
-            # if as_list(res):
-            #     drift_raw = as_first_item(res).get("clock_time_diff_seconds")
-            #     drift = f"{drift_raw}" if drift_raw is not None else "unknown"
-
-            #     last_read_raw = as_first_item(res).get("clock_time_diff_synced_at")
-
-            #     last_read = (
-            #         f"{last_read_raw}" if last_read_raw is not None else "unknown"
-            #     )
-
-            #     if last_read_raw:
-            #         try:
-            #             dt = datetime.datetime.fromisoformat(
-            #                 last_read_raw.replace("Z", "+00:00")
-            #             )
-            #             last_read = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
-            #         except Exception as e:
-            #             logging.warning(
-            #                 f"Failed to parse capture timestamp '{last_read_raw}': {e}"
-            #             )
-
-            #     console.print(
-            #         f"Latest Clock Drift: {drift} seconds | Captured At: {last_read}",
-            #         style="cyan",
-            #         highlight=False,
-            #     )
 
             # Initialize client (without meter_id, but with resolved address)
             super().__init__(
@@ -179,9 +152,9 @@ class EMOPCLI(EmlitePrepayAPI):
         if not serial:
             raise ValueError("Serial required for info command")
 
-        # Use the client method method inherited from EmliteMediatorAPI
+        # Use the meter_info method inherited from EmliteMeterManagementAPI
         # which calls the gRPC service
-        info_json = self.get_info(serial)
+        info_json = self.meter_info(serial)
         # Parse it just to pretty print it
         try:
             data = json.loads(info_json)
@@ -191,8 +164,8 @@ class EMOPCLI(EmlitePrepayAPI):
 
     def list(self, json_output: bool = False) -> None:
         """List all meters with formatted table output."""
-        # Call inherited get_meters() method
-        meters_json = self.get_meters()
+        # Call inherited meter_list() method
+        meters_json = self.meter_list()
 
         # Parse the JSON response
         try:
