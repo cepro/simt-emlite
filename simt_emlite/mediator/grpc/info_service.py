@@ -78,8 +78,11 @@ class EmliteInfoServiceServicer(InfoServiceServicer):
              return GetMetersReply()
 
         try:
+            # Treat empty string as None for filter; ensure lowercase
+            esco_filter = request.esco.lower() if request.esco else None
+
             result = self.supabase.rpc(
-                "get_meters_for_cli", {"esco_filter": None, "feeder_filter": None}
+                "get_meters_for_cli", {"esco_filter": esco_filter, "feeder_filter": None}
             ).execute()
 
             meters = as_list(result)

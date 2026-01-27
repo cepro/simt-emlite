@@ -159,12 +159,16 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
         # Call inherited meter_list() method
         meters_json = self.meter_list(esco=esco)
 
+
         # Parse the JSON response
         try:
             meters = json.loads(meters_json)
         except Exception as e:
             console.print(f"Failed to parse meters data: {e}")
             raise
+
+        # Sort meters by name
+        meters.sort(key=lambda x: x.get("name") or "")
 
         # JSON output for scripting
         if json_output:
