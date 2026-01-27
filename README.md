@@ -175,12 +175,6 @@ But you can't get auto machine start via flycast without exposing the insecure p
 
 An alternative to this setup would be to have the jobs in a separate app and that app has the client certificates defined and then they would not be needed in the server setup here... Time permitting I think we can move to that setup later.
 
-#### Create Mediator Container for either type of app
-
-```sh
-> mediators create <meter serial>
-```
-
 ### Publish Docker Image to Fly
 
 Whenever a tag is pushed the 'docker-image' github action will build and push an image to both ghcr and fly docker registries.
@@ -202,13 +196,55 @@ python grpc_codegen.py
 
 Mediators use TLS certificates for authentication which is configured at the gRPC channel level.
 
-We generate certficates for a CA, server and clients as follows.
-
-This should be done separately for each environment - prod, qa, local, custom, etc.
+We generate certificates for a CA, server and clients for each environment (prod, qa, local, etc.).
 
 Generated keys can be found in Lastpass under "Mediator Mutual TLS Certificates".
 
-#### CA Certificate
+#### Certificate Management CLI
+
+The `certs` CLI provides commands to generate and manage certificates. Output includes base64-encoded values ready for LastPass / `.env` files.
+
+```sh
+# Initialize CA for an environment (first step)
+certs init prod
+
+# Generate server certificate (signed by CA)
+certs server prod
+
+# Generate client certificates with embedded identifiers
+# The client_id becomes the certificate's CN (Common Name)
+# The --ou flag sets the Organizational Unit (role) for authorization
+certs client prod mgf-scheduler --ou internal      # Internal client
+certs client prod partner-xyz --ou partner         # Partner client
+
+# List all issued certificates for an environment
+certs list prod
+
+# Display certificate details
+certs info ~/.simt/certs/prod/clients/mgf-scheduler.cert
+```
+
+**Client Identity and Authorization:**
+
+- `client_id` (CN): Unique identifier for the client (e.g., "mgf-scheduler", "partner-xyz")
+- `--ou` (OU): Role for authorization grouping:
+  - `internal`: Full access to all gRPC methods
+  - `partner`: Read-only access (readElement, GetInfo, GetMeters)
+  - `readonly`: Info methods only (GetInfo, GetMeters)
+
+The server extracts the client identity from the peer certificate and uses it for:
+
+- Structured logging (client_id appears in logs)
+- Authorization (role-based access to gRPC methods)
+
+Certificates are stored in `~/.simt/certs/<env>/`.
+
+#### Manual Certificate Generation (Legacy)
+
+For reference, the original openssl commands are documented below:
+
+<details>
+<summary>CA Certificate</summary>
 
 ```sh
 openssl genrsa -out mediators-ca-private.key 4096
@@ -219,7 +255,10 @@ openssl req -new -x509 \
   -days 3650 -out mediators-ca.cert
 ```
 
-#### Server Certificate
+</details>
+
+<details>
+<summary>Server Certificate</summary>
 
 ```sh
 openssl genrsa -out mediators-server-private.key 4096
@@ -266,7 +305,10 @@ keyUsage = digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 ```
 
-#### Client Certificates
+</details>
+
+<details>
+<summary>Client Certificates</summary>
 
 Generate a separate set for each external party and a set for Cepro for each environment.
 
@@ -285,3 +327,5 @@ openssl x509 -req \
   -CAcreateserial \
   -out mediators-client-cepro.cert -days 365 -sha256
 ```
+
+</details>
