@@ -145,6 +145,15 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
         except Exception:
             print(info_json)
 
+    def clock_drift(self, serial: str) -> None:
+        """Get clock drift information for a specific meter."""
+        if not serial:
+            raise ValueError("Serial required for clock_drift command")
+
+        # Use the meter_clock_drift method inherited from EmliteMeterManagementAPI
+        result = self.meter_clock_drift(serial)
+        print(json.dumps(result, indent=2))
+
     def list(self, json_output: bool = False, esco: str | None = None) -> None:
         """List all meters with formatted table output."""
         # Call inherited meter_list() method
@@ -286,8 +295,8 @@ def add_arg_serial(parser: argparse.ArgumentParser) -> None:
 
 
 def args_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-h", "--help", action="store_true", help="show this help message and exit")
     parser.add_argument(
         "--log-level",
         help="Set logging level [debug, info, warning (default), warn, error, critical]",
@@ -483,6 +492,7 @@ def args_parser() -> argparse.ArgumentParser:
 
     # 1. Management / Tooling
     management_commands = [
+        ("clock_drift", "Show clock time drift for a meter", setup_serial, None),
         ("env_set", "Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]", setup_env_set, None),
         ("env_show", "Show current environment context", setup_no_args, None),
         ("info", "metadata and shadows data for a meter", setup_serial, None),
@@ -617,6 +627,13 @@ emop -s EML1411222333 tariffs_future_write \\
         ("tariffs_time_switches_element_b_read", "Time switches for element B", setup_serial, None),
     ]
 
+    # Define command groups for help display
+    command_groups = [
+        ("Management", management_commands),
+        ("Core (Meter Reads/Writes)", core_commands),
+        ("Prepay & Tariffs", prepay_commands),
+    ]
+
     # Add all groups to subparsers
     all_commands = management_commands + core_commands + prepay_commands
 
@@ -628,6 +645,9 @@ emop -s EML1411222333 tariffs_future_write \\
             formatter_class=argparse.RawDescriptionHelpFormatter if description else argparse.HelpFormatter,
         )
         setup_func(p)
+
+    # Store command groups on parser for custom help
+    parser._command_groups = command_groups  # type: ignore[attr-defined]
 
     return parser
 
@@ -691,6 +711,34 @@ def run_command_for_serials(
         run_command(serial, command, kwargs.copy())
 
 
+def print_grouped_help(parser: argparse.ArgumentParser) -> None:
+    """Print help with commands grouped by category."""
+    print("usage: emop [-h] [--log-level LOG_LEVEL] [--verbose] [-s S]")
+    print("            [--serials SERIALS] [--serials-file SERIALS_FILE] command ...")
+    print()
+
+    if hasattr(parser, "_command_groups"):
+        print("commands:")
+        for group_name, commands in parser._command_groups:  # type: ignore[attr-defined]
+            print(f"\n  {group_name}:")
+            for cmd, help_text, _, _ in commands:
+                # Truncate help text if too long
+                if len(help_text) > 50:
+                    help_text = help_text[:47] + "..."
+                print(f"    {cmd:42} {help_text}")
+        print()
+
+    print("options:")
+    print("  -h, --help            show this help message and exit")
+    print("  --log-level LOG_LEVEL")
+    print("                        Set logging level [debug, info, warning (default), warn, error, critical]")
+    print("  --verbose             Alias for '--log-level debug'")
+    print("  -s S                  Serial")
+    print("  --serials SERIALS     Run command for all serials in given comma delimited list")
+    print("  --serials-file SERIALS_FILE")
+    print("                        Run command for all serials in given file that has a serial per line.")
+
+
 def main() -> None:
     # supress supabase py request logging and underlying noisy libs:
     suppress_noisy_loggers()
@@ -701,9 +749,15 @@ def main() -> None:
     argcomplete.autocomplete(parser)
 
     kwargs = vars(parser.parse_args())
+
+    # Handle help flag ourselves for grouped output
+    if kwargs.pop("help", False):
+        print_grouped_help(parser)
+        exit(0)
+
     command = kwargs.pop("subparser")
     if command is None:
-        parser.print_help()
+        print_grouped_help(parser)
         exit(-1)
 
     # CLI works on a given serial or list of serials.
