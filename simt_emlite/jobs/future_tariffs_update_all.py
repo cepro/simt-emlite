@@ -5,7 +5,6 @@ import sys
 import traceback
 from decimal import Decimal
 
-import requests
 
 from simt_emlite.jobs.future_tariffs_update import FutureTariffsUpdateJob
 from simt_emlite.util.logging import get_logger
@@ -133,39 +132,19 @@ class FutureTariffsUpdateAllJob:
         )
 
     def future_tariffs_to_update(self, esco: str):
-        return self._call_rpc(
+        result = self.backend_supabase.rpc(
             "meters_missing_future_tariffs",
-            data={"esco_code_in": esco},
-        )
+            {"esco_code_in": esco},
+        ).execute()
 
-    def _call_rpc(self, name: str, data: dict | None = None):
-        api_base_uri = f"{supabase_url}/rest/v1"
+        self.log.info(f"meters_missing_future_tariffs response [{result}]")
 
-        api_headers = {
-            "apikey": supabase_key,
-            "Authorization": f"Bearer {public_backend_role_key}",
-            "Accept-Profile": "myenergy",
-        }
-
-        response = requests.post(
-            url=f"{api_base_uri}/rpc/{name}", headers=api_headers, data=data
-        )
-        self.log.info(f"{name} response [{response}]")
-
-        if not response.ok:
-            self.log.error(
-                f"RPC call '{name}' failed",
-                status_code=response.status_code,
-                response_text=response.text,
-            )
-            return []
-
-        json_data = response.json()
+        json_data = result.data
 
         # Handle case where response is not a list (e.g., error message or null)
         if not isinstance(json_data, list):
             self.log.warning(
-                f"RPC call '{name}' returned unexpected data type",
+                "RPC call 'meters_missing_future_tariffs' returned unexpected data type",
                 data_type=type(json_data).__name__,
                 data=json_data,
             )
