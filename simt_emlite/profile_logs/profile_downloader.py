@@ -3,21 +3,21 @@
 Simple Profile Download Script
 
 This script provides a basic implementation of profile log 1 downloading for a single day.
-It takes CLI arguments for serial and date, uses Supabase to get meter info,
-and downloads profile log 1 data in chunks for one day.
+It takes CLI arguments for serial and date, and downloads profile log 1 data
+in chunks for one day via the Emlite mediator.
 
 Usage:
     python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21
 """
 
 import datetime
+import json
 import logging
 from pathlib import Path
 from typing import Callable, Dict, Optional, cast
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
-from supabase import Client as SupabaseClient
 
 from simt_emlite.mediator.api_core import EmliteMediatorAPI
 
@@ -31,7 +31,6 @@ from simt_emlite.util.meters import (
     is_three_phase,
     is_twin_element,
 )
-from simt_emlite.util.supabase import as_first_item, as_list, supa_client
 
 logger = get_logger(__name__, __file__)
 
@@ -54,33 +53,39 @@ class ProfileDownloader:
         self._validate_output_directory()
 
         config = load_config()
-        self.supabase_url = config["supabase_url"]
-        self.supabase_anon_key = config["supabase_anon_key"]
-        self.supabase_access_token = config["supabase_access_token"]
-        self.fly_region = config["fly_region"]
-        self.env = config["env"]
         self.mediator_server = cast(str | None, config["mediator_server"])
-
         self.future_date_detected: Optional[datetime.date] = None
 
-        self._check_config_and_args()
+        self._init_emlite_client()
 
-        self.client: EmliteMediatorAPI | None = None
-        self.supabase: SupabaseClient = self._init_supabase()
+        # Resolve serial from name if missing
+        if not self.serial and self.name:
+            self.serial = self._resolve_serial_from_name(self.name)
 
-        self._fetch_meter_info()
-        self._fetch_esco_code()
-
-    def _check_config_and_args(self):
-        if self.name is None and self.serial is None:
+        if not self.serial:
             raise Exception("Must provide at least one of meter name or serial.")
 
-        if not all(
-            [self.supabase_url, self.supabase_anon_key, self.supabase_access_token]
-        ):
-            raise Exception(
-                "Environment variables SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_ACCESS_TOKEN not set."
+        # Resolve hardware info and other metadata from mediator
+        assert self.client is not None
+
+        # Now that we have a serial, we can fetch detailed info if needed
+        # but hardware() is enough for basic setup
+        self.hardware = self.client.hardware(self.serial)
+        self.is_twin_element = is_twin_element(self.hardware)
+
+        if is_three_phase(self.hardware):
+            error_msg = (
+                f"Three-phase meters are not currently supported. "
+                f"Meter {self.serial} has hardware type '{self.hardware}'."
             )
+            logger.warning(error_msg)
+            raise NotImplementedError(error_msg)
+
+        logger.info(
+            f"Found meter [{self.serial}]. "
+            f"hardware=[{self.hardware}], is_twin_element=[{self.is_twin_element}]"
+        )
+
 
     def _validate_output_directory(self):
         """Validate that the output directory exists and is writable, or can be created"""
@@ -103,74 +108,6 @@ class ProfileDownloader:
                     f"Cannot create output directory '{self.output_dir}': {e}. Please provide a valid directory path."
                 )
 
-    def _init_supabase(self) -> SupabaseClient:
-        """Initialize Supabase client and get meter info"""
-        if not all(
-            [self.supabase_url, self.supabase_anon_key, self.supabase_access_token]
-        ):
-            raise Exception(
-                "SUPABASE_URL, SUPABASE_ANON_KEY and/or SUPABASE_ACCESS_TOKEN not set"
-            )
-
-        # Narrow types after environment check
-        assert self.supabase_url is not None
-        assert self.supabase_anon_key is not None
-        assert self.supabase_access_token is not None
-
-        return supa_client(
-            str(self.supabase_url),
-            str(self.supabase_anon_key),
-            str(self.supabase_access_token),
-        )
-
-    def _fetch_meter_info(self):
-        query = self.supabase.table("meter_registry").select(
-            "id,esco,hardware,serial,name"
-        )
-        if self.serial:
-            query.eq("serial", self.serial)
-        else:
-            query.eq("name", self.name)
-        result = query.execute()
-
-        if len(as_list(result)) == 0:
-            raise Exception(
-                f"Meter not found in registry for serial=[{self.serial}]. name=[{self.name}]."
-            )
-
-        meter_data = as_first_item(result)
-        self.meter_id = meter_data["id"]
-        self.esco_id = meter_data["esco"]
-        self.name = meter_data["name"]
-        self.serial = meter_data["serial"]
-        self.hardware: str = meter_data.get("hardware", "")
-        self.is_twin_element: bool = is_twin_element(self.hardware)
-
-        if is_three_phase(self.hardware):
-            error_msg = (
-                f"Three-phase meters are not currently supported. "
-                f"Meter {self.serial} has hardware type '{self.hardware}'."
-            )
-            logger.warning(error_msg)
-            raise NotImplementedError(error_msg)
-
-        logger.info(
-            f"Found meter [{self.serial}]. id: [{self.meter_id}], "
-            f"hardware=[{self.hardware}], is_twin_element=[{self.is_twin_element}]"
-        )
-
-    def _fetch_esco_code(self):
-        self.esco_code = None
-        if self.esco_id is not None:
-            result = (
-                self.supabase.schema("flows")
-                .table("escos")
-                .select("code")
-                .eq("id", self.esco_id)
-                .execute()
-            )
-            self.esco_code = as_first_item(result)["code"] if as_list(result) else None
-            logger.info(f"Found esco_code [{self.esco_code}] for esco [{self.esco_id}]")
 
     def _init_emlite_client(self):
         """Initialize the Emlite mediator client"""
@@ -183,6 +120,51 @@ class ProfileDownloader:
         )
 
         logger.info(f"Connected to mediator at {self.mediator_server}")
+
+    def _resolve_serial_from_name(self, name: str) -> str:
+        """Resolve a meter name to a serial number using the mediator's meter list."""
+        if not self.client:
+            self._init_emlite_client()
+        assert self.client is not None
+
+        # Handle ESCO.NAME format
+        parts = name.split(".", 1)
+        esco_code: str | None = None
+        search_name: str = name
+
+        if len(parts) == 2:
+            esco_code = parts[0].lower()
+            search_name = parts[1]
+            logger.debug(f"Searching for meter with ESCO [{esco_code}] and Name [{search_name}]")
+
+        # Get meters list from mediator
+        # If we have an ESCO code, use it to filter the list
+        meters_json = self.client.grpc_client.get_meters(esco=esco_code)
+        try:
+            meters = json.loads(meters_json)
+        except Exception as e:
+            logger.error(f"Failed to parse meters JSON from mediator: {e}")
+            raise Exception(f"Could not parse meter list from mediator: {e}")
+
+        # Try to find match by name
+        for meter in meters:
+            # Match against the name segment (e.g. Plot-34.C)
+            if meter.get("name") == search_name:
+                serial = meter.get("serial")
+                if serial:
+                    logger.info(f"Resolved name [{name}] to serial [{serial}]")
+                    # Update name to the one from the registry if needed,
+                    # but keeping original for now.
+                    return str(serial)
+
+            # Also try matching against the full name if search_name didn't work
+            if meter.get("name") == name:
+                serial = meter.get("serial")
+                if serial:
+                    logger.info(f"Resolved full name [{name}] to serial [{serial}]")
+                    return str(serial)
+
+        raise Exception(f"Meter with name [{name}] not found in mediator registry.")
 
     def find_download_file(self) -> SMIPFileFinderResult:
         assert self.serial is not None
@@ -206,8 +188,6 @@ class ProfileDownloader:
         Returns:
             Dict of timestamp to profile log 1 record
         """
-        if not self.client:
-            self._init_emlite_client()
 
         # Convert date to datetime for the day (ensure timezone-aware)
         start_datetime = datetime.datetime.combine(
@@ -285,8 +265,6 @@ class ProfileDownloader:
         Returns:
             Dict of timestamp to profile log 2 record
         """
-        if not self.client:
-            self._init_emlite_client()
 
         # Convert date to datetime for the day (ensure timezone-aware)
         start_datetime = datetime.datetime.combine(

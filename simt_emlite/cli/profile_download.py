@@ -589,7 +589,7 @@ def main() -> None:
         log_level = logging.DEBUG
 
     logging.getLogger().setLevel(log_level)
-    # suppress supabase py request logging and underlying noisy libs:
+    # suppress noisy libs:
     suppress_noisy_loggers()
 
     try:
