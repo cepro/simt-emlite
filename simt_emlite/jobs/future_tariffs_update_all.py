@@ -144,7 +144,7 @@ class FutureTariffsUpdateAllJob:
         api_headers = {
             "apikey": supabase_key,
             "Authorization": f"Bearer {public_backend_role_key}",
-            "Accept-Profile": "public",
+            "Accept-Profile": "myenergy",
         }
 
         response = requests.post(
@@ -152,16 +152,39 @@ class FutureTariffsUpdateAllJob:
         )
         self.log.info(f"{name} response [{response}]")
 
-        return self._convert_floats_to_decimal(response.json())
+        if not response.ok:
+            self.log.error(
+                f"RPC call '{name}' failed",
+                status_code=response.status_code,
+                response_text=response.text,
+            )
+            return []
 
-    def _convert_floats_to_decimal(self, data_list):
-        return [
-            {
-                k: (Decimal(str(v)) if isinstance(v, float) else v)
-                for k, v in item.items()
-            }
-            for item in data_list
-        ]
+        json_data = response.json()
+
+        # Handle case where response is not a list (e.g., error message or null)
+        if not isinstance(json_data, list):
+            self.log.warning(
+                f"RPC call '{name}' returned unexpected data type",
+                data_type=type(json_data).__name__,
+                data=json_data,
+            )
+            return []
+
+        return self._convert_floats_to_decimal(json_data)
+
+    def _convert_floats_to_decimal(self, data_list: list):
+        result = []
+        for item in data_list:
+            if isinstance(item, dict):
+                result.append({
+                    k: (Decimal(str(v)) if isinstance(v, float) else v)
+                    for k, v in item.items()
+                })
+            else:
+                # If item is not a dict, include it as-is (shouldn't happen normally)
+                result.append(item)
+        return result
 
     def _check_environment(self):
         if not supabase_url or not supabase_key:
