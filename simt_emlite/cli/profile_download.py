@@ -31,6 +31,7 @@ from rich.console import Console
 
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
+from simt_emlite.profile_logs.download_cache import DownloadCache
 from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
 from simt_emlite.profile_logs.replicas.replica_missing_file_utils import (
@@ -170,11 +171,20 @@ def download_single_day(
                 )
                 return True, None
 
-            log_1_records: Dict[datetime.datetime, EmopProfileLog1Record] = (
-                downloader.download_profile_log_1_day(progress_callback=update_progress)
+            assert downloader.serial is not None
+            cache = DownloadCache(output_dir, downloader.serial, date)
+            if cache.has_cached_data:
+                log_progress(
+                    f"Resuming from cached progress for [bold]{downloader.serial}[/bold] on [cyan]{date}[/cyan]",
+                    meter=downloader.serial,
+                    date=str(date),
+                )
+
+            log_1_records = downloader.download_profile_log_1_day(
+                progress_callback=update_progress, cache=cache
             )
-            log_2_records: Dict[datetime.datetime, EmopProfileLog2Record] = (
-                downloader.download_profile_log_2_day(progress_callback=update_progress)
+            log_2_records = downloader.download_profile_log_2_day(
+                progress_callback=update_progress, cache=cache
             )
 
             # Create start and end datetime for the day (timezone-aware)
@@ -184,8 +194,6 @@ def download_single_day(
             end_time = datetime.datetime.combine(date, datetime.time.max).replace(
                 tzinfo=datetime.timezone.utc
             )
-
-            assert downloader.serial is not None
 
             # Create SMIP readings from the downloaded profile logs
             readings_a, readings_b = create_smip_readings(
@@ -227,6 +235,9 @@ def download_single_day(
                     date=str(downloader.date),
                     meter=downloader.serial,
                 )
+
+            # Download succeeded - clean up cache
+            cache.delete()
 
             identifier = (
                 downloader.name

@@ -14,12 +14,17 @@ import datetime
 import json
 import logging
 from pathlib import Path
-from typing import Callable, Dict, Optional, cast
+from typing import Any, Callable, Dict, Optional, Union, cast
 
 from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
 from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 
 from simt_emlite.mediator.api_core import EmliteMediatorAPI
+from simt_emlite.profile_logs.download_cache import (
+    CachedLog1Record,
+    CachedLog2Record,
+    DownloadCache,
+)
 
 # mypy: disable-error-code="import-untyped"
 from simt_emlite.smip.smip_file_finder import SMIPFileFinder
@@ -182,11 +187,16 @@ class ProfileDownloader:
     def download_profile_log_1_day(
         self,
         progress_callback: Optional[Callable[[str], None]] = None,
-    ) -> Dict[datetime.datetime, EmopProfileLog1Record]:
+        cache: Optional[DownloadCache] = None,
+    ) -> Dict[datetime.datetime, Any]:
         """Download profile log 1 data for a single day in chunks
 
+        Args:
+            progress_callback: Optional callback for progress updates
+            cache: Optional DownloadCache for resumable downloads
+
         Returns:
-            Dict of timestamp to profile log 1 record
+            Dict of timestamp to profile log 1 record (EmopProfileLog1Record or CachedLog1Record)
         """
 
         # Convert date to datetime for the day (ensure timezone-aware)
@@ -206,10 +216,23 @@ class ProfileDownloader:
         # Download in 2-hour chunks (4 x 30-minute intervals per chunk)
         current_time = start_datetime
         chunk_size = datetime.timedelta(hours=2)
-        profile_records: Dict[datetime.datetime, EmopProfileLog1Record] = {}
+        profile_records: Dict[datetime.datetime, Any] = {}
 
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
+            chunk_key = current_time.isoformat()
+
+            # Check cache for this chunk
+            if cache and cache.has_log1_chunk(chunk_key):
+                msg = f"profile_log_1 chunk {current_time.strftime('%H:%M')} loaded from cache"
+                logger.info(msg, name=self.name, serial=self.serial)
+                if progress_callback:
+                    progress_callback(msg)
+                for ts, record in cache.get_log1_records().items():
+                    if current_time <= ts < chunk_end:
+                        profile_records[ts] = record
+                current_time = chunk_end
+                continue
 
             msg = f"Reading profile_log_1 chunk: {current_time.strftime('%H:%M')} to {chunk_end.strftime('%H:%M')}"
             logger.info(
@@ -245,6 +268,17 @@ class ProfileDownloader:
                 for record in response.records:
                     profile_records[record.timestamp_datetime] = record
 
+                # Save chunk to cache
+                if cache:
+                    chunk_records = {
+                        r.timestamp_datetime.isoformat(): {
+                            "import_a": r.import_a,
+                            "import_b": r.import_b,
+                        }
+                        for r in response.records
+                    }
+                    cache.save_log1_chunk(chunk_key, chunk_records)
+
             # Move to next chunk
             current_time = chunk_end
 
@@ -255,15 +289,20 @@ class ProfileDownloader:
     def download_profile_log_2_day(
         self,
         progress_callback: Optional[Callable[[str], None]] = None,
-    ) -> Dict[datetime.datetime, EmopProfileLog2Record]:
+        cache: Optional[DownloadCache] = None,
+    ) -> Dict[datetime.datetime, Any]:
         """Download profile log 2 data for a single day in chunks.
 
         Profile log 2 returns different numbers of records depending on meter type:
         - Twin element meters (hardware C1.w): 2 records per call (2 x 30 min = 1 hour)
         - Single element meters: 3 records per call (3 x 30 min = 1.5 hours)
 
+        Args:
+            progress_callback: Optional callback for progress updates
+            cache: Optional DownloadCache for resumable downloads
+
         Returns:
-            Dict of timestamp to profile log 2 record
+            Dict of timestamp to profile log 2 record (EmopProfileLog2Record or CachedLog2Record)
         """
 
         # Convert date to datetime for the day (ensure timezone-aware)
@@ -290,10 +329,23 @@ class ProfileDownloader:
         )
 
         current_time = start_datetime
-        profile_records: Dict[datetime.datetime, EmopProfileLog2Record] = {}
+        profile_records: Dict[datetime.datetime, Any] = {}
 
         while current_time < end_datetime:
             chunk_end = min(current_time + chunk_size, end_datetime)
+            chunk_key = current_time.isoformat()
+
+            # Check cache for this chunk
+            if cache and cache.has_log2_chunk(chunk_key):
+                msg = f"profile_log_2 chunk {current_time.strftime('%H:%M')} loaded from cache"
+                logger.info(msg)
+                if progress_callback:
+                    progress_callback(msg)
+                for ts, record in cache.get_log2_records().items():
+                    if current_time <= ts < chunk_end:
+                        profile_records[ts] = record
+                current_time = chunk_end
+                continue
 
             msg = f"Reading profile_log_2 chunk: {current_time.strftime('%H:%M')} to {chunk_end.strftime('%H:%M')}"
             logger.info(msg)
@@ -321,6 +373,18 @@ class ProfileDownloader:
 
                 for record in response.records:
                     profile_records[record.timestamp_datetime] = record
+
+                # Save chunk to cache
+                if cache:
+                    chunk_records = {}
+                    for r in response.records:
+                        record_data: Dict[str, int] = {
+                            "active_export_a": r.active_export_a,
+                        }
+                        if self.is_twin_element:
+                            record_data["active_export_b"] = r.active_export_b
+                        chunk_records[r.timestamp_datetime.isoformat()] = record_data
+                    cache.save_log2_chunk(chunk_key, chunk_records)
 
             # Move to next chunk
             current_time = chunk_end
