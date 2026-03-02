@@ -11,7 +11,7 @@ EMOP_CONFIG_FILE = os.path.join(CONFIG_DIR, "emlite.env")
 def load_config() -> Dict[str, str | int | None]:
     if os.path.isfile(EMOP_CONFIG_FILE) is False:
         # If config file is missing, check if critical env vars are already set (e.g. inside Docker)
-        if os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY"):
+        if (os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_ANON_KEY")) or os.environ.get("MEDIATOR_SERVER"):
             pass
         else:
             print(
