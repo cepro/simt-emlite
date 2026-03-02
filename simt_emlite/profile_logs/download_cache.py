@@ -6,6 +6,8 @@ be resumed on the next run without re-downloading already-fetched chunks.
 
 import datetime
 import json
+import tempfile
+import getpass
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict
@@ -34,13 +36,26 @@ class CachedLog2Record:
 class DownloadCache:
     """Manages a per-serial per-date cache file for partial profile downloads.
 
-    Cache file is a hidden JSON file in the output directory:
-        .{serial}-{YYYYMMDD}.download_cache.json
+    Cache file is stored in the system temporary directory to avoid Syncthing churn.
     """
 
     def __init__(self, output_dir: str, serial: str, date: datetime.date) -> None:
-        filename = f".{serial}-{date.strftime('%Y%m%d')}.download_cache.json"
-        self.cache_path = Path(output_dir) / filename
+        """Initialize cache.
+
+        Args:
+            output_dir: Ignored (kept for compatibility)
+            serial: Meter serial number
+            date: Download date
+        """
+        filename = f"{serial}-{date.strftime('%Y%m%d')}.download_cache.json"
+
+        # Use system temp directory, per-user subfolder to avoid Syncthing churn
+        # and multi-user permission issues
+        tmp_base = Path(tempfile.gettempdir())
+        user_cache_dir = tmp_base / f"simt-emlite-cache-{getpass.getuser()}"
+        user_cache_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+
+        self.cache_path = user_cache_dir / filename
         self._data: Dict[str, Any] = self._load()
 
     def _load(self) -> Dict[str, Any]:
