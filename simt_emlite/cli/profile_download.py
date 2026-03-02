@@ -568,8 +568,8 @@ def main() -> None:
     # Logging arguments
     parser.add_argument(
         "--log-level",
-        help="Set logging level [debug, info, warning (default), warn, error, critical]",
-        default=logging.WARNING,
+        help="Set logging level [debug, info (default), warning, warn, error, critical]",
+        default=logging.INFO,
         required=False,
         type=valid_log_level,
     )
