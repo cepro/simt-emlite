@@ -51,6 +51,7 @@ class EmliteMediatorGrpcClient:
         )
 
         self.mediator_address = mediator_address or "0.0.0.0:50051"
+        self._cached_channel: grpc.Channel | None = None
 
         global logger
         self.log = logger.bind(mediator_address=self.mediator_address)
@@ -60,70 +61,99 @@ class EmliteMediatorGrpcClient:
             have_certs=self.have_certs,
         )
 
+    @property
+    def _channel(self) -> grpc.Channel:
+        if self._cached_channel is None:
+            if self.mediator_address is None:
+                raise ValueError("mediator_address cannot be none")
+            if self.have_certs:
+                credentials = self._channel_credentials()
+                self._cached_channel = grpc.secure_channel(
+                    self.mediator_address,
+                    credentials,
+                    options=(("grpc.ssl_target_name_override", "cepro-mediators"),),
+                )
+            else:
+                self._cached_channel = grpc.insecure_channel(self.mediator_address)
+        return self._cached_channel
+
+    def close(self) -> None:
+        if self._cached_channel is not None:
+            self._cached_channel.close()
+            self._cached_channel = None
+
+    def __enter__(self) -> "EmliteMediatorGrpcClient":
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()
+
+    def __del__(self) -> None:
+        self.close()
+
     def read_element(self, serial: str, object_id: ObjectIdEnum | int) -> Any:
         obis = self._object_id_int(object_id)
         obis_name = (
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
         )
-        with self._get_channel() as channel:
-            stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
-            try:
-                self.log.debug(
-                    f"send request - reading element [{obis_name}]", meter_id=serial
+        stub = EmliteMediatorServiceStub(self._channel)  # type: ignore[no-untyped-call]
+        try:
+            self.log.debug(
+                f"send request - reading element [{obis_name}]", meter_id=serial
+            )
+            rsp_obj = stub.readElement(
+                ReadElementRequest(serial=serial, objectId=obis),
+                timeout=TIMEOUT_SECONDS,
+            )
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+                self.log.warn(
+                    "rpc timeout (deadline_exceeded)",
+                    object_id=obis_name,
+                    meter_id=serial,
                 )
-                rsp_obj = stub.readElement(
-                    ReadElementRequest(serial=serial, objectId=obis),
-                    timeout=TIMEOUT_SECONDS,
-                )
-            except grpc.RpcError as e:
-                if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+            elif e.code() == grpc.StatusCode.INTERNAL:
+                details = str(e.details() or "")
+                if "EOFError" in details:
                     self.log.warn(
-                        "rpc timeout (deadline_exceeded)",
+                        "EOFError from meter",
                         object_id=obis_name,
                         meter_id=serial,
                     )
-                elif e.code() == grpc.StatusCode.INTERNAL:
-                    details = str(e.details() or "")
-                    if "EOFError" in details:
-                        self.log.warn(
-                            "EOFError from meter",
-                            object_id=obis_name,
-                            meter_id=serial,
-                        )
-                        raise EmliteEOFError(f"object_id={obis_name}, meter={serial}")
-                    elif "failed to connect after retries" in details:
-                        self.log.warn(e.details(), meter_id=serial)
-                        raise EmliteConnectionFailure(
-                            f"object_id={obis_name}, meter={serial}"
-                        )
-                    else:
-                        raise e
-                elif e.code() == grpc.StatusCode.UNAVAILABLE:
-                    # we get a lot of these for instantaneous_voltage for reasons unknown
-                    # they can be tolerated as we still get a number of successful calls as well
-                    log_level: str = (
-                        "warning"
-                        if object_id == ObjectIdEnum.instantaneous_voltage
-                        or object_id
-                        == ObjectIdEnum.three_phase_instantaneous_voltage_l1
-                        else "error"
-                    )
-                    getattr(self.log, log_level)(
-                        "readElement failed",
-                        details=e.details(),
-                        code=e.code(),
-                        object_id=obis_name,
-                        meter_id=serial,
+                    raise EmliteEOFError(f"object_id={obis_name}, meter={serial}")
+                elif "failed to connect after retries" in details:
+                    self.log.warn(e.details(), meter_id=serial)
+                    raise EmliteConnectionFailure(
+                        f"object_id={obis_name}, meter={serial}"
                     )
                 else:
-                    self.log.error(
-                        "readElement failed",
-                        details=e.details(),
-                        code=e.code(),
-                        object_id=obis_name,
-                        meter_id=serial,
-                    )
-                raise e
+                    raise e
+            elif e.code() == grpc.StatusCode.UNAVAILABLE:
+                # we get a lot of these for instantaneous_voltage for reasons unknown
+                # they can be tolerated as we still get a number of successful calls as well
+                log_level: str = (
+                    "warning"
+                    if object_id == ObjectIdEnum.instantaneous_voltage
+                    or object_id
+                    == ObjectIdEnum.three_phase_instantaneous_voltage_l1
+                    else "error"
+                )
+                getattr(self.log, log_level)(
+                    "readElement failed",
+                    details=e.details(),
+                    code=e.code(),
+                    object_id=obis_name,
+                    meter_id=serial,
+                )
+            else:
+                self.log.error(
+                    "readElement failed",
+                    details=e.details(),
+                    code=e.code(),
+                    object_id=obis_name,
+                    meter_id=serial,
+                )
+            raise e
 
         payload_bytes = rsp_obj.response
         self.log.debug(
@@ -145,74 +175,72 @@ class EmliteMediatorGrpcClient:
         obis_name = (
             object_id.name if isinstance(object_id, ObjectIdEnum) else hex(object_id)
         )
-        with self._get_channel() as channel:
-            stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
-            try:
-                self.log.debug(
-                    f"send request - write element [{obis_name}]", meter_id=serial
-                )
-                stub.writeElement(
-                    WriteElementRequest(serial=serial, objectId=obis, payload=payload),
-                    timeout=TIMEOUT_SECONDS,
-                )
-            except grpc.RpcError as e:
-                if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
-                    self.log.warn(
-                        "rpc timeout (deadline_exceeded)",
-                        object_id=obis_name,
-                        meter_id=serial,
-                    )
-                elif e.code() == grpc.StatusCode.INTERNAL:
-                    details = str(e.details() or "")
-                    if "EOFError" in details:
-                        self.log.warn(
-                            "EOFError from meter",
-                            object_id=obis_name,
-                            meter_id=serial,
-                        )
-                        raise EmliteEOFError(
-                            "object_id=" + obis_name + ", meter=" + serial
-                        )
-                    elif "failed to connect after retries" in details:
-                        self.log.warn(e.details(), meter_id=serial)
-                        raise EmliteConnectionFailure(
-                            "object_id=" + obis_name + ", meter=" + serial
-                        )
-                    else:
-                        raise e
-                else:
-                    self.log.error(
-                        "writeElement failed",
-                        details=e.details(),
-                        code=e.code(),
-                        object_id=obis_name,
-                        meter_id=serial,
-                    )
-                raise e
-
-    def send_message(self, serial: str, message: bytes) -> bytes:
-        with self._get_channel() as channel:
-            stub = EmliteMediatorServiceStub(channel)  # type: ignore[no-untyped-call]
-            try:
-                self.log.debug("send request - message", meter_id=serial)
-                rsp_obj = stub.sendRawMessage(
-                    SendRawMessageRequest(serial=serial, dataField=message),
-                    timeout=TIMEOUT_SECONDS,
-                )
-            except grpc.RpcError as e:
-                if (
-                    e.code() == grpc.StatusCode.INTERNAL
-                    and "failed to connect after retries" in (e.details() or "")
-                ):
-                    self.log.warn(e.details(), meter_id=serial)
-                    raise EmliteConnectionFailure(f"meter={serial}")
-                self.log.error(
-                    "sendRawMessage",
-                    details=e.details(),
-                    code=e.code(),
+        stub = EmliteMediatorServiceStub(self._channel)  # type: ignore[no-untyped-call]
+        try:
+            self.log.debug(
+                f"send request - write element [{obis_name}]", meter_id=serial
+            )
+            stub.writeElement(
+                WriteElementRequest(serial=serial, objectId=obis, payload=payload),
+                timeout=TIMEOUT_SECONDS,
+            )
+        except grpc.RpcError as e:
+            if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+                self.log.warn(
+                    "rpc timeout (deadline_exceeded)",
+                    object_id=obis_name,
                     meter_id=serial,
                 )
-                raise e
+            elif e.code() == grpc.StatusCode.INTERNAL:
+                details = str(e.details() or "")
+                if "EOFError" in details:
+                    self.log.warn(
+                        "EOFError from meter",
+                        object_id=obis_name,
+                        meter_id=serial,
+                    )
+                    raise EmliteEOFError(
+                        "object_id=" + obis_name + ", meter=" + serial
+                    )
+                elif "failed to connect after retries" in details:
+                    self.log.warn(e.details(), meter_id=serial)
+                    raise EmliteConnectionFailure(
+                        "object_id=" + obis_name + ", meter=" + serial
+                    )
+                else:
+                    raise e
+            else:
+                self.log.error(
+                    "writeElement failed",
+                    details=e.details(),
+                    code=e.code(),
+                    object_id=obis_name,
+                    meter_id=serial,
+                )
+            raise e
+
+    def send_message(self, serial: str, message: bytes) -> bytes:
+        stub = EmliteMediatorServiceStub(self._channel)  # type: ignore[no-untyped-call]
+        try:
+            self.log.debug("send request - message", meter_id=serial)
+            rsp_obj = stub.sendRawMessage(
+                SendRawMessageRequest(serial=serial, dataField=message),
+                timeout=TIMEOUT_SECONDS,
+            )
+        except grpc.RpcError as e:
+            if (
+                e.code() == grpc.StatusCode.INTERNAL
+                and "failed to connect after retries" in (e.details() or "")
+            ):
+                self.log.warn(e.details(), meter_id=serial)
+                raise EmliteConnectionFailure(f"meter={serial}")
+            self.log.error(
+                "sendRawMessage",
+                details=e.details(),
+                code=e.code(),
+                meter_id=serial,
+            )
+            raise e
 
         payload_bytes: bytes = rsp_obj.response
         self.log.debug(
@@ -223,52 +251,33 @@ class EmliteMediatorGrpcClient:
         return payload_bytes
 
     def get_info(self, serial: str) -> str:
-        with self._get_channel() as channel:
-            stub = InfoServiceStub(channel)
-            try:
-                self.log.debug("send request - get_info", meter_id=serial)
-                rsp_obj = stub.GetInfo(
-                    GetInfoRequest(serial=serial), timeout=TIMEOUT_SECONDS
-                )
-                return rsp_obj.json_data
-            except grpc.RpcError as e:
-                # Tolerate NOT_FOUND by returning empty string or raising specific exception?
-                # User didn't specify, but `info_service.py` logs and aborts with NOT_FOUND.
-                # raising e allows caller to handle.
-                self.log.error(
-                    "GetInfo failed",
-                    details=e.details(),
-                    code=e.code(),
-                    meter_id=serial,
-                )
-                raise e
+        stub = InfoServiceStub(self._channel)
+        try:
+            self.log.debug("send request - get_info", meter_id=serial)
+            rsp_obj = stub.GetInfo(
+                GetInfoRequest(serial=serial), timeout=TIMEOUT_SECONDS
+            )
+            return rsp_obj.json_data
+        except grpc.RpcError as e:
+            self.log.error(
+                "GetInfo failed",
+                details=e.details(),
+                code=e.code(),
+                meter_id=serial,
+            )
+            raise e
 
     def get_meters(self, esco: str | None = None) -> str:
-        with self._get_channel() as channel:
-            stub = InfoServiceStub(channel)
-            try:
-                self.log.debug("send request - get_meters", esco=esco)
-                rsp_obj = stub.GetMeters(
-                    GetMetersRequest(esco=esco), timeout=TIMEOUT_SECONDS
-                )
-                return rsp_obj.json_meters
-            except grpc.RpcError as e:
-                self.log.error("GetMeters failed", details=e.details(), code=e.code())
-                raise e
-
-    def _get_channel(self) -> grpc.Channel:
-        if self.mediator_address is None:
-            raise ValueError("mediator_address cannot be none")
-
-        if self.have_certs:
-            credentials = self._channel_credentials()
-            return grpc.secure_channel(
-                self.mediator_address,
-                credentials,
-                options=(("grpc.ssl_target_name_override", "cepro-mediators"),),
+        stub = InfoServiceStub(self._channel)
+        try:
+            self.log.debug("send request - get_meters", esco=esco)
+            rsp_obj = stub.GetMeters(
+                GetMetersRequest(esco=esco), timeout=TIMEOUT_SECONDS
             )
-        else:
-            return grpc.insecure_channel(self.mediator_address)
+            return rsp_obj.json_meters
+        except grpc.RpcError as e:
+            self.log.error("GetMeters failed", details=e.details(), code=e.code())
+            raise e
 
     def _channel_credentials(self) -> grpc.ChannelCredentials:
         if not self.have_certs:
