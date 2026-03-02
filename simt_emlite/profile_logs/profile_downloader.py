@@ -14,15 +14,11 @@ import datetime
 import json
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union, cast
+from typing import Any, Callable, Dict, Optional, cast
 
-from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
-from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 
 from simt_emlite.mediator.api_core import EmliteMediatorAPI
 from simt_emlite.profile_logs.download_cache import (
-    CachedLog1Record,
-    CachedLog2Record,
     DownloadCache,
 )
 

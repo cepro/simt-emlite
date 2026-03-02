@@ -25,8 +25,6 @@ import traceback
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from emop_frame_protocol.emop_profile_log_1_record import EmopProfileLog1Record
-from emop_frame_protocol.emop_profile_log_2_record import EmopProfileLog2Record
 from rich.console import Console
 
 # mypy: disable-error-code="import-untyped"
