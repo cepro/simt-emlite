@@ -44,13 +44,13 @@ Downloads profile log 1 data for a single day from a specified meter using Supab
 
 Usage:
 
-```
+```sh
 python -m simt_emlite.cli.profile_download --serial EML1234567890 --date 2024-08-21
 ```
 
 Example with config file:
 
-```
+```sh
 python -m simt_emlite.cli.profile_download --config config.daily-hmce.properties
 ```
 
@@ -130,7 +130,7 @@ cibuildwheel --platform linux
 
 ## Tests
 
-```
+```sh
 poetry run test
 ```
 
@@ -193,7 +193,7 @@ The gRPC server uses the emlite-api to make calls to the meter.
 
 ### Code generation
 
-```
+```sh
 cd simt_emlite/mediator/grpc
 python grpc_codegen.py
 ```
