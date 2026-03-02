@@ -23,21 +23,11 @@ import os
 import sys
 import traceback
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-from rich.console import Console
+if TYPE_CHECKING:
+    from simt_emlite.profile_logs.downloader_config import DownloaderConfig
 
-# mypy: disable-error-code="import-untyped"
-from simt_emlite.mediator.mediator_client_exception import MediatorClientException
-from simt_emlite.profile_logs.download_cache import DownloadCache
-from simt_emlite.profile_logs.downloader_config import DownloaderConfig
-from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
-from simt_emlite.profile_logs.replicas.replica_missing_file_utils import (
-    check_missing_files_for_folder,
-)
-from simt_emlite.smip.smip_csv import SMIPCSV
-from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
-from simt_emlite.smip.smip_reading_factory import create_smip_readings
 from simt_emlite.util.logging import get_logger, suppress_noisy_loggers
 
 logger = get_logger(__name__, __file__)
@@ -45,13 +35,22 @@ logger = get_logger(__name__, __file__)
 # Configure logging early
 logging.basicConfig(level=logging.WARNING)
 
-console = Console(stderr=True)
+_console = None
+
+def get_console():
+    global _console
+    if _console is None:
+        from rich.console import Console
+        _console = Console(stderr=True)
+    return _console
 
 
 def log_progress(msg: str, meter: Optional[str] = None, level: str = "info", **kwargs):
     """Log progress in a way that respects TTY (rich) vs non-TTY (structured logger)."""
     if sys.stdout.isatty():
-        console.print(msg)
+        res = get_console()
+        if res:
+            res.print(msg)
     else:
         # Strip rich tags from msg for the logger
         from rich.text import Text
@@ -78,7 +77,7 @@ Examples:
  """
 
 
-def valid_log_level(level_str: str | None) -> Any:
+def valid_log_level(level_str: Optional[str]) -> Any:
     if level_str is None:
         raise argparse.ArgumentTypeError("log level cannot be None")
     try:
@@ -100,30 +99,25 @@ def valid_date(date_str: str) -> datetime.date:
 def download_single_day(
     date: datetime.date,
     output_dir: str,
-    serial: str | None = None,
-    name: str | None = None,
+    serial: Optional[str] = None,
+    name: Optional[str] = None,
     status: Any = None,
     logging_level: int = logging.WARNING,
     use_spinner: bool = True,
 ) -> Tuple[bool, Optional[datetime.date]]:
-    """Download profile logs for a single day and write to CSV.
-
-    Args:
-        date: Date to download data for
-        output_dir: Output directory for CSV files
-        serial: Meter serial number (optional - one of serial or name)
-        name: Meter name [meter_registry.name] (optional - one of serial or name)
-        status: Rich status object for updating the spinner message
-
-    Return:
-        success: download was successful
-    """
+    """Download profile logs for a single day and write to CSV."""
     from contextlib import nullcontext
+    from simt_emlite.profile_logs.profile_downloader import ProfileDownloader
+    from simt_emlite.smip.smip_file_finder_result import SMIPFileFinderResult
+    from simt_emlite.mediator.mediator_client_exception import MediatorClientException
+    from simt_emlite.profile_logs.download_cache import DownloadCache
+    from simt_emlite.smip.smip_reading_factory import create_smip_readings
+    from simt_emlite.smip.smip_csv import SMIPCSV
 
     status_context: Any
     if use_spinner:
         if status is None:
-            status_context = console.status(
+            status_context = get_console().status(
                 f"[bold green]Downloading {serial or name} for {date}...",
                 spinner="dots",
             )
@@ -252,7 +246,7 @@ def download_single_day(
 
         except NotImplementedError:
             # Three phase not supported - error already logged
-            console.print("Caught NotImplementedError - three phase not supported")
+            get_console().print("Caught NotImplementedError - three phase not supported")
 
         except MediatorClientException as e:
             # Use local variables if downloader not yet initialized
@@ -290,7 +284,7 @@ def download_single_day(
 
 
 def gather_missing_dates_for_group(
-    config: DownloaderConfig, group_name: str
+    config: "DownloaderConfig", group_name: str
 ) -> Tuple[str, List[datetime.date]]:
     """Check for missing files for a single group.
 
@@ -301,6 +295,9 @@ def gather_missing_dates_for_group(
     Returns:
         Tuple of (group_name, list of missing dates)
     """
+    from simt_emlite.profile_logs.replicas.replica_missing_file_utils import (
+        check_missing_files_for_folder,
+    )
     groups = config.get_groups()
     group = groups[group_name]
 
@@ -366,6 +363,7 @@ def print_missing_dates_summary(missing_dates_by_group: Dict[str, List[datetime.
                 dates_str = ", ".join(str(d) for d in dates)
             table.add_row(group, str(count), dates_str)
 
+    console = get_console()
     console.print(table)
     console.print(
         f"[bold]Total missing files across all groups: {total_missing}[/bold]"
@@ -373,7 +371,7 @@ def print_missing_dates_summary(missing_dates_by_group: Dict[str, List[datetime.
 
 
 def process_group(
-    config: DownloaderConfig,
+    config: "DownloaderConfig",
     group_name: str,
     dates_to_process: List[datetime.date],
     logging_level: int = logging.WARNING,
@@ -452,26 +450,19 @@ def process_group(
 
 
 def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> None:
-    """Run the downloader in config mode, processing all groups from the config file.
-
-    1. Gather missing dates for all groups in parallel.
-    2. Report missing dates.
-    3. Process missing dates in parallel.
-
-    Args:
-        config_file: Path to the configuration file (e.g., config.downloader.properties)
-    """
+    """Run the downloader in config mode, processing all groups from the config file."""
+    from simt_emlite.profile_logs.downloader_config import DownloaderConfig
     config = DownloaderConfig.get_instance(config_file)
 
-    console.print(f"rootfolder={config.get_root_folder()}")
-    console.print(f"sleepseconds={config.get_sleep_seconds()}")
-    console.print(f"testmode={config.get_test_mode()}")
-    console.print(f"esco={config.get_esco()}")
+    get_console().print(f"rootfolder={config.get_root_folder()}")
+    get_console().print(f"sleepseconds={config.get_sleep_seconds()}")
+    get_console().print(f"testmode={config.get_test_mode()}")
+    get_console().print(f"esco={config.get_esco()}")
 
     # Get groups
     groups = config.get_groups()
     group_names = list(groups.keys())
-    console.print(f"Groups: {group_names}")
+    get_console().print(f"Groups: {group_names}")
 
     # Step 1: Gather missing dates in parallel
     log_progress("[bold yellow]Checking for missing files...[/bold yellow]")
@@ -507,7 +498,7 @@ def run_config_mode(config_file: str, logging_level: int = logging.WARNING) -> N
         print_missing_dates_json(missing_dates_by_group)
 
     if not missing_dates_by_group:
-        console.print("[green]No missing files found. All up to date.[/green]")
+        get_console().print("[green]No missing files found. All up to date.[/green]")
         return
 
     # Step 3: Process groups in parallel
@@ -614,18 +605,18 @@ def main() -> None:
                 logging_level=log_level,
             )
         else:
-            console.print(USAGE_EXAMPLES)
+            get_console().print(USAGE_EXAMPLES)
             parser.error("Either --config or both --serial and --date are required")
 
-        console.print("Profile download completed successfully")
+        get_console().print("Profile download completed successfully")
 
     except KeyboardInterrupt:
-        console.print(
+        get_console().print(
             "\n[yellow]KeyboardInterrupt: Operation cancelled by user.[/yellow]"
         )
         sys.exit(1)
     except Exception as e:
-        console.print(
+        get_console().print(
             f"Profile download failed: {e}, exception [{traceback.format_exception(e)}]"
         )
         sys.exit(1)

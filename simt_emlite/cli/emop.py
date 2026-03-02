@@ -8,17 +8,16 @@ import os
 import sys
 import traceback
 from decimal import Decimal
-from typing import Any, Dict, List, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
+
+if TYPE_CHECKING:
+    from rich.text import Text
+    from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
+    from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage  # type: ignore[import-untyped]
-from rich import box
-from rich.console import Console
-from rich.table import Table
-from rich.text import Text
 
-from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
-from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.mediator.validation import (
     cli_valid_decimal,
@@ -29,14 +28,21 @@ from simt_emlite.mediator.validation import (
 from simt_emlite.util.config import load_config, set_config
 from simt_emlite.util.logging import suppress_noisy_loggers
 
+_console = None
+
+def get_console():
+    global _console
+    if _console is None:
+        from rich.console import Console
+        _console = Console(stderr=True)
+    return _console
+
 # Configure logging early to avoid being overridden by imports
 logging.basicConfig(level=logging.WARNING)
 
-console = Console(stderr=True)
-
 config = load_config()
 
-MEDIATOR_SERVER: str | None = cast(str | None, config["mediator_server"])
+MEDIATOR_SERVER: Optional[str] = cast(Optional[str], config["mediator_server"])
 
 SIMPLE_READ_COMMANDS = {
     "backlight",
@@ -79,7 +85,8 @@ def rich_status_circle(color: str) -> str:
     return f"[{color}]●[/{color}]"
 
 
-def rich_signal_circle(csq: int | None) -> Text:
+def rich_signal_circle(csq: Optional[int]) -> "Text":
+    from rich.text import Text
     if csq is None or csq < 1:
         color = "rgb(255,0,0)"  # Red
     elif csq > 22:
@@ -94,13 +101,19 @@ def rich_signal_circle(csq: int | None) -> Text:
         color = "rgb(255,128,0)"  # Orange
     return Text("●", style=color)
 
+if TYPE_CHECKING:
+    class _Base(EmlitePrepayAPI, EmliteMeterManagementAPI):
+        pass
+else:
+    _Base = object  # type: ignore
 
-class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
+
+class EMOPCLI(_Base):
     def __init__(
         self,
-        serial: str | None = None,
-        emnify_id: str | None = None,
-        logging_level: str | int = logging.INFO,
+        serial: Optional[str] = None,
+        emnify_id: Optional[str] = None,
+        logging_level: Union[str, int] = logging.INFO,
     ) -> None:
         self.serial = serial
         self.supabase = None
@@ -110,16 +123,22 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
             #       they will be in the registry but with a NULL serial
             if emnify_id is not None:
                 err_msg = "emnify_id lookup is not yet supported."
-                console.print(err_msg)
+                get_console().print(err_msg)
                 raise Exception(err_msg)
 
             # Initialize client (without meter_id, but with resolved address)
-            super().__init__(
+            from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
+            from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
+
+            # Use dynamic base classes since we are in __init__
+            self.__class__.__bases__ = (EmlitePrepayAPI, EmliteMeterManagementAPI)
+
+            super(EMOPCLI, self).__init__(
                 mediator_address=MEDIATOR_SERVER,
                 logging_level=logging_level,
             )
         except Exception as e:
-            console.print(
+            get_console().print(
                 f"Failure: [{e}], exception [{traceback.format_exception(e)}]"
             )
             # Re-raise unless it's just a missing serial for commands that don't need it?
@@ -154,7 +173,7 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
         result = self.meter_clock_drift(serial)
         print(json.dumps(result, indent=2))
 
-    def list(self, json_output: bool = False, esco: str | None = None) -> None:
+    def list(self, json_output: bool = False, esco: Optional[str] = None) -> None:
         """List all meters with formatted table output."""
         # Call inherited meter_list() method
         meters_json = self.meter_list(esco=esco)
@@ -164,7 +183,7 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
         try:
             meters = json.loads(meters_json)
         except Exception as e:
-            console.print(f"Failed to parse meters data: {e}")
+            get_console().print(f"Failed to parse meters data: {e}")
             raise
 
         # Sort meters by name
@@ -176,6 +195,8 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
             return
 
         # Rich table output for human readability
+        from rich import box
+        from rich.table import Table
         table = Table(
             "esco",
             "serial",
@@ -199,7 +220,7 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
             ]
             table.add_row(*row_values)
 
-        console.print(table)
+        get_console().print(table)
 
     # =================================
     #   Tool related
@@ -221,7 +242,7 @@ class EMOPCLI(EmlitePrepayAPI, EmliteMeterManagementAPI):
             sys.exit(1)
 
 
-def valid_log_level(level_str: str | None) -> Any:
+def valid_log_level(level_str: Optional[str]) -> Any:
     if level_str is None:
         raise argparse.ArgumentTypeError("log level cannot be None")
     try:
@@ -230,7 +251,7 @@ def valid_log_level(level_str: str | None) -> Any:
         raise argparse.ArgumentTypeError(f"Invalid log level: {level_str}")
 
 
-def valid_iso_datetime(timestamp: str | None) -> datetime.datetime:
+def valid_iso_datetime(timestamp: Optional[str]) -> datetime.datetime:
     if timestamp is None:
         raise argparse.ArgumentTypeError("event log idx cannot be None")
     try:
@@ -656,7 +677,7 @@ emop -s EML1411222333 tariffs_future_write \\
     return parser
 
 
-def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> None:
+def run_command(serial: Optional[str], command: str, kwargs: Dict[str, Any]) -> None:
     log_level = kwargs.pop("log_level", None)
 
     verbose = kwargs.pop("verbose", False)
@@ -664,7 +685,7 @@ def run_command(serial: str | None, command: str, kwargs: Dict[str, Any]) -> Non
         log_level = logging.DEBUG
 
     try:
-        with console.status(f"[bold green]Running {command}...", spinner="dots"):
+        with get_console().status(f"[bold green]Running {command}...", spinner="dots"):
             cli = EMOPCLI(serial=serial, logging_level=log_level)
             method = getattr(cli, command)
 
@@ -711,7 +732,7 @@ def run_command_for_serials(
     serial_list: List[str], command: str, kwargs: Dict[str, Any]
 ) -> None:
     for serial in serial_list:
-        console.print(f"\nrunning '{command}' for meter {serial} ...\n")
+        get_console().print(f"\nrunning '{command}' for meter {serial} ...\n")
         run_command(serial, command, kwargs.copy())
 
 
@@ -795,7 +816,7 @@ def main() -> None:
             parser.print_help()
             exit(-1)
     except KeyboardInterrupt:
-        console.print(
+        get_console().print(
             "\n[yellow]KeyboardInterrupt: Operation cancelled by user.[/yellow]"
         )
         sys.exit(1)

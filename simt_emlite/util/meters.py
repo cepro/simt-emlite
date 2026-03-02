@@ -1,4 +1,6 @@
-from supabase import Client
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from supabase import Client
 
 from simt_emlite.util.supabase import as_first_item
 
@@ -19,12 +21,12 @@ def is_twin_element(hardware: str) -> bool:
 def is_three_phase(hardware: str) -> bool:
     return hardware in three_phase_hardware_known_strings
 
-def is_three_phase_lookup(supabase: Client, meter_id: str) -> bool:
+def is_three_phase_lookup(supabase: "Client", meter_id: str) -> bool:
     hardware = get_hardware(supabase, meter_id)
     return is_three_phase(hardware)
 
 
-def get_hardware(supabase: Client, meter_id: str) -> str:
+def get_hardware(supabase: "Client", meter_id: str) -> str:
     result = (
         supabase.table("meter_registry").select("hardware").eq("id", meter_id).execute()
     )

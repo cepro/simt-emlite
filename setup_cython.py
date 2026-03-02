@@ -67,6 +67,7 @@ def main():
                 "nonecheck": False,
             },
             build_dir="build",
+            show_colors=True,
         ),
         packages=find_packages(),
         cmdclass={"build_py": CustomBuildPy},
