@@ -231,7 +231,7 @@ class ProfileDownloader:
                 continue
 
             msg = f"Reading profile_log_1 chunk: {current_time.strftime('%H:%M')} to {chunk_end.strftime('%H:%M')}"
-            logger.info(
+            logger.debug(
                 msg,
                 name=self.name,
                 serial=self.serial,
@@ -244,7 +244,7 @@ class ProfileDownloader:
             assert self.serial is not None
             response = self.client.profile_log_1(self.serial, current_time)
             if response and response.records:
-                logger.info(
+                logger.debug(
                     f"Received {len(response.records)} records for {current_time}",
                     name=self.name,
                     serial=self.serial,
@@ -334,7 +334,7 @@ class ProfileDownloader:
             # Check cache for this chunk
             if cache and cache.has_log2_chunk(chunk_key):
                 msg = f"profile_log_2 chunk {current_time.strftime('%H:%M')} loaded from cache"
-                logger.info(msg)
+                logger.debug(msg)
                 if progress_callback:
                     progress_callback(msg)
                 for ts, record in cache.get_log2_records().items():
@@ -344,7 +344,7 @@ class ProfileDownloader:
                 continue
 
             msg = f"Reading profile_log_2 chunk: {current_time.strftime('%H:%M')} to {chunk_end.strftime('%H:%M')}"
-            logger.info(msg)
+            logger.debug(msg)
             if progress_callback:
                 progress_callback(msg)
 
@@ -352,7 +352,7 @@ class ProfileDownloader:
             assert self.serial is not None
             response = self.client.profile_log_2(self.serial, current_time, self.is_twin_element)
             if response and response.records:
-                logger.info(
+                logger.debug(
                     f"Received {len(response.records)} records for {current_time}"
                 )
                 # future time out of range - see unfuddle #382 - meters will return the next

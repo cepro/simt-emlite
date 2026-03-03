@@ -394,7 +394,7 @@ class EmliteMediatorAPI(object):
         log_decoded: EmopProfileLog1Response = emop_decode_profile_log_1_response(
             log_rsp
         )
-        self.log.info(f"profile_log_1 response [{str(log_decoded)}]", serial=serial)
+        self.log.debug(f"profile_log_1 response [{str(log_decoded)}]", serial=serial)
         return log_decoded
 
     def profile_log_2(
@@ -407,7 +407,7 @@ class EmliteMediatorAPI(object):
         log_decoded: EmopProfileLog2Response = emop_decode_profile_log_2_response(
             is_twin_element, log_rsp
         )
-        self.log.info(
+        self.log.debug(
             f"profile_log_2 response [{str(log_decoded)}]",
             is_twin_element=is_twin_element,
             serial=serial,
@@ -435,7 +435,7 @@ class EmliteMediatorAPI(object):
         data_field._write(_io)
         data_field_bytes = _io.to_byte_array()
 
-        self.log.info(f"profile log request [{data_field_bytes.hex()}]", serial=serial)
+        self.log.debug(f"profile log request [{data_field_bytes.hex()}]", serial=serial)
         response_bytes = self._send_message(serial, data_field_bytes)
 
         return response_bytes
