@@ -119,10 +119,11 @@ class TestGroupConfig(unittest.TestCase):
         )
 
         # when no default date is provided start date is set to N dates in the past
-        # and end date is set to today
+        # and end date is set to yesterday (to avoid downloading incomplete current day)
         today = datetime.now().date()
+        yesterday = today - timedelta(days=1)
         self.assertEqual(today - timedelta(days=30), gc.startdate)
-        self.assertEqual(today, gc.enddate)
+        self.assertEqual(yesterday, gc.enddate)
 
     def test_get_instance_from_properties_with_start_days(self):
         """Test creating GroupConfig with startdays property."""
@@ -138,10 +139,11 @@ class TestGroupConfig(unittest.TestCase):
         )
 
         # when no default date is provided start date is set to N dates in the past
-        # and end date is set to today
+        # and end date is set to yesterday (to avoid downloading incomplete current day)
         today = datetime.now().date()
+        yesterday = today - timedelta(days=1)
         self.assertEqual(today - timedelta(days=start_days), gc.startdate)
-        self.assertEqual(today, gc.enddate)
+        self.assertEqual(yesterday, gc.enddate)
 
 
 if __name__ == "__main__":

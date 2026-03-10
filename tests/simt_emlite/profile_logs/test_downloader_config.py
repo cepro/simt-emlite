@@ -128,8 +128,8 @@ class TestDownloaderConfig(unittest.TestCase):
         expected_start_date = datetime.now().date() - timedelta(days=start_days)
         self.assertEqual(expected_start_date, group.startdate)
 
-        # enddate defaults to today
-        self.assertEqual(datetime.now().date(), group.enddate)
+        # enddate defaults to yesterday (to avoid downloading incomplete current day)
+        self.assertEqual(datetime.now().date() - timedelta(days=1), group.enddate)
 
         #
         # Check properties set explicitly

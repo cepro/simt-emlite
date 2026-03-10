@@ -39,7 +39,7 @@ class GroupConfig:
             start_date = datetime.now().date() - timedelta(days=start_days)
 
         end_date_str = GroupConfig.get_property_or_default("enddate", group_name, props, default_props)
-        end_date = datetime.strptime(end_date_str, GroupConfig.DATE_FORMAT).date() if end_date_str else datetime.now().date()
+        end_date = datetime.strptime(end_date_str, GroupConfig.DATE_FORMAT).date() if end_date_str else (datetime.now().date() - timedelta(days=1))
 
         year_adjust_str = props.get(f"{prop_prefix}yearadjust")
         year_adjust = int(year_adjust_str) if year_adjust_str else None
