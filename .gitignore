@@ -12,3 +12,4 @@ dist
 *.cpython-*.so
 output/
 replicas-wlce/
+config.daily-*.properties

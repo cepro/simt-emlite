@@ -14,11 +14,13 @@ from .info_service import EmliteInfoServiceServicer
 from .mediator_service import EmliteMediatorServicer
 from .meter_registry import MeterRegistry
 from .util import decode_b64_secret_to_bytes
+from .auth import AuthorizationInterceptor
 
 logger = get_logger(__name__, __file__)
 
 LISTEN_PORT = os.environ.get("LISTEN_PORT", "50051")
 MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "30"))
+DISABLE_CERT_AUTH = os.environ.get("DISABLE_CERT_AUTH", "").lower() == "true"
 
 # Auth Certificates and Keys
 server_cert_b64 = os.environ.get("MEDIATOR_SERVER_CERT")
@@ -47,7 +49,14 @@ def serve():
         logger.error(f"Failed to initialize MeterRegistry: {e}")
         sys.exit(1)
 
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_WORKERS))
+    interceptors: list[grpc.ServerInterceptor] = []
+    if not DISABLE_CERT_AUTH:
+        interceptors.append(AuthorizationInterceptor())
+
+    server = grpc.server(
+        futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),
+        interceptors=interceptors,
+    )
 
     # Register Services
     add_EmliteMediatorServiceServicer_to_server(

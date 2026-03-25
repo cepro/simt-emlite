@@ -10,6 +10,7 @@ primary_region = 'lhr'
   dockerfile = '../docker/Dockerfile.server'
 
 [env]
+  DISABLE_CERT_AUTH = 'true'
   LISTEN_PORT = '50051'
   MAX_WORKERS = '90'
   SOCKS_HOST = 'emnify-gateway-mgf.internal'
