@@ -9,6 +9,8 @@ This module provides:
 import grpc
 from typing import Callable, Any, Mapping
 from dataclasses import dataclass
+from cryptography import x509
+from cryptography.x509.oid import NameOID
 
 from simt_emlite.util.logging import get_logger
 
@@ -75,10 +77,6 @@ def _extract_ou_from_auth_context(auth_context: Mapping[str, Any]) -> str | None
         if isinstance(pem_cert, bytes):
             pem_cert = pem_cert.decode("utf-8")
 
-        # Parse the certificate to extract OU
-        from cryptography import x509
-        from cryptography.x509.oid import NameOID
-
         cert = x509.load_pem_x509_certificate(pem_cert.encode("utf-8"))
         ou_attrs = cert.subject.get_attributes_for_oid(NameOID.ORGANIZATIONAL_UNIT_NAME)
         if ou_attrs:
@@ -86,7 +84,7 @@ def _extract_ou_from_auth_context(auth_context: Mapping[str, Any]) -> str | None
             return str(ou_value) if ou_value is not None else None
 
     except Exception as e:
-        logger.warning(f"Failed to extract OU from certificate: {e}")
+        logger.warning("failed to extract OU from certificate", error=str(e))
 
     return None
 
@@ -139,7 +137,7 @@ def check_permission(identity: ClientIdentity, method: str) -> bool:
     Priority:
     1. Check client-specific permissions first (overrides role)
     2. Fall back to role-based permissions
-    3. Default to 'internal' role for backwards compatibility
+    3. Deny if the client has no recognised role
 
     Args:
         identity: The authenticated client identity
@@ -156,13 +154,14 @@ def check_permission(identity: ClientIdentity, method: str) -> bool:
     if identity.role and identity.role in ROLE_PERMISSIONS:
         return method in ROLE_PERMISSIONS[identity.role]
 
-    # Default: internal role for backwards compatibility
-    # Existing certificates without OU will get full access
-    # To change to deny-by-default, return False here instead
-    logger.debug(
-        f"Client {identity.client_id} has no role, using default 'internal' permissions"
+    # No recognised role — deny by default
+    logger.warning(
+        "access denied: client has no recognised role",
+        client_id=identity.client_id,
+        role=identity.role,
+        method=method,
     )
-    return method in ROLE_PERMISSIONS.get("internal", set())
+    return False
 
 
 # ============================================================================
@@ -203,9 +202,25 @@ class AuthorizationInterceptor(grpc.ServerInterceptor):
                 request_deserializer=handler.request_deserializer,
                 response_serializer=handler.response_serializer,
             )
-        # For streaming methods, pass through without auth for now
-        # Add wrappers here if streaming auth is needed
-        return handler
+        # Streaming RPCs are not supported; deny them unconditionally.
+        logger.warning("streaming rpc not supported, method will be blocked", method=method)
+        return grpc.unary_unary_rpc_method_handler(
+            self._deny_unsupported(method),
+        )
+
+    def _deny_unsupported(
+        self, method: str
+    ) -> Callable[[Any, grpc.ServicerContext], Any]:
+        """Return a handler that always aborts with UNIMPLEMENTED for unsupported RPC types."""
+
+        def _handler(request: Any, context: grpc.ServicerContext) -> Any:
+            context.abort(
+                grpc.StatusCode.UNIMPLEMENTED,
+                "Streaming RPCs are not supported on this server.",
+            )
+            return None
+
+        return _handler
 
     def _authorize_unary(
         self, original_handler: Callable, method: str
@@ -217,33 +232,35 @@ class AuthorizationInterceptor(grpc.ServerInterceptor):
             identity = extract_client_identity(context)
 
             if identity is None:
-                # No certificate auth - running in insecure mode
-                # Allow the request but log a warning
-                logger.debug(f"No client identity for method {method} (insecure mode)")
-                # For strict mode, uncomment below to require certs:
-                # context.abort(
-                #     grpc.StatusCode.UNAUTHENTICATED,
-                #     "Client certificate required"
-                # )
-                # return None
-            else:
-                # Check authorization
-                if not check_permission(identity, method):
-                    logger.warning(
-                        f"PERMISSION_DENIED: client={identity.client_id} "
-                        f"role={identity.role} method={method}"
-                    )
-                    context.abort(
-                        grpc.StatusCode.PERMISSION_DENIED,
-                        f"Client '{identity.client_id}' is not authorized for {method}",
-                    )
-                    return None
-
-                # Log successful auth at debug level
-                logger.debug(
-                    f"Authorized: client={identity.client_id} "
-                    f"role={identity.role} method={method}"
+                # No certificate presented — deny the request.
+                logger.warning("unauthenticated request rejected", method=method)
+                context.abort(
+                    grpc.StatusCode.UNAUTHENTICATED,
+                    "Client certificate required.",
                 )
+                return None
+
+            # Check authorization
+            if not check_permission(identity, method):
+                logger.warning(
+                    "permission denied",
+                    client_id=identity.client_id,
+                    role=identity.role,
+                    method=method,
+                )
+                context.abort(
+                    grpc.StatusCode.PERMISSION_DENIED,
+                    "Permission denied.",
+                )
+                return None
+
+            # Log successful auth at debug level
+            logger.debug(
+                "authorized",
+                client_id=identity.client_id,
+                role=identity.role,
+                method=method,
+            )
 
             # Call the original handler
             return original_handler(request, context)

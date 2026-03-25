@@ -19,11 +19,12 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 
 # Default certificate storage location
@@ -33,6 +34,9 @@ CERTS_BASE_DIR = Path.home() / ".simt" / "certs"
 CA_VALIDITY_DAYS = 3650  # 10 years
 SERVER_VALIDITY_DAYS = 365  # 1 year
 CLIENT_VALIDITY_DAYS = 365  # 1 year
+
+# Allowed characters for client identifiers
+_CLIENT_ID_RE = __import__("re").compile(r"^[a-zA-Z0-9_-]+$")
 
 # Default subject attributes
 DEFAULT_COUNTRY = "GB"
@@ -179,8 +183,9 @@ def generate_ca(env: str, validity_days: int = CA_VALIDITY_DAYS) -> None:
     )
 
     now = datetime.datetime.now(datetime.UTC)
+    builder = x509.CertificateBuilder()
     cert = (
-        x509.CertificateBuilder()
+        builder
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(private_key.public_key())
@@ -205,6 +210,14 @@ def generate_ca(env: str, validity_days: int = CA_VALIDITY_DAYS) -> None:
             ),
             critical=True,
         )
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(private_key.public_key()),
+            critical=False,
+        )
         .sign(private_key, hashes.SHA256())
     )
 
@@ -218,7 +231,11 @@ def generate_ca(env: str, validity_days: int = CA_VALIDITY_DAYS) -> None:
     print_base64_output(key_path, cert_path, "MEDIATOR_CA")
 
 
-def generate_server(env: str, validity_days: int = SERVER_VALIDITY_DAYS) -> None:
+def generate_server(
+    env: str,
+    validity_days: int = SERVER_VALIDITY_DAYS,
+    extra_sans: list[str] | None = None,
+) -> None:
     """Generate a server certificate for the environment."""
     env_dir = get_env_dir(env)
     ca_dir = env_dir / "ca"
@@ -259,6 +276,11 @@ def generate_server(env: str, validity_days: int = SERVER_VALIDITY_DAYS) -> None
         ]
     )
 
+    # Build SAN list: always include localhost; extra names can be passed in
+    san_names: list[x509.GeneralName] = [x509.DNSName("localhost")]
+    for san in (extra_sans or []):
+        san_names.append(x509.DNSName(san))
+
     now = datetime.datetime.now(datetime.UTC)
     cert = (
         x509.CertificateBuilder()
@@ -291,11 +313,16 @@ def generate_server(env: str, validity_days: int = SERVER_VALIDITY_DAYS) -> None
             critical=False,
         )
         .add_extension(
-            x509.SubjectAlternativeName(
-                [
-                    x509.DNSName("cepro-mediators"),
-                    x509.DNSName("localhost"),
-                ]
+            x509.SubjectAlternativeName(san_names),
+            critical=False,
+        )
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(
+                cast(RSAPublicKey, ca_cert.public_key())
             ),
             critical=False,
         )
@@ -319,6 +346,11 @@ def generate_client(
     validity_days: int = CLIENT_VALIDITY_DAYS,
 ) -> None:
     """Generate a client certificate with embedded identifier."""
+    if not _CLIENT_ID_RE.match(client_id):
+        print(f"ERROR: client_id '{client_id}' contains invalid characters.")
+        print("  Allowed: letters, digits, hyphens and underscores (a-z A-Z 0-9 _ -)")
+        sys.exit(1)
+
     env_dir = get_env_dir(env)
     ca_dir = env_dir / "ca"
     clients_dir = env_dir / "clients"
@@ -336,10 +368,9 @@ def generate_client(
     ca_key = load_key(ca_key_path)
     ca_cert = load_cert(ca_cert_path)
 
-    # Sanitize client_id for filename
-    safe_client_id = client_id.replace("/", "_").replace("\\", "_")
-    key_path = clients_dir / f"{safe_client_id}.key"
-    cert_path = clients_dir / f"{safe_client_id}.cert"
+    # client_id is already validated to [a-zA-Z0-9_-], safe to use directly as filename
+    key_path = clients_dir / f"{client_id}.key"
+    cert_path = clients_dir / f"{client_id}.cert"
 
     print("Generating client certificate:")
     print(f"  Environment: {env}")
@@ -395,6 +426,16 @@ def generate_client(
         )
         .add_extension(
             x509.ExtendedKeyUsage([ExtendedKeyUsageOID.CLIENT_AUTH]),
+            critical=False,
+        )
+        .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(private_key.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(
+                cast(RSAPublicKey, ca_cert.public_key())
+            ),
             critical=False,
         )
         .sign(ca_key, hashes.SHA256())
@@ -459,12 +500,12 @@ def show_cert_info(cert_path_str: str) -> None:
     # Subject info
     print("Subject:")
     for attr in cert.subject:
-        print(f"  {attr.oid._name}: {attr.value}")
+        print(f"  {attr.oid.dotted_string}: {attr.value}")
 
     # Issuer info
     print("\nIssuer:")
     for attr in cert.issuer:
-        print(f"  {attr.oid._name}: {attr.value}")
+        print(f"  {attr.oid.dotted_string}: {attr.value}")
 
     # Validity
     print(f"\nValid from: {cert.not_valid_before_utc}")
@@ -474,7 +515,7 @@ def show_cert_info(cert_path_str: str) -> None:
     # Extensions
     print("\nExtensions:")
     for ext in cert.extensions:
-        print(f"  {ext.oid._name}: {ext.value}")
+        print(f"  {ext.oid.dotted_string}: {ext.value}")
 
     print()
 
@@ -523,6 +564,13 @@ Examples:
         default=SERVER_VALIDITY_DAYS,
         help=f"Validity period in days (default: {SERVER_VALIDITY_DAYS})",
     )
+    server_parser.add_argument(
+        "--san",
+        action="append",
+        dest="sans",
+        metavar="HOSTNAME",
+        help="Additional DNS SAN entries (may be specified multiple times)",
+    )
 
     # client command
     client_parser = subparsers.add_parser(
@@ -562,7 +610,7 @@ Examples:
     if args.command == "init":
         generate_ca(args.env, args.days)
     elif args.command == "server":
-        generate_server(args.env, args.days)
+        generate_server(args.env, args.days, extra_sans=args.sans)
     elif args.command == "client":
         generate_client(args.env, args.client_id, args.ou, args.days)
     elif args.command == "list":
