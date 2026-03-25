@@ -20,6 +20,7 @@ logger = get_logger(__name__, __file__)
 
 LISTEN_PORT = os.environ.get("LISTEN_PORT", "50051")
 MAX_WORKERS = int(os.environ.get("MAX_WORKERS", "30"))
+DISABLE_CERT_AUTH = os.environ.get("DISABLE_CERT_AUTH", "").lower() == "true"
 
 # Auth Certificates and Keys
 server_cert_b64 = os.environ.get("MEDIATOR_SERVER_CERT")
@@ -48,9 +49,13 @@ def serve():
         logger.error(f"Failed to initialize MeterRegistry: {e}")
         sys.exit(1)
 
+    interceptors: list[grpc.ServerInterceptor] = []
+    if not DISABLE_CERT_AUTH:
+        interceptors.append(AuthorizationInterceptor())
+
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=MAX_WORKERS),
-        interceptors=[AuthorizationInterceptor()],
+        interceptors=interceptors,
     )
 
     # Register Services
