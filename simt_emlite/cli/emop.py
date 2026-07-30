@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
 
 if TYPE_CHECKING:
     from rich.text import Text
-    from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
-    from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 
 import argcomplete
 from emop_frame_protocol.emop_message import EmopMessage  # type: ignore[import-untyped]
 
+from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
+from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
 from simt_emlite.mediator.mediator_client_exception import MediatorClientException
 from simt_emlite.mediator.validation import (
     cli_valid_decimal,
@@ -30,12 +30,15 @@ from simt_emlite.util.logging import suppress_noisy_loggers
 
 _console = None
 
+
 def get_console():
     global _console
     if _console is None:
         from rich.console import Console
+
         _console = Console(stderr=True)
     return _console
+
 
 # Configure logging early to avoid being overridden by imports
 logging.basicConfig(level=logging.WARNING)
@@ -87,6 +90,7 @@ def rich_status_circle(color: str) -> str:
 
 def rich_signal_circle(csq: Optional[int]) -> "Text":
     from rich.text import Text
+
     if csq is None or csq < 1:
         color = "rgb(255,0,0)"  # Red
     elif csq > 22:
@@ -101,11 +105,9 @@ def rich_signal_circle(csq: Optional[int]) -> "Text":
         color = "rgb(255,128,0)"  # Orange
     return Text("●", style=color)
 
-if TYPE_CHECKING:
-    class _Base(EmlitePrepayAPI, EmliteMeterManagementAPI):
-        pass
-else:
-    _Base = object  # type: ignore
+
+class _Base(EmlitePrepayAPI, EmliteMeterManagementAPI):
+    pass
 
 
 class EMOPCLI(_Base):
@@ -125,13 +127,6 @@ class EMOPCLI(_Base):
                 err_msg = "emnify_id lookup is not yet supported."
                 get_console().print(err_msg)
                 raise Exception(err_msg)
-
-            # Initialize client (without meter_id, but with resolved address)
-            from simt_emlite.mediator.api_management import EmliteMeterManagementAPI
-            from simt_emlite.mediator.api_prepay import EmlitePrepayAPI
-
-            # Use dynamic base classes since we are in __init__
-            self.__class__.__bases__ = (EmlitePrepayAPI, EmliteMeterManagementAPI)
 
             super(EMOPCLI, self).__init__(
                 mediator_address=MEDIATOR_SERVER,
@@ -178,7 +173,6 @@ class EMOPCLI(_Base):
         # Call inherited meter_list() method
         meters_json = self.meter_list(esco=esco)
 
-
         # Parse the JSON response
         try:
             meters = json.loads(meters_json)
@@ -197,6 +191,7 @@ class EMOPCLI(_Base):
         # Rich table output for human readability
         from rich import box
         from rich.table import Table
+
         table = Table(
             "esco",
             "serial",
@@ -214,7 +209,9 @@ class EMOPCLI(_Base):
                 meter.get("serial", ""),
                 meter.get("name", ""),
                 rich_signal_circle(meter.get("csq")),
-                rich_status_circle("green" if meter.get("health") == "healthy" else "red"),
+                rich_status_circle(
+                    "green" if meter.get("health") == "healthy" else "red"
+                ),
                 meter.get("hardware", ""),
                 meter.get("feeder", ""),
             ]
@@ -321,7 +318,9 @@ def add_arg_serial(parser: argparse.ArgumentParser) -> None:
 
 def args_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("-h", "--help", action="store_true", help="show this help message and exit")
+    parser.add_argument(
+        "-h", "--help", action="store_true", help="show this help message and exit"
+    )
     parser.add_argument(
         "--log-level",
         help="Set logging level [debug, info, warning (default), warn, error, critical]",
@@ -518,7 +517,12 @@ def args_parser() -> argparse.ArgumentParser:
     # 1. Management / Tooling
     management_commands = [
         ("clock_drift", "Show clock time drift for a meter", setup_serial, None),
-        ("env_set", "Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]", setup_env_set, None),
+        (
+            "env_set",
+            "Set CLI environment context [points ~/.simt/emlite.env at ~/.simt/emlite.<env>.env]",
+            setup_env_set,
+            None,
+        ),
         ("env_show", "Show current environment context", setup_no_args, None),
         ("info", "metadata and shadows data for a meter", setup_serial, None),
         ("list", "List all meters with status", setup_list, None),
@@ -529,7 +533,11 @@ def args_parser() -> argparse.ArgumentParser:
     # 2. Core API
     core_commands = [
         ("backlight", "Backlight setting", setup_serial, None),
-        ("backlight_write", "Write backlight setting to meter", setup_backlight_write, """Supported settings:
+        (
+            "backlight_write",
+            "Write backlight setting to meter",
+            setup_backlight_write,
+            """Supported settings:
 
   Single Phase Meters:
 
@@ -546,13 +554,33 @@ def args_parser() -> argparse.ArgumentParser:
 Example usage:
 
 emop -s EML1411222333 backlight_write normal_sp
-"""),
+""",
+        ),
         ("clock_time_read", "Current clock time on the meter", setup_serial, None),
-        ("clock_time_write", "Update clock time with current timestamp", setup_serial, None),
+        (
+            "clock_time_write",
+            "Update clock time with current timestamp",
+            setup_serial,
+            None,
+        ),
         ("csq", "Signal quality", setup_serial, None),
-        ("daylight_savings_correction_enabled", "Is daylight savings correction enabled?", setup_serial, None),
-        ("daylight_savings_correction_enabled_write", "Set daylight_savings_correction flag", setup_daylight_savings_write, None),
-        ("event_log", "Read a block of 10 events from the event log at a given index", setup_event_log, """Read a block of 10 events from the event log at the given index.
+        (
+            "daylight_savings_correction_enabled",
+            "Is daylight savings correction enabled?",
+            setup_serial,
+            None,
+        ),
+        (
+            "daylight_savings_correction_enabled_write",
+            "Set daylight_savings_correction flag",
+            setup_daylight_savings_write,
+            None,
+        ),
+        (
+            "event_log",
+            "Read a block of 10 events from the event log at a given index",
+            setup_event_log,
+            """Read a block of 10 events from the event log at the given index.
 
 The log_idx argument (0-9) determines which block of 10 events to read:
   0 = most recent 10 events
@@ -561,15 +589,35 @@ The log_idx argument (0-9) determines which block of 10 events to read:
 Example usage:
 
   emop -s EML1411222333 event_log 0
-"""),
+""",
+        ),
         ("firmware_version", "Firmware version code", setup_serial, None),
         ("hardware", "Hardware code", setup_serial, None),
-        ("instantaneous_active_power", "Current active power (single or combined)", setup_serial, None),
-        ("instantaneous_active_power_element_a", "Current active power (element a)", setup_serial, None),
-        ("instantaneous_active_power_element_b", "Current active power (element b)", setup_serial, None),
+        (
+            "instantaneous_active_power",
+            "Current active power (single or combined)",
+            setup_serial,
+            None,
+        ),
+        (
+            "instantaneous_active_power_element_a",
+            "Current active power (element a)",
+            setup_serial,
+            None,
+        ),
+        (
+            "instantaneous_active_power_element_b",
+            "Current active power (element b)",
+            setup_serial,
+            None,
+        ),
         ("instantaneous_voltage", "Current voltage", setup_serial, None),
         ("load_switch", "Load switch setting", setup_serial, None),
-        ("load_switch_write", "Write load_switch setting to meter", setup_load_switch_write, """Supported settings:
+        (
+            "load_switch_write",
+            "Write load_switch setting to meter",
+            setup_load_switch_write,
+            """Supported settings:
     normal_button_always
     no_button_prepay_mode
     no_button_credit_mode
@@ -578,16 +626,26 @@ Example usage:
 Example usage:
 
 emop -s EML1411222333 load_switch_write never_button_required
-"""),
-        ("obis_read", "read a payload from an arbitrary obis / object id", setup_obis_read, """Read raw data from an arbitrary OBIS code / object id.
+""",
+        ),
+        (
+            "obis_read",
+            "read a payload from an arbitrary obis / object id",
+            setup_obis_read,
+            """Read raw data from an arbitrary OBIS code / object id.
 
 The obis argument should be an OBIS triplet (e.g. "1.0.0") or object id.
 
 Example usage:
 
   emop -s EML1411222333 obis_read 1.0.0
-"""),
-        ("obis_write", "Write a payload to an arbitrary obis / object id", setup_obis_write, """Write raw data to an arbitrary OBIS code / object id.
+""",
+        ),
+        (
+            "obis_write",
+            "Write a payload to an arbitrary obis / object id",
+            setup_obis_write,
+            """Write raw data to an arbitrary OBIS code / object id.
 
 Arguments:
   obis        - OBIS triplet (e.g. "1.0.0") or object id
@@ -596,47 +654,112 @@ Arguments:
 Example usage:
 
   emop -s EML1411222333 obis_write 1.0.0 01020304
-"""),
-        ("profile_log_1", "Fetch half hourly profile log 1 data for a given date time.", setup_profile_log, """Fetch half hourly data for a given date time.
+""",
+        ),
+        (
+            "profile_log_1",
+            "Fetch half hourly profile log 1 data for a given date time.",
+            setup_profile_log,
+            """Fetch half hourly data for a given date time.
 
 Example usage:
 
   emop -s EML1411222333 profile_log_1 --timestamp 2024-08-21T14:00
-"""),
-        ("profile_log_2", "Fetch half hourly profile log 2 data for a given date time.", setup_profile_log, """Fetch half hourly data for a given date time.
+""",
+        ),
+        (
+            "profile_log_2",
+            "Fetch half hourly profile log 2 data for a given date time.",
+            setup_profile_log,
+            """Fetch half hourly data for a given date time.
 
 Example usage:
 
   emop -s EML1411222333 profile_log_2 --timestamp 2024-08-21T14:00
-"""),
-        ("read", "Current read - will read all available for meter type", setup_serial, None),
+""",
+        ),
+        (
+            "read",
+            "Current read - will read all available for meter type",
+            setup_serial,
+            None,
+        ),
         ("read_element_a", "Current read on element A", setup_serial, None),
         ("read_element_b", "Current read on element B", setup_serial, None),
         ("serial_read", "Meter serial", setup_serial, None),
-        ("three_phase_hardware_configuration", "Three phase hardware configuration", setup_serial, None),
-        ("three_phase_instantaneous_voltage", "Current three phase voltage (if three phase meter)", setup_serial, None),
-        ("three_phase_intervals", "Fetch three phase intervals for given time range.", setup_three_phase_intervals, """Fetch three phase intervals for given time range.
+        (
+            "three_phase_hardware_configuration",
+            "Three phase hardware configuration",
+            setup_serial,
+            None,
+        ),
+        (
+            "three_phase_instantaneous_voltage",
+            "Current three phase voltage (if three phase meter)",
+            setup_serial,
+            None,
+        ),
+        (
+            "three_phase_intervals",
+            "Fetch three phase intervals for given time range.",
+            setup_three_phase_intervals,
+            """Fetch three phase intervals for given time range.
 
 Example usage:
 
 emop -s EML1411222333 three_phase_intervals --start-time "2025-02-20T00:00+00" --end-time "2025-02-21T00:00+00"
-"""),
+""",
+        ),
         ("three_phase_read", "Three phase reading", setup_serial, None),
         ("three_phase_serial", "Three phase meter serial", setup_serial, None),
     ]
 
     # 3. Prepay API
     prepay_commands = [
-        ("prepay_balance", "Current prepay balance (if in prepay mode)", setup_serial, None),
+        (
+            "prepay_balance",
+            "Current prepay balance (if in prepay mode)",
+            setup_serial,
+            None,
+        ),
         ("prepay_enabled", "Is prepay mode enabled?", setup_serial, None),
-        ("prepay_enabled_write", "Set prepay mode flag", setup_prepay_enabled_write, None),
-        ("prepay_no_debt_recovery_when_emergency_credit_enabled", "Is no debt recovery in ecredit mode enabled?", setup_serial, None),
-        ("prepay_no_standing_charge_when_power_fail_enabled", "Is no standing charge when power fail enabled?", setup_serial, None),
-        ("prepay_send_token", "Write a prepay token to the meter to topup the balance", setup_prepay_send_token, None),
-        ("prepay_transaction_count", "Count of prepay transactions (0 indexed so is num tx - 1)", setup_serial, None),
+        (
+            "prepay_enabled_write",
+            "Set prepay mode flag",
+            setup_prepay_enabled_write,
+            None,
+        ),
+        (
+            "prepay_no_debt_recovery_when_emergency_credit_enabled",
+            "Is no debt recovery in ecredit mode enabled?",
+            setup_serial,
+            None,
+        ),
+        (
+            "prepay_no_standing_charge_when_power_fail_enabled",
+            "Is no standing charge when power fail enabled?",
+            setup_serial,
+            None,
+        ),
+        (
+            "prepay_send_token",
+            "Write a prepay token to the meter to topup the balance",
+            setup_prepay_send_token,
+            None,
+        ),
+        (
+            "prepay_transaction_count",
+            "Count of prepay transactions (0 indexed so is num tx - 1)",
+            setup_serial,
+            None,
+        ),
         ("tariffs_active_read", "Current tariff settings", setup_serial, None),
         ("tariffs_future_read", "Future tariff settings", setup_serial, None),
-        ("tariffs_future_write", "Write future tariffs to meter", setup_tariffs_future_write, """Write future dated tariffs and emergency credit properties into the meter.
+        (
+            "tariffs_future_write",
+            "Write future tariffs to meter",
+            setup_tariffs_future_write,
+            """Write future dated tariffs and emergency credit properties into the meter.
 
 Example usage:
 
@@ -647,9 +770,20 @@ emop -s EML1411222333 tariffs_future_write \\
         --ecredit-availability "10.0" \\
         --debt-recovery-rate "0.25" \\
         --emergency-credit "15.00"
-"""),
-        ("tariffs_time_switches_element_a_or_single_read", "Time switches for element A", setup_serial, None),
-        ("tariffs_time_switches_element_b_read", "Time switches for element B", setup_serial, None),
+""",
+        ),
+        (
+            "tariffs_time_switches_element_a_or_single_read",
+            "Time switches for element A",
+            setup_serial,
+            None,
+        ),
+        (
+            "tariffs_time_switches_element_b_read",
+            "Time switches for element B",
+            setup_serial,
+            None,
+        ),
     ]
 
     # Define command groups for help display
@@ -667,7 +801,9 @@ emop -s EML1411222333 tariffs_future_write \\
             cmd,
             help=help_text,
             description=description or help_text,
-            formatter_class=argparse.RawDescriptionHelpFormatter if description else argparse.HelpFormatter,
+            formatter_class=argparse.RawDescriptionHelpFormatter
+            if description
+            else argparse.HelpFormatter,
         )
         setup_func(p)
 
@@ -756,12 +892,18 @@ def print_grouped_help(parser: argparse.ArgumentParser) -> None:
     print("options:")
     print("  -h, --help            show this help message and exit")
     print("  --log-level LOG_LEVEL")
-    print("                        Set logging level [debug, info, warning (default), warn, error, critical]")
+    print(
+        "                        Set logging level [debug, info, warning (default), warn, error, critical]"
+    )
     print("  --verbose             Alias for '--log-level debug'")
     print("  -s S                  Serial")
-    print("  --serials SERIALS     Run command for all serials in given comma delimited list")
+    print(
+        "  --serials SERIALS     Run command for all serials in given comma delimited list"
+    )
     print("  --serials-file SERIALS_FILE")
-    print("                        Run command for all serials in given file that has a serial per line.")
+    print(
+        "                        Run command for all serials in given file that has a serial per line."
+    )
 
 
 def main() -> None:
