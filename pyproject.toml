@@ -1,6 +1,6 @@
 [project]
 name = "simt-emlite"
-version = "1.2.12"
+version = "1.2.13"
 description = "API and CLI for communicating with the Emlite meters via EMOP"
 authors = [{ name = "Chris Hatch", email = "chris@simtricity.com" }]
 requires-python = ">=3.13,<4.0"
@@ -64,3 +64,13 @@ ignore_errors = true
 [build-system]
 requires = ["setuptools>=61.0", "wheel", "cython"]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+# Smoke test each built wheel before it can be published: start emop and print its
+# version. This would have caught the 1.2.6-1.2.12 start-up crash (__bases__ swap on
+# compiled classes). MEDIATOR_SERVER lets emop start without ~/.simt/emlite.env.
+# Tested on cp313 macOS + manylinux only: cp314 cannot install (emop-frame-protocol has
+# no cp314 wheels) and a failure on any platform blocks the whole upload.
+test-command = "emop version"
+test-environment = { MEDIATOR_SERVER = "localhost:50051" }
+test-skip = "cp314* *-win* *-musllinux*"
